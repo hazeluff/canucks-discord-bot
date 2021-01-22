@@ -35,7 +35,7 @@ public class GoalsCommand extends Command {
 			return;
 		}
 
-		TextChannel channel = (TextChannel) getNHLBot().getDiscordManager().block(event.getMessage().getChannel());
+		TextChannel channel = getChannel(event);
 		Game game = getNHLBot().getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			sendMessage(event, getRunInGameDayChannelsMessage(getGuild(event), preferredTeams));

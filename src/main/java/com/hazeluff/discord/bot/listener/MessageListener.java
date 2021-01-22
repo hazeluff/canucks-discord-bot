@@ -28,6 +28,7 @@ import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
+import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.utils.UserThrottler;
 import com.hazeluff.discord.utils.Utils;
 
@@ -68,6 +69,7 @@ public class MessageListener extends EventListener {
 		commands.add(new StatsCommand(nhlBot));
 		commands.add(new ThreadsCommand(nhlBot));
 		commands.add(new UnsubscribeCommand(nhlBot));
+		commands.add(new WordcloudCommand(nhlBot));
 
 		topics = new ArrayList<>();
 		topics.add(new FriendlyTopic(nhlBot));

@@ -1,5 +1,6 @@
 package com.hazeluff.discord.bot.command;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -11,8 +12,10 @@ import com.hazeluff.discord.nhl.Team;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.rest.util.Permission;
 
 /**
  * Subscribes guilds to a team.
@@ -44,9 +47,11 @@ public class SubscribeCommand extends Command {
 
 	@Override
 	public void execute(MessageCreateEvent event, CommandArguments command) {
-		Guild guild = getNHLBot().getDiscordManager().block(event.getGuild());
-
-		if (!hasSubscribePermissions(guild, event.getMessage())) {
+		Guild guild = getGuild(event);
+		Message message = event.getMessage();
+		Member user = getMessageAuthor(message);
+		if (!isOwner(guild, user)
+				&& !hasPermissions(guild, user, Arrays.asList(Permission.MANAGE_CHANNELS, Permission.ADMINISTRATOR))) {
 			sendMessage(event, MUST_HAVE_PERMISSIONS_MESSAGE);
 			return;
 		}

@@ -133,30 +133,15 @@ public abstract class Command {
 				", ");
 	}
 
-	/**
-	 * Determines if the author of the message has permissions to subscribe the
-	 * guild to a team. The author of the message must either have the ADMIN role
-	 * permission or be the owner of the guild.
-	 * 
-	 * @param message
-	 *            message the user sent. Used to get role permissions and owner of
-	 *            guild.
-	 * @return true, if user has permissions<br>
-	 *         false, otherwise
-	 */
-	boolean hasSubscribePermissions(Guild guild, Message message) {
-		Member user = getMessageAuthor(message);
+	boolean hasPermissions(Guild guild, Member user, List<Permission> permissions) {
 		if (user == null) {
 			return false;
 		}
-		PermissionSet permissions = getPermissions(user);
-		if (permissions == null) {
+		PermissionSet permissionsSet = getPermissions(user);
+		if (permissionsSet == null) {
 			return false;
 		}
-		boolean hasAdminRole = permissions.contains(Permission.ADMINISTRATOR);
-		boolean hasManageChannelsRole = permissions.contains(Permission.MANAGE_CHANNELS);
-		boolean owner = isOwner(guild, user);
-		return hasAdminRole || hasManageChannelsRole || owner;
+		return permissions.stream().allMatch(permissionsSet::contains);
 	}
 
 	Member getMessageAuthor(Message message) {
@@ -224,6 +209,10 @@ public abstract class Command {
 
 	protected Guild getGuild(MessageCreateEvent event) {
 		return nhlBot.getDiscordManager().block(event.getGuild());
+	}
+
+	protected TextChannel getChannel(MessageCreateEvent event) {
+		return (TextChannel) getNHLBot().getDiscordManager().block(event.getMessage().getChannel());
 	}
 
 	NHLBot getNHLBot() {

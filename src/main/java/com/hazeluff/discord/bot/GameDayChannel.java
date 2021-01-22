@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
+import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.database.pole.PollMessage;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Prediction;
@@ -89,6 +90,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final Guild guild;
 
 	private TextChannel channel;
+
+	private GuildPreferences preferences;
 
 	private List<GameEvent> events = new ArrayList<>();
 	private int eventsRetries = 0;
@@ -202,9 +205,11 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				}
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
 			}
+			sendWordcloud();
 		} else {
 			LOGGER.info("Game is already finished");
 		}
+
 		// Deregister processing on ReactionListener
 		unregisterFromListener();
 		LOGGER.info("Thread Completed");
@@ -216,12 +221,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	void createChannel() {
 		String channelName = getChannelName();
 		Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
-		GuildPreferences preferences = nhlBot.getPersistentData()
-				.getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
+		preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong());
 
 		Category category = getCategory(guild, GameDayChannelsManager.GAME_DAY_CHANNEL_CATEGORY_NAME);
-
 		if (!nhlBot.getDiscordManager().getTextChannels(guild).stream().anyMatch(channelMatcher)) {
 			Consumer<TextChannelCreateSpec> channelSpec = spec -> {
 				spec.setName(channelName);
@@ -232,8 +234,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			};
 			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, channelSpec);
 			if (channel != null) {
-				ZoneId timeZone = preferences.getTimeZone();
-				Message message = sendAndGetMessage(getDetailsMessage(timeZone));
+				preferences.getTimeZone();
+				Message message = sendAndGetMessage(getDetailsMessage(preferences.getTimeZone()));
 				nhlBot.getDiscordManager().pinMessage(message);
 			}
 		} else {
@@ -517,9 +519,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	void sendStartOfGameMessage() {
 		LOGGER.info("Sending start message.");
-		GuildPreferences preferences = nhlBot.getPersistentData()
-				.getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
 		sendMessage("Game is about to start! " + preferences.getCheer() +
 				"\nRemember: Be Kind, Be Calm, Be Safe");
 	}
@@ -560,21 +559,17 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + getScoreMessage() + "\n"
 				+ "Goals Scored:\n" + getGoalsMessage();
 
-		GuildPreferences preferences = nhlBot.getPersistentData()
-				.getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
 		List<Game> nextGames = preferences.getTeams().stream()
 				.map(team -> nhlBot.getGameScheduler().getNextGame(team))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 
 		if (!nextGames.isEmpty()) {
-			ZoneId timeZone = preferences.getTimeZone();
 			if (nextGames.size() > 1) {
 
 			} else {
 				message += "\nThe next game is: "
-						+ getGameDayChannel(nextGames.get(0)).getDetailsMessage(timeZone);
+						+ getGameDayChannel(nextGames.get(0)).getDetailsMessage(preferences.getTimeZone());
 			}
 		}
 		return message;
@@ -977,6 +972,17 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		subscribe(message.pin());
 
 		return message;
+	}
+
+	private void sendWordcloud() {
+		new Thread(() -> {
+			Message generatingMessage = sendAndGetMessage("Generating Wordcloud...");
+
+			String title = "Wordcloud for " + getDetailsMessage(preferences.getTimeZone());
+			List<String> messages = nhlBot.getDiscordManager().block(
+					channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
+			nhlBot.getDiscordManager().sendMessage(channel, new WordcloudCommand(nhlBot).getReply(title, messages));
+		}).start();
 	}
 
 	boolean isBotSelf(User user) {

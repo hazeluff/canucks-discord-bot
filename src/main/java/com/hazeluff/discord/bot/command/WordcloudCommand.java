@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
 import com.hazeluff.discord.utils.wordcloud.Normalizers;
@@ -41,6 +42,7 @@ public class WordcloudCommand extends Command {
 	@Override
 	public void execute(MessageCreateEvent event, CommandArguments command) {
 		Guild guild = getGuild(event);
+		TextChannel channel = getChannel(event);
 		Message message = event.getMessage();
 		Member user = getMessageAuthor(message);
 		if (!isOwner(guild, user)
@@ -48,19 +50,27 @@ public class WordcloudCommand extends Command {
 			return;
 		}
 
-		TextChannel channel = getChannel(event);
+		Game game = getNHLBot().getGameScheduler().getGameByChannelName(channel.getName());
+		if (game == null) {
+			return;
+		}
+
 		List<String> messages = getNHLBot().getDiscordManager().block(
 				channel.getMessagesBefore(event.getMessage().getId()).map(Message::getContent));
 		if(command.getArguments().isEmpty()) {
-			sendMessage(event, getReply(messages, 20, 200));
+			sendMessage(event, getReply("Wordcloud", messages));
 		} else {
-			sendMessage(event, getReply(messages, 
+			sendMessage(event, getReply("Wordcloud", messages, 
 					Integer.parseInt(command.getArguments().get(0)), 
 					Integer.parseInt(command.getArguments().get(1))));			
 		}
 	}
+
+	public Consumer<MessageCreateSpec> getReply(String title, List<String> messages) {
+		return getReply(title, messages, 20, 200);
+	}
 	
-	public Consumer<MessageCreateSpec> getReply(List<String> messages, int minFont, int maxFont) {
+	public Consumer<MessageCreateSpec> getReply(String title, List<String> messages, int minFont, int maxFont) {
 		
 		// Create WordCloud
 		final FrequencyAnalyzer frequencyAnalyzer = new FrequencyAnalyzer();
@@ -89,7 +99,7 @@ public class WordcloudCommand extends Command {
 		// Create Message
 		String fileName = "wordcloud.png";
 		InputStream fileStream = new ByteArrayInputStream(wordcloudStream.toByteArray());
-		return spec -> spec.addFile(fileName, fileStream).setContent("test");
+		return spec -> spec.addFile(fileName, fileStream).setContent(title);
 	}
 
 	@Override

@@ -12,7 +12,7 @@ public class Colors {
 		public static final Color GRAY = new Color(153, 153, 154);
 		public static final Color WHITE = new Color(255, 255, 255);
 		
-		public static final ColorPalette WORDCLOUD_PALLETE = new ColorPalette(BLUE, GREEN, WHITE);
-		public static final Color WORDCLOUD_BACKGROUND = GRAY;
+		public static final ColorPalette WORDCLOUD_PALLETE = new ColorPalette(GREEN, WHITE, GRAY);
+		public static final Color WORDCLOUD_BACKGROUND = BLUE;
 	}
 }

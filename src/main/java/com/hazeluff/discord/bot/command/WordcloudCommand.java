@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.ResourceLoader;
 import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
@@ -19,6 +20,8 @@ import com.kennycason.kumo.CollisionMode;
 import com.kennycason.kumo.WordCloud;
 import com.kennycason.kumo.WordFrequency;
 import com.kennycason.kumo.bg.RectangleBackground;
+import com.kennycason.kumo.font.KumoFont;
+import com.kennycason.kumo.font.scale.FontScalar;
 import com.kennycason.kumo.font.scale.LinearFontScalar;
 import com.kennycason.kumo.nlp.FrequencyAnalyzer;
 import com.kennycason.kumo.nlp.normalize.TrimToEmptyNormalizer;
@@ -60,10 +63,21 @@ public class WordcloudCommand extends Command {
 		ZoneId timeZone = getNHLBot().getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong()).getTimeZone();
 		String title = "Wordcloud for " + GameDayChannel.getDetailsMessage(game, timeZone);
-		sendWordcloud(timeZone, channel, title);
+		
+		if(command.getArguments().isEmpty()) {
+			sendWordcloud(timeZone, channel, title);			
+		} else {
+			sendWordcloud(timeZone, channel, title, 
+					new LinearFontScalar(
+							Integer.parseInt(command.getArguments().get(0)),
+							Integer.parseInt(command.getArguments().get(1))
+					)
+			);
+		}
 	}
 
-	public void sendWordcloud(ZoneId timeZone, TextChannel channel, String title) {
+	public void sendWordcloud(ZoneId timeZone, TextChannel channel, String title, FontScalar fontScaler) {
+
 		new Thread(() -> {
 			Message generatingMessage = getNHLBot().getDiscordManager()
 					.sendAndGetMessage(channel, "Generating Wordcloud...");
@@ -71,15 +85,15 @@ public class WordcloudCommand extends Command {
 			List<String> messages = getNHLBot().getDiscordManager()
 					.block(channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
 
-			sendMessage(channel, getReply(title, messages));
+			sendMessage(channel, getReply(title, messages, fontScaler));
 		}).start();
 	}
 
-	public Consumer<MessageCreateSpec> getReply(String title, List<String> messages) {
-		return getReply(title, messages, 20, 200);
+	public void sendWordcloud(ZoneId timeZone, TextChannel channel, String title) {
+		sendWordcloud(timeZone, channel, title, new LinearFontScalar(20, 140));
 	}
 	
-	public Consumer<MessageCreateSpec> getReply(String title, List<String> messages, int minFont, int maxFont) {
+	private Consumer<MessageCreateSpec> getReply(String title, List<String> messages, FontScalar fontScaler) {
 		
 		// Create WordCloud
 		final FrequencyAnalyzer frequencyAnalyzer = new FrequencyAnalyzer();
@@ -100,7 +114,8 @@ public class WordcloudCommand extends Command {
 		wordCloud.setBackground(new RectangleBackground(dimension));
 		wordCloud.setBackgroundColor(Colors.Main.WORDCLOUD_BACKGROUND);
 		wordCloud.setColorPalette(Colors.Main.WORDCLOUD_PALLETE);
-		wordCloud.setFontScalar(new LinearFontScalar(minFont, maxFont));
+		wordCloud.setFontScalar(fontScaler);
+		wordCloud.setKumoFont(new KumoFont(ResourceLoader.get().getComicSansMSFont().getStream()));
 		wordCloud.build(wordFrequencies);
 		ByteArrayOutputStream wordcloudStream = new ByteArrayOutputStream();
 		wordCloud.writeToStreamAsPNG(wordcloudStream);

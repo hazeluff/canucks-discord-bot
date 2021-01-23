@@ -47,4 +47,8 @@ public class ResourceLoader {
 	public Resource getNHLBotAvatar() {
 		return getResource("/canucksbot.png");
 	}
+
+	public Resource getComicSansMSFont() {
+		return getResource("/ComicSansMS3.ttf");
+	}
 }

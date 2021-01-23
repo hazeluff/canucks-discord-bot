@@ -4,10 +4,12 @@ import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.utils.Colors;
@@ -55,15 +57,22 @@ public class WordcloudCommand extends Command {
 			return;
 		}
 
-		List<String> messages = getNHLBot().getDiscordManager().block(
-				channel.getMessagesBefore(event.getMessage().getId()).map(Message::getContent));
-		if(command.getArguments().isEmpty()) {
-			sendMessage(event, getReply("Wordcloud", messages));
-		} else {
-			sendMessage(event, getReply("Wordcloud", messages, 
-					Integer.parseInt(command.getArguments().get(0)), 
-					Integer.parseInt(command.getArguments().get(1))));			
-		}
+		ZoneId timeZone = getNHLBot().getPersistentData().getPreferencesData()
+				.getGuildPreferences(guild.getId().asLong()).getTimeZone();
+		String title = "Wordcloud for " + GameDayChannel.getDetailsMessage(game, timeZone);
+		sendWordcloud(timeZone, channel, title);
+	}
+
+	public void sendWordcloud(ZoneId timeZone, TextChannel channel, String title) {
+		new Thread(() -> {
+			Message generatingMessage = getNHLBot().getDiscordManager()
+					.sendAndGetMessage(channel, "Generating Wordcloud...");
+
+			List<String> messages = getNHLBot().getDiscordManager()
+					.block(channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
+
+			sendMessage(channel, getReply(title, messages));
+		}).start();
 	}
 
 	public Consumer<MessageCreateSpec> getReply(String title, List<String> messages) {
@@ -77,10 +86,10 @@ public class WordcloudCommand extends Command {
 		frequencyAnalyzer.setNormalizer(new TrimToEmptyNormalizer());
 		frequencyAnalyzer.addNormalizer(new Normalizers.EmoteNormalizer());
 		frequencyAnalyzer.setMinWordLength(2);
-		frequencyAnalyzer.addFilter(new Filters.Urls());
+		frequencyAnalyzer.addFilter(new Filters.OnlyAllowedChars());
+		frequencyAnalyzer.addFilter(new Filters.Stopwords());
 		frequencyAnalyzer.addFilter(new Filters.Commands());
 		frequencyAnalyzer.addFilter(new Filters.UserTags());
-		frequencyAnalyzer.addFilter(new Filters.OnlyAllowedChars());
 		frequencyAnalyzer.setWordFrequenciesToReturn(MAX_WORDS);
 		List<WordFrequency> wordFrequencies = frequencyAnalyzer.load(messages);
 		

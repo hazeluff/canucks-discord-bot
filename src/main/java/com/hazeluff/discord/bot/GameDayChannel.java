@@ -975,14 +975,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private void sendWordcloud() {
-		new Thread(() -> {
-			Message generatingMessage = sendAndGetMessage("Generating Wordcloud...");
-
-			String title = "Wordcloud for " + getDetailsMessage(preferences.getTimeZone());
-			List<String> messages = nhlBot.getDiscordManager().block(
-					channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
-			nhlBot.getDiscordManager().sendMessage(channel, new WordcloudCommand(nhlBot).getReply(title, messages));
-		}).start();
+		ZoneId timeZone = preferences.getTimeZone();
+		String title = "Wordcloud for " + getDetailsMessage(timeZone);
+		new WordcloudCommand(nhlBot).sendWordcloud(timeZone, channel, title);
 	}
 
 	boolean isBotSelf(User user) {

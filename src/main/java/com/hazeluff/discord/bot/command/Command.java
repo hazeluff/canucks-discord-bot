@@ -75,6 +75,10 @@ public abstract class Command {
 
 	protected void sendMessage(MessageCreateEvent event, Consumer<MessageCreateSpec> spec) {
 		TextChannel channel = (TextChannel) nhlBot.getDiscordManager().block(event.getMessage().getChannel());
+		sendMessage(channel, spec);
+	}
+
+	protected void sendMessage(TextChannel channel, Consumer<MessageCreateSpec> spec) {
 		nhlBot.getDiscordManager().sendMessage(channel, spec);
 	}
 

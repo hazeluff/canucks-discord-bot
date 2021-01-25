@@ -294,6 +294,31 @@ public class DiscordManager {
 
 		subscribe(guild.createTextChannel(spec -> spec.setName(channelName)));
 	}
+	
+	public TextChannel getTextChannel(Guild guild, String channelName) {
+
+		if (guild == null) {
+			logNullArgumentsStackTrace("`guild` was null.");
+			return null;
+		}
+
+		if (channelName == null) {
+			logNullArgumentsStackTrace("`spec` was null.");
+			return null;
+		}
+		
+		return block(guild.getChannels()
+				.filter(TextChannel.class::isInstance)
+				.filter(txtchnl -> txtchnl.getName().equals(channelName))
+				.take(1)
+				.cast(TextChannel.class)
+				.next());
+	}
+
+	public TextChannel getOrCreateTextChannel(Guild guild, String channelName) {
+		TextChannel channel = getTextChannel(guild, channelName);
+		return channel != null ? channel : createAndGetChannel(guild, channelName);
+	}
 
 	/**
 	 * Pins the message to the specified channels
@@ -358,6 +383,11 @@ public class DiscordManager {
 				.take(1)
 				.cast(Category.class)
 				.next());
+	}
+
+	public Category getOrCreateCategory(Guild guild, String categoryName) {
+		Category category = getCategory(guild, categoryName);
+		return category != null ? category : createCategory(guild, categoryName);
 	}
 
 	/**

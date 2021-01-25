@@ -25,7 +25,7 @@ public class GoalsCommand extends Command {
 
 	@Override
 	public void execute(MessageCreateEvent event, CommandArguments command) {
-		List<Team> preferredTeams = getNHLBot().getPersistentData()
+		List<Team> preferredTeams = nhlBot.getPersistentData()
 				.getPreferencesData()
 				.getGuildPreferences(event.getGuildId().get().asLong())
 				.getTeams();
@@ -36,7 +36,7 @@ public class GoalsCommand extends Command {
 		}
 
 		TextChannel channel = getChannel(event);
-		Game game = getNHLBot().getGameScheduler().getGameByChannelName(channel.getName());
+		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			sendMessage(event, getRunInGameDayChannelsMessage(getGuild(event), preferredTeams));
 			return;

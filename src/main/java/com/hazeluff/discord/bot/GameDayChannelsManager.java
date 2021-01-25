@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.GameTracker;
@@ -24,8 +25,6 @@ import discord4j.core.object.entity.channel.TextChannel;
  */
 public class GameDayChannelsManager extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannelsManager.class);
-
-	static final String GAME_DAY_CHANNEL_CATEGORY_NAME = "Game Day Channels";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
@@ -359,7 +358,7 @@ public class GameDayChannelsManager extends Thread {
 
 	public boolean isInGameDayCategory(TextChannel channel) {
 		Category category = nhlBot.getDiscordManager().getCategory(channel);
-		return category == null ? false : category.getName().equalsIgnoreCase(GAME_DAY_CHANNEL_CATEGORY_NAME);
+		return category == null ? false : category.getName().equalsIgnoreCase(GDCCategoryManager.CATEGORY_NAME);
 	}
 
 	/**

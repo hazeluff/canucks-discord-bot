@@ -223,7 +223,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
 		preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong());
 
-		Category category = getCategory(guild, GameDayChannelsManager.GAME_DAY_CHANNEL_CATEGORY_NAME);
+		Category category = nhlBot.getGdcCategoryManager().get(guild);
 		if (!nhlBot.getDiscordManager().getTextChannels(guild).stream().anyMatch(channelMatcher)) {
 			Consumer<TextChannelCreateSpec> channelSpec = spec -> {
 				spec.setName(channelName);
@@ -249,24 +249,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				nhlBot.getDiscordManager().moveChannel(category, channel);
 			}
 		}
-	}
-
-	/**
-	 * Gets the existing category in the guild. If the category does not already
-	 * exist, it will be created.
-	 * 
-	 * @param guild
-	 *            guild to create the category in
-	 * @param categoryName
-	 *            name of the category
-	 * @return the {@link ICategory}
-	 */
-	Category getCategory(Guild guild, String categoryName) {
-		Category category = nhlBot.getDiscordManager().getCategory(guild, categoryName);
-		if (category == null) {
-			category = nhlBot.getDiscordManager().createCategory(guild, categoryName);
-		}
-		return category;
 	}
 
 	/**
@@ -975,9 +957,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private void sendWordcloud() {
-		ZoneId timeZone = preferences.getTimeZone();
-		String title = "Wordcloud for " + getDetailsMessage(timeZone);
-		new WordcloudCommand(nhlBot).sendWordcloud(timeZone, channel, title);
+		String title = getDetailsMessage(preferences.getTimeZone());
+		new WordcloudCommand(nhlBot).sendWordcloud(channel, title);
 	}
 
 	boolean isBotSelf(User user) {

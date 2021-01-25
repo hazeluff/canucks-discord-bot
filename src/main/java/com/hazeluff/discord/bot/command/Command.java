@@ -38,7 +38,7 @@ public abstract class Command {
 	static final Consumer<MessageCreateSpec> RUN_IN_SERVER_CHANNEL_MESSAGE = spec -> spec
 			.setContent("This can only be run on a server's 'Game Day Channel'.");
 	
-	private final NHLBot nhlBot;
+	protected final NHLBot nhlBot;
 
 	Command(NHLBot nhlBot) {
 		this.nhlBot = nhlBot;
@@ -216,10 +216,6 @@ public abstract class Command {
 	}
 
 	protected TextChannel getChannel(MessageCreateEvent event) {
-		return (TextChannel) getNHLBot().getDiscordManager().block(event.getMessage().getChannel());
-	}
-
-	NHLBot getNHLBot() {
-		return nhlBot;
+		return (TextChannel) nhlBot.getDiscordManager().block(event.getMessage().getChannel());
 	}
 }

@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
+import com.hazeluff.discord.bot.channel.GDCCategoryManager;
+import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.listener.MessageListener;
@@ -47,16 +49,16 @@ public class NHLBot extends Thread {
 	private GameScheduler gameScheduler;
 	private GameDayChannelsManager gameDayChannelsManager;
 
-	private final MessageListener messageListener;
-	private final ReactionListener reactionListener;
+	private final MessageListener messageListener = new MessageListener(this);
+	private final ReactionListener reactionListener = new ReactionListener(this);
+
+	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
+	private final WordcloudChannelManager wcChannelManager = new WordcloudChannelManager(this, gdcCategoryManager);
 
 	private NHLBot() {
 		persistantData = null;
 		gameScheduler = null;
 		gameDayChannelsManager = null;
-
-		this.messageListener = new MessageListener(this);
-		this.reactionListener = new ReactionListener(this);
 	}
 
 	NHLBot(DiscordManager discordManager, PersistentData preferencesManager,
@@ -65,8 +67,6 @@ public class NHLBot extends Thread {
 		this.persistantData = preferencesManager;
 		this.gameScheduler = gameScheduler;
 		this.gameDayChannelsManager = gameDayChannelsManager;
-		this.messageListener = new MessageListener(this);
-		this.reactionListener = new ReactionListener(this);
 	}
 
 	public static NHLBot create(GameScheduler gameScheduler, String botToken) {
@@ -94,8 +94,14 @@ public class NHLBot extends Thread {
 
 		LOGGER.info("NHLBot Started. id [" + nhlBot.getDiscordManager().getId() + "]");
 
+		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds();
+
 		// Start the Game Day Channels Manager
 		nhlBot.initGameDayChannelsManager();
+
+		// Init Static Entities (They must be init in order!!!)
+		nhlBot.gdcCategoryManager.init(guilds);
+		nhlBot.wcChannelManager.init(guilds);
 
 		// Manage WelcomeChannels
 		LOGGER.info("Posting update to Discord channel.");
@@ -103,9 +109,9 @@ public class NHLBot extends Thread {
 		nhlBot.getDiscordManager().getClient().getGuilds()
 				.filter(guild -> supportGuilds.contains(guild.getId().asLong()))
 				.map(Guild::getChannels)
+				.filter(TextChannel.class::isInstance)
 				.flatMap(channels -> channels.filter(channel -> 
 						channel.getName().equals("welcome")).take(1))
-				.filter(TextChannel.class::isInstance)
 				.cast(TextChannel.class)
 				.subscribe(
 						channel -> WelcomeChannel.create(nhlBot, channel),
@@ -215,6 +221,14 @@ public class NHLBot extends Thread {
 
 	public ReactionListener getReactionListener() {
 		return reactionListener;
+	}
+
+	public GDCCategoryManager getGdcCategoryManager() {
+		return gdcCategoryManager;
+	}
+
+	public WordcloudChannelManager getWordcloudChannelManager() {
+		return wcChannelManager;
 	}
 
 	/**

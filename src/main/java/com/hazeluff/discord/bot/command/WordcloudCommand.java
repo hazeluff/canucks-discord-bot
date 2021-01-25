@@ -55,19 +55,19 @@ public class WordcloudCommand extends Command {
 			return;
 		}
 
-		Game game = getNHLBot().getGameScheduler().getGameByChannelName(channel.getName());
+		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			return;
 		}
 
-		ZoneId timeZone = getNHLBot().getPersistentData().getPreferencesData()
+		ZoneId timeZone = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong()).getTimeZone();
-		String title = "Wordcloud for " + GameDayChannel.getDetailsMessage(game, timeZone);
+		String title = GameDayChannel.getDetailsMessage(game, timeZone);
 		
 		if(command.getArguments().isEmpty()) {
-			sendWordcloud(timeZone, channel, title);			
+			sendWordcloud(channel, title);			
 		} else {
-			sendWordcloud(timeZone, channel, title, 
+			sendWordcloud(channel, title, 
 					new LinearFontScalar(
 							Integer.parseInt(command.getArguments().get(0)),
 							Integer.parseInt(command.getArguments().get(1))
@@ -76,21 +76,30 @@ public class WordcloudCommand extends Command {
 		}
 	}
 
-	public void sendWordcloud(ZoneId timeZone, TextChannel channel, String title, FontScalar fontScaler) {
-
-		new Thread(() -> {
-			Message generatingMessage = getNHLBot().getDiscordManager()
-					.sendAndGetMessage(channel, "Generating Wordcloud...");
-
-			List<String> messages = getNHLBot().getDiscordManager()
-					.block(channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
-
-			sendMessage(channel, getReply(title, messages, fontScaler));
-		}).start();
+	public void sendWordcloud(TextChannel channel, String title) {
+		sendWordcloud(channel, title, new LinearFontScalar(20, 140));
 	}
 
-	public void sendWordcloud(ZoneId timeZone, TextChannel channel, String title) {
-		sendWordcloud(timeZone, channel, title, new LinearFontScalar(20, 140));
+	/**
+	 * Generates a wordcloud for the given channel and submits it to #wordcloud.
+	 * 
+	 * @param timeZone
+	 * @param channel
+	 *            channel to analyze
+	 * @param title
+	 * @param fontScaler
+	 */
+	public void sendWordcloud(TextChannel channel, String title, FontScalar fontScaler) {
+		new Thread(() -> {
+			Message generatingMessage = nhlBot.getDiscordManager()
+					.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
+
+			List<String> messages = nhlBot.getDiscordManager()
+					.block(channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
+
+			Guild guild = nhlBot.getDiscordManager().block(channel.getGuild());
+			sendMessage(nhlBot.getWordcloudChannelManager().get(guild), getReply(title, messages, fontScaler));
+		}).start();
 	}
 	
 	private Consumer<MessageCreateSpec> getReply(String title, List<String> messages, FontScalar fontScaler) {

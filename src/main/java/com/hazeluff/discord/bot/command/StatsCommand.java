@@ -45,7 +45,7 @@ public class StatsCommand extends Command {
 
 	public String buildReplyString() {
 		String reply = "No guilds found...";
-		List<Guild> guilds = getNHLBot().getDiscordManager().getGuilds();
+		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds();
 		if (guilds != null) {
 			int numGuilds = guilds.size() - excludedGuilds.size();
 			int numUsers = 0;

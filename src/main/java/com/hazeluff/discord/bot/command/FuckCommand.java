@@ -54,7 +54,7 @@ public class FuckCommand extends Command {
 		}
 
 		if (command.getArguments().get(0).startsWith("<@") && command.getArguments().get(0).endsWith(">")) {
-			getNHLBot().getDiscordManager().deleteMessage(event.getMessage());
+			nhlBot.getDiscordManager().deleteMessage(event.getMessage());
 			sendMessage(event, buildDontAtReply(event.getMessage()));
 			return;
 		}
@@ -105,10 +105,10 @@ public class FuckCommand extends Command {
 	}
 	
 	private Map<String, List<String>> loadResponsesFromCollection() {
-		return getNHLBot().getPersistentData().getFucksData().getFucks();
+		return nhlBot.getPersistentData().getFucksData().getFucks();
 	}
 
 	void saveToCollection(String subject, List<String> subjectResponses) {
-		getNHLBot().getPersistentData().getFucksData().saveToFuckSubjectResponses(subject, subjectResponses);
+		nhlBot.getPersistentData().getFucksData().saveToFuckSubjectResponses(subject, subjectResponses);
 	}
 }

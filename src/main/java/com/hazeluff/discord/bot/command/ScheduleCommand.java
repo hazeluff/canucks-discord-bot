@@ -35,7 +35,7 @@ public class ScheduleCommand extends Command {
 	@Override
 	public void execute(MessageCreateEvent event, CommandArguments command) {
 		if (command.getArguments().isEmpty()) {
-			List<Team> preferredTeams = getNHLBot()
+			List<Team> preferredTeams = nhlBot
 					.getPersistentData()
 					.getPreferencesData()
 					.getGuildPreferences(event.getGuildId().get().asLong())
@@ -68,7 +68,7 @@ public class ScheduleCommand extends Command {
 	Consumer<MessageCreateSpec> getScheduleMessage(Team team) {
 		String message = "Here is the schedule for the " + team.getFullName();
 
-		GameScheduler gameScheduler = getNHLBot().getGameScheduler();
+		GameScheduler gameScheduler = nhlBot.getGameScheduler();
 		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
 
 		for (int i = 1; i >= 0; i--) {
@@ -110,7 +110,7 @@ public class ScheduleCommand extends Command {
 		String message = "Here is the schedule for all your teams. "
 				+ "Use `?schedule [team] to get more detailed schedules.";
 
-		GameScheduler gameScheduler = getNHLBot().getGameScheduler();
+		GameScheduler gameScheduler = nhlBot.getGameScheduler();
 		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
 		for (Team team : teams) {
 			Game currentGame = gameScheduler.getCurrentGame(team);

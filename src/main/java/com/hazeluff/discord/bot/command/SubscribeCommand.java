@@ -74,14 +74,14 @@ public class SubscribeCommand extends Command {
 		Team team = Team.parse(command.getArguments().get(0));
 		// Subscribe guild
 		long guildId = event.getGuildId().get().asLong();
-		getNHLBot().getGameDayChannelsManager().deleteInactiveGuildChannels(guild);
-		getNHLBot().getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
-		getNHLBot().getGameDayChannelsManager().initChannels(guild);
+		nhlBot.getGameDayChannelsManager().deleteInactiveGuildChannels(guild);
+		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
+		nhlBot.getGameDayChannelsManager().initChannels(guild);
 		sendMessage(event, buildSubscribedMessage(team, guildId));
 	}
 
 	Consumer<MessageCreateSpec> buildSubscribedMessage(Team team, long guildId) {
-		List<Team> subscribedTeams = getNHLBot().getPersistentData().getPreferencesData()
+		List<Team> subscribedTeams = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guildId)
 				.getTeams();
 		if (subscribedTeams.size() > 1) {

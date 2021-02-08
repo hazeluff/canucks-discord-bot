@@ -62,12 +62,11 @@ public class WordcloudCommand extends Command {
 
 		ZoneId timeZone = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong()).getTimeZone();
-		String title = GameDayChannel.getDetailsMessage(game, timeZone);
 		
 		if(command.getArguments().isEmpty()) {
-			sendWordcloud(channel, title);			
+			sendWordcloud(channel, game, timeZone);
 		} else {
-			sendWordcloud(channel, title, 
+			sendWordcloud(channel, game, timeZone,
 					new LinearFontScalar(
 							Integer.parseInt(command.getArguments().get(0)),
 							Integer.parseInt(command.getArguments().get(1))
@@ -76,8 +75,8 @@ public class WordcloudCommand extends Command {
 		}
 	}
 
-	public void sendWordcloud(TextChannel channel, String title) {
-		sendWordcloud(channel, title, new LinearFontScalar(20, 140));
+	public void sendWordcloud(TextChannel channel, Game game, ZoneId timeZone) {
+		sendWordcloud(channel, game, timeZone, new LinearFontScalar(20, 140));
 	}
 
 	/**
@@ -89,7 +88,8 @@ public class WordcloudCommand extends Command {
 	 * @param title
 	 * @param fontScaler
 	 */
-	public void sendWordcloud(TextChannel channel, String title, FontScalar fontScaler) {
+	public void sendWordcloud(TextChannel channel, Game game, ZoneId timeZone, FontScalar fontScaler) {
+		String title = GameDayChannel.getDetailsMessage(game, timeZone);
 		new Thread(() -> {
 			Message generatingMessage = nhlBot.getDiscordManager()
 					.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
@@ -132,7 +132,8 @@ public class WordcloudCommand extends Command {
 		// Create Message
 		String fileName = "wordcloud.png";
 		InputStream fileStream = new ByteArrayInputStream(wordcloudStream.toByteArray());
-		return spec -> spec.addFile(fileName, fileStream).setContent(title);
+		String message = title + String.format(". Total Messages: %s", messages.size());
+		return spec -> spec.addFile(fileName, fileStream).setContent(message);
 	}
 
 	@Override

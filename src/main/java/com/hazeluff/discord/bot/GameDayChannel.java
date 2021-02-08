@@ -957,8 +957,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private void sendWordcloud() {
-		String title = getDetailsMessage(preferences.getTimeZone());
-		new WordcloudCommand(nhlBot).sendWordcloud(channel, title);
+		new WordcloudCommand(nhlBot).sendWordcloud(channel, game, preferences.getTimeZone());
 	}
 
 	boolean isBotSelf(User user) {

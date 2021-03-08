@@ -18,6 +18,7 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private int eventsRetries = 0;
 
 	// Map<eventId, message>
-	private final Map<Integer, Message> eventMessages = new HashMap<>();
+	private final Map<Integer, Pair<GameEvent, Message>> eventMessages = new HashMap<>();
 
 	private Message endOfGameMessage;
 
@@ -419,7 +420,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		String strMessage = buildEventMessage(event);
 		Message message = sendAndGetMessage(strMessage);
 		if (message != null) {
-			eventMessages.put(event.getId(), message);
+			eventMessages.put(event.getId(), Pair.with(event, message));
 		}
 	}
 
@@ -437,8 +438,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		if (!eventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
-			Message existingMessage = eventMessages.get(event.getId());
-			String oldMsgStr = existingMessage.getContent();
+			Message existingMessage = eventMessages.get(event.getId()).getValue1();
+			String oldMsgStr = buildEventMessage(eventMessages.get(event.getId()).getValue0());
 			nhlBot.getDiscordManager().deleteMessage(existingMessage);
 
 			String newMsgStr = buildEventMessage(event);
@@ -448,7 +449,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					+ "%s", 
 					oldMsgStr, newMsgStr);
 			Message newMessage = nhlBot.getDiscordManager().sendAndGetMessage(channel, newMsgStr);
-			eventMessages.put(event.getId(), newMessage);
+			eventMessages.put(event.getId(), Pair.with(event, newMessage));
 		}
 	}
 

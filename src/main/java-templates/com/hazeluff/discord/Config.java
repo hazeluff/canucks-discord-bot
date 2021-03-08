@@ -24,7 +24,7 @@ public class Config {
 
 	public static final String GIT_URL = "http://canucks-discord.hazeluff.com/";
 	public static final String DONATION_URL = "https://paypal.me/hazeluff";
-	public static final String DONATION_BTC = "1AzGixATkgDSzjPHaobXWL7dWVmzBqz9JD";
+	public static final String DONATION_DOGE = "DK58dzmNCExxCocq9tMbYVzg3rdWuYsbY8";
 	public static final String DONATION_ETH = "0x313faE0D36BFf3F7a4817E52a71B74e2924D4b97";
 	public static final String STATUS_MESSAGE = "?canucksbot help";
 	public static final long HAZELUFF_ID = 225742618422673409l;

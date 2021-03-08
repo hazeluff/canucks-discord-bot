@@ -437,10 +437,18 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		if (!eventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
-			String message = buildEventMessage(event);
-			Message updatedMessage = nhlBot.getDiscordManager()
-					.updateAndGetMessage(eventMessages.get(event.getId()), message);
-			eventMessages.put(event.getId(), updatedMessage);
+			Message existingMessage = eventMessages.get(event.getId());
+			String oldMsgStr = existingMessage.getContent();
+			nhlBot.getDiscordManager().deleteMessage(existingMessage);
+
+			String newMsgStr = buildEventMessage(event);
+			newMsgStr = String.format(
+					"**Goal Updated**\n"
+					+ "Previous: ~~%s~~\n"
+					+ "%s", 
+					oldMsgStr, newMsgStr);
+			Message newMessage = nhlBot.getDiscordManager().sendAndGetMessage(channel, newMsgStr);
+			eventMessages.put(event.getId(), newMessage);
 		}
 	}
 

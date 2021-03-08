@@ -52,7 +52,7 @@ public class AboutCommand extends Command {
 						"I support this bot personally. "
 								+ "Donations will help offset my costs of running the server."
 								+ "\n**Paypal**: " + Config.DONATION_URL
-								+ "\n**BTC**: " + Config.DONATION_BTC
+								+ "\n**DOGE**: " + Config.DONATION_DOGE
 								+ "\n**ETH**: " + Config.DONATION_ETH,
 						false);
 		return spec -> spec

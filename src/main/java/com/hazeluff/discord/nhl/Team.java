@@ -287,6 +287,15 @@ public enum Team {
 			Division.PACIFIC, 
 			"Go Knights Go!",
 			Color.of(0xB9975B),
+			ZoneId.of("America/Los_Angeles")),
+	SEATTLE_KRAKEN(
+			55, 
+			"Seattle", 
+			"Kraken", 
+			"SEA", 
+			Division.PACIFIC, 
+			"Lets Go Kraken!",
+			Color.of(0x639FB6),
 			ZoneId.of("America/Los_Angeles"));
 
 	public static final String MULTI_TEAM_CHEER = "Lets Go!";

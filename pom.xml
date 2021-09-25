@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hazeluff.discord</groupId>
   <artifactId>canucksbot</artifactId>
-  <version>0.7.4</version>
+  <version>0.8.0</version>
   <packaging>jar</packaging>
   <name>CanucksBot</name>
   <url>http://maven.apache.org</url>
@@ -17,7 +17,7 @@
 	<dependency>
 	  <groupId>com.discord4j</groupId>
 	  <artifactId>discord4j-core</artifactId>
-	  <version>3.1.0</version>
+	  <version>3.1.8</version>
 	</dependency>
 
     <dependency>
@@ -29,7 +29,7 @@
     <dependency>
 	    <groupId>org.apache.httpcomponents</groupId>
 	    <artifactId>httpclient</artifactId>
-	    <version>4.5.6</version>
+	    <version>4.5.13</version>
 	</dependency>
 
     <dependency>
@@ -89,7 +89,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.1.7</version>
+      <version>1.2.0</version>
     </dependency>
     
   </dependencies>

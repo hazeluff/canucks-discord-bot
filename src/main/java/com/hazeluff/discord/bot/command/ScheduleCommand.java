@@ -100,7 +100,7 @@ public class ScheduleCommand extends Command {
 
 		return spec -> spec
 				.setContent(message)
-				.setEmbed(embed -> {
+				.addEmbed(embed -> {
 					embed.setColor(team.getColor());
 					embedAppends.forEach(e -> e.accept(embed));
 				});
@@ -135,7 +135,7 @@ public class ScheduleCommand extends Command {
 
 		return spec -> spec
 				.setContent(message)
-				.setEmbed(embed -> embedAppends.forEach(e -> e.accept(embed)));
+				.addEmbed(embed -> embedAppends.forEach(e -> e.accept(embed)));
 	}
 
 	enum GameState {

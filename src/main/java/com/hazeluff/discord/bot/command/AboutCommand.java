@@ -57,7 +57,7 @@ public class AboutCommand extends Command {
 						false);
 		return spec -> spec
 				.addFile(resource.getFileName(), resource.getStream())
-				.setEmbed(embedCreateSpec);
+				.addEmbed(embedCreateSpec);
 	}
 
 	@Override

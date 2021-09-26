@@ -17,19 +17,26 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Lists the closest 10 games (5 previous, 5 future).
  */
 public class ScheduleCommand extends Command {
 
-	static final Consumer<MessageCreateSpec> HELP_MESSAGE = spec -> spec
-			.setContent("Get the game schedule any of the following teams by typing `@NHLBot schedule [team]`, "
-					+ "where [team] is the one of the three letter codes for your team below: "
-					+ getTeamsListBlock());
-
 	public ScheduleCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "schedule";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Get the upcoming schedule of your subscribed (or defined) teams.")
+				.build();
 	}
 
 	@Override
@@ -64,6 +71,11 @@ public class ScheduleCommand extends Command {
 
 		sendMessage(event, getInvalidCodeMessage(command.getArguments().get(0), "schedule"));
 	}
+
+	static final Consumer<MessageCreateSpec> HELP_MESSAGE = spec -> spec
+			.setContent("Get the game schedule any of the following teams by typing `@NHLBot schedule [team]`, "
+					+ "where [team] is the one of the three letter codes for your team below: "
+					+ getTeamsListBlock());
 
 	Consumer<MessageCreateSpec> getScheduleMessage(Team team) {
 		String message = "Here is the schedule for the " + team.getFullName();
@@ -191,7 +203,7 @@ public class ScheduleCommand extends Command {
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("schedule") || command.getCommand().equalsIgnoreCase("games");
+		return command.getCommand().equalsIgnoreCase(getName()) || command.getCommand().equalsIgnoreCase("games");
 	}
 
 }

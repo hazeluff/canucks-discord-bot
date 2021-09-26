@@ -15,18 +15,26 @@ import com.hazeluff.discord.nhl.Team;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Displays information about the next game.
  */
 public class NextGameCommand extends Command {
-	static final Consumer<MessageCreateSpec> NO_NEXT_GAME_MESSAGE = spec -> spec
-			.setContent("There may not be a next game.");
-	static final Consumer<MessageCreateSpec> NO_NEXT_GAMES_MESSAGE = spec -> spec
-			.setContent("There may not be any games for any of your subscribed teams.");
 
 	public NextGameCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "nextgame";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Get the next game for your subscribed (or defined) team.")
+				.build();
 	}
 
 	@Override
@@ -62,6 +70,11 @@ public class NextGameCommand extends Command {
 		sendMessage(event, getNextGameDetailsMessage(games, preferences));
 	}
 
+	static final Consumer<MessageCreateSpec> NO_NEXT_GAME_MESSAGE = spec -> spec
+			.setContent("There may not be a next game.");
+	static final Consumer<MessageCreateSpec> NO_NEXT_GAMES_MESSAGE = spec -> spec
+			.setContent("There may not be any games for any of your subscribed teams.");
+
 	Consumer<MessageCreateSpec> getNextGameDetailsMessage(Game game, GuildPreferences preferences) {
 		return spec -> spec.setContent(
 				"The next game is:\n" + GameDayChannel.getDetailsMessage(game, preferences.getTimeZone()));
@@ -77,7 +90,7 @@ public class NextGameCommand extends Command {
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("nextgame");
+		return command.getCommand().equalsIgnoreCase(getName());
 	}
 
 }

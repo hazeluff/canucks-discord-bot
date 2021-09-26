@@ -15,6 +15,7 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
 
 /**
@@ -22,27 +23,19 @@ import discord4j.rest.util.Permission;
  */
 public class SubscribeCommand extends Command {
 
-	static final Consumer<MessageCreateSpec> MUST_HAVE_PERMISSIONS_MESSAGE = spec -> spec
-			.setContent("You must have _Admin_ or _Manage Channels_ roles to subscribe the guild to a team.");
-	static final Consumer<MessageCreateSpec> SPECIFY_TEAM_MESSAGE = spec -> spec
-			.setContent(
-			"You must specify a parameter for what team you want to subscribe to. `?subscribe [team]`");
-	static final Consumer<MessageCreateSpec> HELP_MESSAGE = spec -> {
-		StringBuilder response = new StringBuilder(
-				"Subscribed to any of the following teams by typing `?subscribe [team]`, "
-						+ "where [team] is the one of the three letter codes for your team below: ").append("```");
-		List<Team> teams = Team.getSortedLValues();
-		for (Team team : teams) {
-			response.append("\n").append(team.getCode()).append(" - ").append(team.getFullName());
-		}
-		response.append("```\n");
-		response.append("You can unsubscribe using:\n");
-		response.append("`?unsubscribe`");
-		spec.setContent(response.toString());
-	};
-
 	public SubscribeCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "subscribe";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Subscribe the server to the guilds you want. Must be an Admin.")
+				.build();
 	}
 
 	@Override
@@ -79,6 +72,24 @@ public class SubscribeCommand extends Command {
 		nhlBot.getGameDayChannelsManager().initChannels(guild);
 		sendMessage(event, buildSubscribedMessage(team, guildId));
 	}
+
+	static final Consumer<MessageCreateSpec> MUST_HAVE_PERMISSIONS_MESSAGE = spec -> spec
+			.setContent("You must have _Admin_ or _Manage Channels_ roles to subscribe the guild to a team.");
+	static final Consumer<MessageCreateSpec> SPECIFY_TEAM_MESSAGE = spec -> spec
+			.setContent("You must specify a parameter for what team you want to subscribe to. `?subscribe [team]`");
+	static final Consumer<MessageCreateSpec> HELP_MESSAGE = spec -> {
+		StringBuilder response = new StringBuilder(
+				"Subscribed to any of the following teams by typing `?subscribe [team]`, "
+						+ "where [team] is the one of the three letter codes for your team below: ").append("```");
+		List<Team> teams = Team.getSortedLValues();
+		for (Team team : teams) {
+			response.append("\n").append(team.getCode()).append(" - ").append(team.getFullName());
+		}
+		response.append("```\n");
+		response.append("You can unsubscribe using:\n");
+		response.append("`?unsubscribe`");
+		spec.setContent(response.toString());
+	};
 
 	Consumer<MessageCreateSpec> buildSubscribedMessage(Team team, long guildId) {
 		List<Team> subscribedTeams = nhlBot.getPersistentData().getPreferencesData()

@@ -2,16 +2,42 @@ package com.hazeluff.discord.bot.command;
 
 import java.util.function.Consumer;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Displays help for the NHLBot commands
  */
 public class HelpCommand extends Command {
+
+	public HelpCommand(NHLBot nhlBot) {
+		super(nhlBot);
+	}
+
+	public String getName() {
+		return "help";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Get help on using " + Config.APPLICATION_NAME)
+				.build();
+	}
+
+	@Override
+	public void execute(MessageCreateEvent event, CommandArguments command) {
+		sendMessage(event, getReply());
+	}
+
+	public Consumer<MessageCreateSpec> getReply() {
+		return HELP_REPLY;
+	}
 
 	private static final Consumer<MessageCreateSpec> HELP_REPLY = spec -> spec.setContent(
 			"Here are a list of commands:\n\n"
@@ -35,19 +61,6 @@ public class HelpCommand extends Command {
 
 			+ "Commands with **(+)** have detailed help and can be accessed by typing:\n"
 			+ "`?canucksbot [command] help`");
-
-	public HelpCommand(NHLBot nhlBot) {
-		super(nhlBot);
-	}
-
-	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
-		sendMessage(event, getReply());
-	}
-
-	public Consumer<MessageCreateSpec> getReply() {
-		return HELP_REPLY;
-	}
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {

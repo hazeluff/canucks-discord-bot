@@ -8,12 +8,20 @@ import com.hazeluff.discord.utils.DiscordThreadFactory;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 public class ThreadsCommand extends Command {
 
-
 	public ThreadsCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "threads";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return null;
 	}
 
 	@Override

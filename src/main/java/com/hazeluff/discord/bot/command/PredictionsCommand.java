@@ -14,6 +14,7 @@ import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Displays information about NHLBot and the author
@@ -22,6 +23,14 @@ public class PredictionsCommand extends Command {
 
 	public PredictionsCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "predictions";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return null;
 	}
 
 	@Override
@@ -91,6 +100,6 @@ public class PredictionsCommand extends Command {
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("predictions");
+		return command.getCommand().equalsIgnoreCase(getName());
 	}
 }

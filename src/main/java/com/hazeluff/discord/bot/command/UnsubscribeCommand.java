@@ -12,6 +12,7 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
 
 /**
@@ -19,17 +20,19 @@ import discord4j.rest.util.Permission;
  */
 public class UnsubscribeCommand extends Command {
 
-	static final Consumer<MessageCreateSpec> UNSUBSCRIBED_FROM_ALL_MESSAGE = spec -> spec
-			.setContent("This server is now unsubscribed from games of all teams.");
-	static final Consumer<MessageCreateSpec> MUST_HAVE_PERMISSIONS_MESSAGE = spec -> spec
-			.setContent("You must have _Admin_ or _Manage Channels_ roles to unsubscribe the guild from a team.");
-	static final Consumer<MessageCreateSpec> SPECIFY_TEAM_MESSAGE = spec -> spec
-			.setContent("You must specify a parameter for what team you want to unsubscribe from. "
-					+ "`?subscribe [team]`\n"
-					+ "You may also use `?unsubscrube all` to unsubscribe from **all** teams.");
-
 	public UnsubscribeCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "unsubscribe";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Unsubscribe the server from the guilds you don't want. Must be an Admin.")
+				.build();
 	}
 
 	@Override
@@ -76,6 +79,15 @@ public class UnsubscribeCommand extends Command {
 		nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		sendMessage(event, buildUnsubscribeMessage(team));
 	}
+
+	static final Consumer<MessageCreateSpec> UNSUBSCRIBED_FROM_ALL_MESSAGE = spec -> spec
+			.setContent("This server is now unsubscribed from games of all teams.");
+	static final Consumer<MessageCreateSpec> MUST_HAVE_PERMISSIONS_MESSAGE = spec -> spec
+			.setContent("You must have _Admin_ or _Manage Channels_ roles to unsubscribe the guild from a team.");
+	static final Consumer<MessageCreateSpec> SPECIFY_TEAM_MESSAGE = spec -> spec
+			.setContent("You must specify a parameter for what team you want to unsubscribe from. "
+					+ "`?subscribe [team]`\n"
+					+ "You may also use `?unsubscrube all` to unsubscribe from **all** teams.");
 
 	Consumer<MessageCreateSpec> buildHelpMessage(Guild guild) {
 		StringBuilder response = new StringBuilder(

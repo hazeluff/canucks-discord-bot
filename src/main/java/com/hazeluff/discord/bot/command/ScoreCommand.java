@@ -13,6 +13,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Displays the score of a game in a Game Day Channel.
@@ -21,6 +22,17 @@ public class ScoreCommand extends Command {
 
 	public ScoreCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "score";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Get the score of the current game. Use only in Game Day Channels.")
+				.build();
 	}
 
 	@Override
@@ -56,7 +68,7 @@ public class ScoreCommand extends Command {
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("score");
+		return command.getCommand().equalsIgnoreCase(getName());
 	}
 
 }

@@ -32,6 +32,7 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
 
 /**
@@ -42,6 +43,14 @@ public class WordcloudCommand extends Command {
 
 	public WordcloudCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+
+	public String getName() {
+		return "wordcloud";
+	}
+
+	public ApplicationCommandRequest getACR() {
+		return null;
 	}
 
 	@Override
@@ -138,6 +147,6 @@ public class WordcloudCommand extends Command {
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("wordcloud");
+		return command.getCommand().equalsIgnoreCase(getName());
 	}
 }

@@ -13,6 +13,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Displays all the goals in game of a 'Game Day Channel'
@@ -21,6 +22,17 @@ public class GoalsCommand extends Command {
 
 	public GoalsCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+	
+	public String getName() {
+		return "goals";
+	}
+	
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+                .description("Get a list of all goals scored this game. Only available in a Game Day Channel.")
+                .build();
 	}
 
 	@Override
@@ -58,7 +70,7 @@ public class GoalsCommand extends Command {
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("goals");
+		return command.getCommand().equalsIgnoreCase(getName());
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.hazeluff.discord;
 
 import java.time.ZoneId;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 import com.hazeluff.discord.nhl.Seasons;
@@ -20,8 +22,26 @@ public class Config {
 		}
 	}
 
-	public static final Season CURRENT_SEASON = Seasons.S20_21;
+	private static final Properties systemProperties = System.getProperties();
 
+	/* 
+	 * Quick Config
+	 */
+	public static final Season CURRENT_SEASON = Seasons.S21_22;
+
+	// List of guilds allowed to access the bot. (not strictly enforced access)
+	public static final List<Long> GUILD_PRIVILEGED_LIST = Arrays.asList(268247727400419329l, 276953120964083713l);
+	
+	/*
+	 *  Technical Config
+	 */
+	public static final int HTTP_REQUEST_RETRIES = 5;
+	public static final String NHL_API_URL = "https://statsapi.web.nhl.com/api/v1";	
+	
+	/*
+	 *  About
+	 */
+	public static final String APPLICATION_NAME = "CanucksBot";
 	public static final String GIT_URL = "http://canucks-discord.hazeluff.com/";
 	public static final String DONATION_URL = "https://paypal.me/hazeluff";
 	public static final String DONATION_DOGE = "DK58dzmNCExxCocq9tMbYVzg3rdWuYsbY8";
@@ -38,9 +58,4 @@ public class Config {
 	public static final String MONGO_DATABASE_NAME = "CanucksBot";
 	public static final String MONGO_TEST_DATABASE_NAME = "CanucksBotIntegrationTest";
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
-
-	public static final int HTTP_REQUEST_RETRIES = 5;
-	public static final String NHL_API_URL = "https://statsapi.web.nhl.com/api/v1";	
-
-	private static final Properties systemProperties = System.getProperties();
 }

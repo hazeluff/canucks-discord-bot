@@ -28,6 +28,7 @@ public class DiscordManager {
 
 	private final GatewayDiscordClient client;
 	private Snowflake id;
+	private Long applicationId;
 
 	public DiscordManager(GatewayDiscordClient client) {
 		this.client = client;
@@ -42,6 +43,13 @@ public class DiscordManager {
 			id = getClient().getSelfId();
 		}
 		return id;
+	}
+
+	public Long getApplicationId() {
+		if (applicationId == null) {
+			applicationId = block(getClient().getRestClient().getApplicationId());
+		}
+		return applicationId;
 	}
 
 	/**

@@ -14,6 +14,7 @@ import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.Team;
 
 import discord4j.common.util.Snowflake;
+import discord4j.core.event.ReactiveEventAdapter;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
@@ -21,13 +22,14 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
 
 /**
  * Interface for commands that the NHLBot can accept and the replies to those commands.
  */
-public abstract class Command {
+public abstract class Command extends ReactiveEventAdapter {
 	static final Consumer<MessageCreateSpec> SUBSCRIBE_FIRST_MESSAGE = spec -> spec
 			.setContent("Please have your admin first subscribe your guild "
 					+ "to a team by using the command `@NHLBot subscribe [team]`, "
@@ -43,31 +45,9 @@ public abstract class Command {
 	Command(NHLBot nhlBot) {
 		this.nhlBot = nhlBot;
 	}
-	
-	/**
-	 * Replies to the command arguments provided. Replies to the channel that the
-	 * source message was sent to.
-	 * 
-	 * @param event
-	 *            event that we are replying to
-	 * @param arguments
-	 *            command arguments
-	 * @return {@link MessageCreateSpec} for the reply; null if no reply.
-	 */
-	public abstract void execute(MessageCreateEvent event, CommandArguments arguments);
 
-	/**
-	 * Determines if the command arguments are accepted by this command. i.e the
-	 * argument has the value for command.
-	 * 
-	 * @param message
-	 *            message received
-	 * @param arguments
-	 *            command arguments
-	 * @return true, if accepted<br>
-	 *         false, otherwise
-	 */
-	public abstract boolean isAccept(Message message, CommandArguments arguments);
+	public abstract String getName();
+	public abstract ApplicationCommandRequest getACR();
 
 	protected void sendMessage(MessageCreateEvent event, String message) {
 		sendMessage(event, spec -> spec.setContent(message));

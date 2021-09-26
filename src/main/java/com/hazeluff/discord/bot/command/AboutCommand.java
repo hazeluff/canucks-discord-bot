@@ -2,16 +2,17 @@ package com.hazeluff.discord.bot.command;
 
 import java.util.function.Consumer;
 
+import org.reactivestreams.Publisher;
+
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.ResourceLoader;
-import com.hazeluff.discord.bot.ResourceLoader.Resource;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Color;
+import reactor.core.publisher.Mono;
 
 /**
  * Displays information about NHLBot and the author
@@ -21,18 +22,31 @@ public class AboutCommand extends Command {
 	public AboutCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
-
-	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
-		sendMessage(event, getReply());
+	
+	public String getName() {
+		return "about";
+	}
+	
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Learn a little about " + Config.APPLICATION_NAME + " and its creator.")
+                .build();
 	}
 
-	public Consumer<MessageCreateSpec> getReply() {
-		Resource resource = ResourceLoader.get().getHazeluffAvatar();
+	@Override
+	public Publisher<?> onChatInputInteraction(ChatInputInteractionEvent event) {
+		if (event.getCommandName().equals(getName())) {
+			return event.reply(getSpec());
+		}
+		return Mono.empty();
+	}
+
+	public Consumer<InteractionApplicationCommandCallbackSpec> getSpec() {
 		Consumer<EmbedCreateSpec> embedCreateSpec = spec -> spec
 				.setColor(Color.of(0xba9ddf))
-				.setTitle("About CanucksBot")
-				.setAuthor("Hazeluff", Config.HAZELUFF_SITE, "attachment://" + resource.getFileName())
+				.setTitle("About " + Config.APPLICATION_NAME)
+				.setAuthor("Hazeluff", Config.HAZELUFF_SITE, null)
 				.setUrl(Config.GIT_URL)
 				.setDescription(
 						"A bot that provides information about NHL games, "
@@ -55,13 +69,6 @@ public class AboutCommand extends Command {
 								+ "\n**DOGE**: " + Config.DONATION_DOGE
 								+ "\n**ETH**: " + Config.DONATION_ETH,
 						false);
-		return spec -> spec
-				.addFile(resource.getFileName(), resource.getStream())
-				.addEmbed(embedCreateSpec);
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("about");
+		return spec -> spec.addEmbed(embedCreateSpec);
 	}
 }

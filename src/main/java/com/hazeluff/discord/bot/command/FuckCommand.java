@@ -14,6 +14,7 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Because fuck Mark Messier
@@ -29,6 +30,17 @@ public class FuckCommand extends Command {
 
 	public FuckCommand(NHLBot nhlBot) {
 		super(nhlBot);
+	}
+	
+	public String getName() {
+		return "fuck";
+	}
+	
+	public ApplicationCommandRequest getACR() {
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+                .description("Fuck You")
+                .build();
 	}
 
 	@Override
@@ -90,7 +102,7 @@ public class FuckCommand extends Command {
 
 	@Override
 	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("fuck");
+		return command.getCommand().equalsIgnoreCase(getName());
 	}
 
 	void add(String subject, String response) {

@@ -55,7 +55,7 @@ public class ScoreCommand extends Command {
 			return event.replyEphemeral(GAME_NOT_STARTED_MESSAGE);
 		}
 
-		return event.replyEphemeral(getScoreMessage(game));
+		return event.reply(getScoreMessage(game));
 	}
 
 	String getScoreMessage(Game game) {

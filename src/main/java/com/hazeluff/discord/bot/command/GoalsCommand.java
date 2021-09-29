@@ -55,7 +55,7 @@ public class GoalsCommand extends Command {
 			return event.replyEphemeral(GAME_NOT_STARTED_MESSAGE);
 		}
 
-		return event.replyEphemeral(getGoalsMessage(game));
+		return event.reply(getGoalsMessage(game));
 	}
 
 	public String getGoalsMessage(Game game) {

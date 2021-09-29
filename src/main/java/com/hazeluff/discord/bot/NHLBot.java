@@ -111,7 +111,9 @@ public class NHLBot extends Thread {
 		// Attach Listeners
 		attachListeners(nhlBot);
 
-		LOGGER.info("NHLBot Started. id [" + nhlBot.getDiscordManager().getId() + "]");
+		LOGGER.info("NHLBot Started."
+				+ " id=" + nhlBot.getDiscordManager().getId() + ","
+				+ " appId=" + nhlBot.getDiscordManager().getApplicationId());
 
 		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds();
 
@@ -122,8 +124,7 @@ public class NHLBot extends Thread {
 		nhlBot.gdcCategoryManager.init(guilds);
 		nhlBot.wcChannelManager.init(guilds);
 
-		// Add 
-		LOGGER.info("Add Commands.");
+		// Add Bot Commands
 		addCommands(nhlBot);
 		
 		// Manage WelcomeChannels
@@ -181,6 +182,8 @@ public class NHLBot extends Thread {
 	}
 	
 	private static void addCommands(NHLBot nhlBot) {
+		LOGGER.info("Register Command and its listeners.");
+		
 		DiscordManager discordManager = nhlBot.getDiscordManager();
 		
 		// List of all enabled commands. I'm not doing reflections so add it here when you make a new one, dummy.
@@ -204,7 +207,7 @@ public class NHLBot extends Thread {
 		RestClient restClient = discordManager.getClient().getRestClient();
 		List<Snowflake> guilds = discordManager.block(getPrivilegedGuilds(discordManager).map(Guild::getId));
 		for (Command command : commands) {
-			LOGGER.info("Adding Command: " + command.getName());
+			LOGGER.debug("Adding Command: " + command.getName());
 
 			ApplicationCommandRequest acr = command.getACR();
 			// Only register commands with ACR
@@ -220,7 +223,7 @@ public class NHLBot extends Thread {
 				LOGGER.warn("Command did not have ApplicationCommandRequest.");
 			}
 
-			LOGGER.info("Registering Command listeners with client: " + command.getName());
+			LOGGER.debug("Registering Command listeners with client: " + command.getName());
 			discordManager.getClient()
 				.on(command)
 				.doOnError(t -> LOGGER.error("Unable to respond to command: " + command.getName(), t))

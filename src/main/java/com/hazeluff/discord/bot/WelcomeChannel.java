@@ -22,14 +22,10 @@ public class WelcomeChannel extends Thread {
 
 	private final NHLBot nhlBot;
 	private final TextChannel channel;
-	private final AboutCommand aboutCommand;
-	private final HelpCommand helpCommand;
 
 	WelcomeChannel(NHLBot nhlBot, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.channel = channel;
-		aboutCommand = new AboutCommand(nhlBot);
-		helpCommand = new HelpCommand(nhlBot);
 	}
 
 	public static WelcomeChannel create(NHLBot nhlBot, TextChannel channel) {
@@ -58,7 +54,10 @@ public class WelcomeChannel extends Thread {
 					nhlBot.getDiscordManager().block(channel.getLastMessage()));
 		}
 		nhlBot.getDiscordManager().sendMessage(channel, UPDATED_MESSAGE);
-		nhlBot.getDiscordManager().sendMessage(channel, aboutCommand.getReply());
-		nhlBot.getDiscordManager().sendMessage(channel, helpCommand.getReply());
+		nhlBot.getDiscordManager().sendMessage(channel, spec -> {
+			spec.setContent("About the bot:");
+			spec.addEmbed(AboutCommand.EMBED_SPEC);
+		});
+		nhlBot.getDiscordManager().sendMessage(channel, HelpCommand.COMMAND_LIST);
 	}
 }

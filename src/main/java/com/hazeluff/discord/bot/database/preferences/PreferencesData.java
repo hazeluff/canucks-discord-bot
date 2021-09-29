@@ -105,6 +105,8 @@ public class PreferencesData extends DatabaseManager {
 	 * 
 	 * @param guildId
 	 *            id of the guild
+	 * @param team
+	 *            team to unsubscribe from. null to unsubscribe from all.
 	 */
 	public void unsubscribeGuild(long guildId, Team team) {
 		LOGGER.info("Unsubscribing guild from team. guildId={} team={}", guildId, team);

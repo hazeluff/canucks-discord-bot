@@ -2,17 +2,15 @@ package com.hazeluff.discord.bot.command;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
+import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Message;
-import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
@@ -20,6 +18,8 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
  */
 public class StatsCommand extends Command {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatsCommand.class);
+
+	static final String NAME = "stats";
 
 	List<Long> excludedGuilds = Arrays.asList(
 			264445053596991498l, // https://discordbots.org/
@@ -31,7 +31,7 @@ public class StatsCommand extends Command {
 	}
 
 	public String getName() {
-		return "stats";
+		return NAME;
 	}
 
 	public ApplicationCommandRequest getACR() {
@@ -39,17 +39,8 @@ public class StatsCommand extends Command {
 	}
 
 	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
-		sendMessage(event, getReply());
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("stats");
-	}
-
-	public Consumer<MessageCreateSpec> getReply() {
-		return spec -> spec.setContent(buildReplyString());
+	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
+		return event.reply(buildReplyString());
 	}
 
 	public String buildReplyString() {

@@ -1,23 +1,23 @@
 package com.hazeluff.discord.bot.command;
 
-import java.util.function.Consumer;
+import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.utils.DiscordThreadFactory;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
-import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
 public class ThreadsCommand extends Command {
+
+	static final String NAME = "threads";
 
 	public ThreadsCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 
 	public String getName() {
-		return "threads";
+		return NAME;
 	}
 
 	public ApplicationCommandRequest getACR() {
@@ -25,16 +25,7 @@ public class ThreadsCommand extends Command {
 	}
 
 	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
-		sendMessage(event, getReply());
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase("threads");
-	}
-
-	public Consumer<MessageCreateSpec> getReply() {
-		return spec -> spec.setContent("Threads: " + DiscordThreadFactory.getInstance().getThreads().size());
+	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
+		return event.reply("Threads: " + DiscordThreadFactory.getInstance().getThreads().size());
 	}
 }

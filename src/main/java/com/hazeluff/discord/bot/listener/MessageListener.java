@@ -5,9 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.chat.FriendlyTopic;
 import com.hazeluff.discord.bot.chat.LovelyTopic;
@@ -16,7 +13,6 @@ import com.hazeluff.discord.bot.chat.Topic;
 import com.hazeluff.discord.bot.chat.WhatsUpTopic;
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.bot.command.CommandArguments;
 import com.hazeluff.discord.bot.command.FuckCommand;
 import com.hazeluff.discord.bot.command.GoalsCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
@@ -35,14 +31,10 @@ import com.hazeluff.discord.utils.Utils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
 
 public class MessageListener extends EventListener {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MessageListener.class);
-
 	static final Consumer<MessageCreateSpec> UNKNOWN_COMMAND_REPLY = spec -> spec
 			.setContent("Sorry, I don't understand that. Send `@NHLBot help` for a list of commands.");
 	static final Consumer<MessageCreateSpec> FUCK_MESSIER_REPLY = spec -> spec
@@ -94,8 +86,6 @@ public class MessageListener extends EventListener {
 	public void processEvent(Event event) {
 		if (event instanceof MessageCreateEvent) {
 			processEvent((MessageCreateEvent) event);
-		} else {
-			LOGGER.warn("Event provided is of unknown type: " + event.getClass().getSimpleName());
 		}
 	}
 
@@ -121,44 +111,9 @@ public class MessageListener extends EventListener {
 			return;
 		}
 
-		Message message = event.getMessage();
-		LOGGER.trace(String.format("[%s][%s][%s][%s]", 
-				guildId,
-				event.getMessage().getChannelId().asLong(),
-				author.getUsername(), 
-				message.getContent()));
-
-		if (replyToCommand(event)) {
-			return;
-		}
-
 		if (replyToMention(event)) {
 			return;
 		}
-
-		// Message is not a command
-		if (getCommand(message) != null) {
-			sendMessage(event, UNKNOWN_COMMAND_REPLY);
-			return;
-		}
-	}
-
-	/**
-	 * Gets the specification for the reply message that are in the form of a
-	 * command (Starts with "@NHLBot")
-	 * 
-	 * @param event
-	 *            event that we are replying to
-	 * @return true - if command was found and executed
-	 */
-	boolean replyToCommand(MessageCreateEvent event) {
-		Command command = getCommand(event.getMessage());
-		if (command != null) {
-			CommandArguments commandArgs = CommandArguments.parse(getNHLBot(), event.getMessage().getContent());
-			command.execute(event, commandArgs);
-			return true;
-		}
-		return false;
 	}
 
 	/**
@@ -183,24 +138,6 @@ public class MessageListener extends EventListener {
 	}
 
 	/**
-	 * Gets the Command for the given message.
-	 * 
-	 * @param message
-	 *            the message received
-	 * @return the {@link Command} for the message/arguments
-	 */
-	Command getCommand(Message message) {
-		CommandArguments commandArgs = CommandArguments.parse(getNHLBot(), message.getContent());
-
-		return commandArgs == null
-				? null
-				: commands.stream()
-					.filter(command -> command.isAccept(message, commandArgs))
-					.findFirst()
-					.orElseGet(() -> null);
-	}
-
-	/**
 	 * Determines if NHLBot is mentioned in the message.
 	 * 
 	 * @param message
@@ -214,10 +151,5 @@ public class MessageListener extends EventListener {
 
 	long getCurrentTime() {
 		return Utils.getCurrentTime();
-	}
-
-	private void sendMessage(MessageCreateEvent event, Consumer<MessageCreateSpec> spec) {
-		TextChannel channel = (TextChannel) getNHLBot().getDiscordManager().block(event.getMessage().getChannel());
-		getNHLBot().getDiscordManager().sendMessage(channel, spec);
 	}
 }

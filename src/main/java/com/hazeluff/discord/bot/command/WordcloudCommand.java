@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.reactivestreams.Publisher;
+
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.ResourceLoader;
@@ -26,19 +28,25 @@ import com.kennycason.kumo.font.scale.LinearFontScalar;
 import com.kennycason.kumo.nlp.FrequencyAnalyzer;
 import com.kennycason.kumo.nlp.normalize.TrimToEmptyNormalizer;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
+import reactor.core.publisher.Mono;
 
 /**
  * Displays information about NHLBot and the author
  */
 public class WordcloudCommand extends Command {
+
+	static final String NAME = "wordcloud";
+
 	private static final int MAX_WORDS = 2000;
 
 	public WordcloudCommand(NHLBot nhlBot) {
@@ -46,43 +54,63 @@ public class WordcloudCommand extends Command {
 	}
 
 	public String getName() {
-		return "wordcloud";
+		return NAME;
 	}
 
 	public ApplicationCommandRequest getACR() {
-		return null;
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("Creates a wordcloud. Only available in a Game Day Channel. Must be an Admin.")
+				.addOption(ApplicationCommandOptionData.builder()
+						.name("minfont")
+						.description("Minimum font size.")
+						.type(ApplicationCommandOption.Type.INTEGER.getValue())
+						.required(false)
+						.build())
+				.addOption(ApplicationCommandOptionData.builder()
+						.name("maxfont")
+						.description("Maximum font size.")
+						.type(ApplicationCommandOption.Type.INTEGER.getValue())
+						.required(false)
+						.build())
+				.build();
 	}
 
 	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
+	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		Guild guild = getGuild(event);
 		TextChannel channel = getChannel(event);
-		Message message = event.getMessage();
-		Member user = getMessageAuthor(message);
+		Member user = event.getInteraction().getMember().orElse(null);
 		if (!isOwner(guild, user)
 				&& !hasPermissions(guild, user, Arrays.asList(Permission.ADMINISTRATOR))) {
-			return;
+			return event.replyEphemeral(MUST_HAVE_PERMISSIONS_MESSAGE);
 		}
 
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
-			return;
+			return Mono.empty();
 		}
 
 		ZoneId timeZone = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong()).getTimeZone();
 		
-		if(command.getArguments().isEmpty()) {
+
+		Long minFont = getOptionAsLong(event, "minfont");
+		Long maxFont = getOptionAsLong(event, "maxfont");
+		
+		if (minFont == null || maxFont == null) {
 			sendWordcloud(channel, game, timeZone);
 		} else {
-			sendWordcloud(channel, game, timeZone,
-					new LinearFontScalar(
-							Integer.parseInt(command.getArguments().get(0)),
-							Integer.parseInt(command.getArguments().get(1))
-					)
-			);
+			sendWordcloud(channel, game, timeZone, new LinearFontScalar(minFont.intValue(), maxFont.intValue()));
 		}
+		return event.replyEphemeral(ACKNOWLEDGED);
 	}
+
+	static final String MUST_HAVE_PERMISSIONS_MESSAGE = 
+			"You must have Admin permissions.";
+
+	static final String ACKNOWLEDGED = 
+			"Generating Wordcloud... Please wait. This could take a minute.";
 
 	public void sendWordcloud(TextChannel channel, Game game, ZoneId timeZone) {
 		sendWordcloud(channel, game, timeZone, new LinearFontScalar(20, 140));
@@ -143,10 +171,5 @@ public class WordcloudCommand extends Command {
 		InputStream fileStream = new ByteArrayInputStream(wordcloudStream.toByteArray());
 		String message = title + String.format(". Total Messages: %s", messages.size());
 		return spec -> spec.addFile(fileName, fileStream).setContent(message);
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase(getName());
 	}
 }

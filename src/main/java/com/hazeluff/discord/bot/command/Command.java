@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
+import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.GameDayChannel;
@@ -15,7 +16,10 @@ import com.hazeluff.discord.nhl.Team;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.ReactiveEventAdapter;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
+import discord4j.core.object.command.ApplicationCommandInteractionOption;
+import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
@@ -25,20 +29,21 @@ import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
+import reactor.core.publisher.Mono;
 
 /**
  * Interface for commands that the NHLBot can accept and the replies to those commands.
  */
 public abstract class Command extends ReactiveEventAdapter {
-	static final Consumer<MessageCreateSpec> SUBSCRIBE_FIRST_MESSAGE = spec -> spec
-			.setContent("Please have your admin first subscribe your guild "
+	static final String SUBSCRIBE_FIRST_MESSAGE = 
+			"Please have your admin first subscribe your guild "
 					+ "to a team by using the command `@NHLBot subscribe [team]`, "
 					+ "where [team] is the 3 letter code for your team.\n"
-					+ "To see a list of [team] codes use command `?subscribe help`");
-	static final Consumer<MessageCreateSpec> GAME_NOT_STARTED_MESSAGE = spec -> spec
-			.setContent("The game hasn't started yet.");
-	static final Consumer<MessageCreateSpec> RUN_IN_SERVER_CHANNEL_MESSAGE = spec -> spec
-			.setContent("This can only be run on a server's 'Game Day Channel'.");
+					+ "To see a list of [team] codes use command `?subscribe help`";
+	static final String GAME_NOT_STARTED_MESSAGE = 
+			"The game hasn't started yet.";
+	static final String RUN_IN_SERVER_CHANNEL_MESSAGE = 
+			"This can only be run on a server's 'Game Day Channel'.";
 	
 	protected final NHLBot nhlBot;
 
@@ -48,6 +53,16 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	public abstract String getName();
 	public abstract ApplicationCommandRequest getACR();
+
+	public abstract Publisher<?> onChatCommandInput(ChatInputInteractionEvent event);
+
+	public Publisher<?> onChatInputInteraction(ChatInputInteractionEvent event) {
+		// Filters out commands that are not intended for the implementing Command class.
+		if (event.getCommandName().equals(getName())) {
+			return onChatCommandInput(event);
+		}
+		return Mono.empty();
+	}
 
 	protected void sendMessage(MessageCreateEvent event, String message) {
 		sendMessage(event, spec -> spec.setContent(message));
@@ -74,6 +89,9 @@ public abstract class Command extends ReactiveEventAdapter {
 	 */
 	String getLatestGameChannelMention(Guild guild, Team team) {
 		Game game = getLatestGame(team);
+		if (game == null) {
+			return null;
+		}
 		String channelName = GameDayChannel.getChannelName(game).toLowerCase();
 
 		List<TextChannel> channels = nhlBot.getDiscordManager().getTextChannels(guild);
@@ -105,10 +123,10 @@ public abstract class Command extends ReactiveEventAdapter {
 	 * @param team
 	 * @return
 	 */
-	Consumer<MessageCreateSpec> getRunInGameDayChannelsMessage(Guild guild, List<Team> teams) {
+	String getRunInGameDayChannelsMessage(Guild guild, List<Team> teams) {
 		String channelMentions = getLatestGamesListString(guild, teams);
-		return spec -> spec.setContent(String.format(
-				"Please run this command in a 'Game Day Channel'.\nLatest game channel(s): %s", channelMentions));
+		return String.format("Please run this command in a 'Game Day Channel'.\nLatest game channel(s): %s",
+				channelMentions);
 	}
 
 	String getLatestGamesListString(Guild guild, List<Team> teams) {
@@ -137,6 +155,9 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	boolean isOwner(Guild guild, User user) {
+		if (user == null) {
+			return false;
+		}
 		return guild.getOwner().block().getId().equals(user.getId());
 	}
 
@@ -156,10 +177,9 @@ public abstract class Command extends ReactiveEventAdapter {
 	 *            command to tell user to invoke help of
 	 * @return
 	 */
-	Consumer<MessageCreateSpec> getInvalidCodeMessage(String incorrectCode, String command) {
-		return spec -> spec.setContent(String.format(
-				"`%s` is not a valid team code.\nUse `?%s help` to get a full list of team",
-				incorrectCode, command));
+	String getInvalidTeamCodeMessage(String incorrectCode) {
+		return String.format("`%s` is not a valid team code.\nUse `/help teams` to get a full list of team",
+				incorrectCode);
 	}
 
 	/**
@@ -191,11 +211,23 @@ public abstract class Command extends ReactiveEventAdapter {
 		return strBuilder.toString();
 	}
 
-	protected Guild getGuild(MessageCreateEvent event) {
-		return nhlBot.getDiscordManager().block(event.getGuild());
+	protected Guild getGuild(ChatInputInteractionEvent event) {
+		return nhlBot.getDiscordManager().block(event.getInteraction().getGuild());
 	}
 
-	protected TextChannel getChannel(MessageCreateEvent event) {
-		return (TextChannel) nhlBot.getDiscordManager().block(event.getMessage().getChannel());
+	protected TextChannel getChannel(ChatInputInteractionEvent event) {
+		return nhlBot.getDiscordManager().block(event.getInteraction().getChannel().cast(TextChannel.class));
+	}
+
+	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {
+		return event.getInteraction().getCommandInteraction().get().getOption(option)
+				.flatMap(ApplicationCommandInteractionOption::getValue)
+				.map(ApplicationCommandInteractionOptionValue::asString).orElse(null);
+	}
+
+	protected static Long getOptionAsLong(ChatInputInteractionEvent event, String option) {
+		return event.getInteraction().getCommandInteraction().get().getOption(option)
+				.flatMap(ApplicationCommandInteractionOption::getValue)
+				.map(ApplicationCommandInteractionOptionValue::asLong).orElse(null);
 	}
 }

@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.reactivestreams.Publisher;
+
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.nhl.Game;
@@ -13,71 +15,68 @@ import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.discord.nhl.GameStatus;
 import com.hazeluff.discord.nhl.Team;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
+import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Lists the closest 10 games (5 previous, 5 future).
  */
 public class ScheduleCommand extends Command {
+	static final String NAME = "schedule";
 
 	public ScheduleCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 
 	public String getName() {
-		return "schedule";
+		return NAME;
 	}
 
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 				.name(getName())
 				.description("Get the upcoming schedule of your subscribed (or defined) teams.")
+                .addOption(ApplicationCommandOptionData.builder()
+                        .name("team")
+                        .description("Which team to get the game schedule for.")
+                        .type(ApplicationCommandOption.Type.STRING.getValue())
+                        .required(false)
+                        .build())
 				.build();
 	}
 
 	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
-		if (command.getArguments().isEmpty()) {
-			List<Team> preferredTeams = nhlBot
-					.getPersistentData()
-					.getPreferencesData()
-					.getGuildPreferences(event.getGuildId().get().asLong())
-					.getTeams();
+	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
+		String strTeam = getOptionAsString(event, "team");
+		if (strTeam == null) {
+			Snowflake guildId = event.getInteraction().getGuildId().get();
+			List<Team> preferredTeams = nhlBot.getPersistentData().getPreferencesData()
+					.getGuildPreferences(guildId.asLong()).getTeams();
 
 			if (preferredTeams.isEmpty()) {
-				sendMessage(event, SUBSCRIBE_FIRST_MESSAGE);
-				return;
+				return event.replyEphemeral(SUBSCRIBE_FIRST_MESSAGE + "\n\n"
+						+ "Alternatively you can choose a specific team's schedule to view.");
 			}
-
-			sendMessage(event, getScheduleMessage(preferredTeams));
-			return;
+			return event.reply(getScheduleMessage(preferredTeams));
 		}
 
-		if (command.getArguments().get(0).equalsIgnoreCase("help")) {
-			// Send Help Message
-			sendMessage(event, HELP_MESSAGE);
-			return;
+		if (!Team.isValid(strTeam)) {
+			return event.reply(getInvalidTeamCodeMessage(strTeam));
 		}
-
-		if (Team.isValid(command.getArguments().get(0))) {
-			// Send schedule for a specific team
-			sendMessage(event, getScheduleMessage(Team.parse(command.getArguments().get(0))));
-			return;
-		}
-
-		sendMessage(event, getInvalidCodeMessage(command.getArguments().get(0), "schedule"));
+		return event.reply(getScheduleMessage(Team.parse(strTeam)));
 	}
 
-	static final Consumer<MessageCreateSpec> HELP_MESSAGE = spec -> spec
-			.setContent("Get the game schedule any of the following teams by typing `@NHLBot schedule [team]`, "
+	static final String HELP_MESSAGE = 
+			"Get the game schedule any of the following teams by typing `@NHLBot schedule [team]`, "
 					+ "where [team] is the one of the three letter codes for your team below: "
-					+ getTeamsListBlock());
+					+ getTeamsListBlock();
 
-	Consumer<MessageCreateSpec> getScheduleMessage(Team team) {
+	Consumer<InteractionApplicationCommandCallbackSpec> getScheduleMessage(Team team) {
 		String message = "Here is the schedule for the " + team.getFullName();
 
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
@@ -118,7 +117,7 @@ public class ScheduleCommand extends Command {
 				});
 	}
 
-	Consumer<MessageCreateSpec> getScheduleMessage(List<Team> teams) {
+	Consumer<InteractionApplicationCommandCallbackSpec> getScheduleMessage(List<Team> teams) {
 		String message = "Here is the schedule for all your teams. "
 				+ "Use `?schedule [team] to get more detailed schedules.";
 
@@ -199,11 +198,6 @@ public class ScheduleCommand extends Command {
 		}
 
 		return embed -> embed.addField(date.toString(), message, false);
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase(getName()) || command.getCommand().equalsIgnoreCase("games");
 	}
 
 }

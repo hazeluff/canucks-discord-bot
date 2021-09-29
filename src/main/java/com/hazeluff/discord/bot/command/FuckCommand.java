@@ -3,106 +3,90 @@ package com.hazeluff.discord.bot.command;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
-import org.apache.commons.lang.StringUtils;
+import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.utils.Utils;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.User;
-import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import reactor.core.publisher.Mono;
 
 /**
  * Because fuck Mark Messier
  */
 public class FuckCommand extends Command {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FuckCommand.class);
 
-	static final Consumer<MessageCreateSpec> NOT_ENOUGH_PARAMETERS_REPLY = spec -> spec
-			.setContent("You're gonna have to tell me who/what to fuck. `?fuck [thing]`");
-	static final Consumer<MessageCreateSpec> NO_YOU_REPLY = spec -> spec
-			.setContent("No U.");
-	static final Consumer<MessageCreateSpec> HAZELUFF_REPLY = spec -> spec
-			.setContent("Hazeluff doesn't give a fuck.");
+	static final String NAME = "fuck";
 
 	public FuckCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 	
 	public String getName() {
-		return "fuck";
+		return NAME;
 	}
 	
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 				.name(getName())
                 .description("Fuck You")
+                .addOption(ApplicationCommandOptionData.builder()
+                        .name("who")
+                        .description("Fuck Who?")
+                        .type(ApplicationCommandOption.Type.STRING.getValue())
+                        .required(true)
+                        .build())
                 .build();
 	}
 
 	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
-		
-		if (command.getArguments().isEmpty()) {
-			sendMessage(event, NOT_ENOUGH_PARAMETERS_REPLY);
-			return;
-		}
-		
-		if (command.getArguments().get(0).toLowerCase().equals("you")
-				|| command.getArguments().get(0).toLowerCase().equals("u")) {
-			sendMessage(event, NO_YOU_REPLY);
-			return;
-		}
-		
-		if (command.getArguments().get(0).toLowerCase().equals("hazeluff")
-				|| command.getArguments().get(0).toLowerCase().equals("hazel")
-				|| command.getArguments().get(0).toLowerCase().equals("haze")
-				|| command.getArguments().get(0).toLowerCase().equals("haz")) {
-			sendMessage(event, HAZELUFF_REPLY);
-			return;
+	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
+		String who = getOptionAsString(event, "who");
+
+		if (who == null) {
+			LOGGER.warn("'who' was null");
+			return Mono.empty();
 		}
 
-		if (command.getArguments().get(0).startsWith("<@") && command.getArguments().get(0).endsWith(">")) {
-			nhlBot.getDiscordManager().deleteMessage(event.getMessage());
-			sendMessage(event, buildDontAtReply(event.getMessage()));
-			return;
+		switch (who) {
+		case "you":
+		case "u":
+			return event.reply(NO_YOU_REPLY);
+		case "hazeluff":
+		case "hazel":
+		case "haz":
+			return event.reply(HAZELUFF_REPLY);
+		default:
+			break;
 		}
 
-		if (command.getArguments().get(0).toLowerCase().equals("add")) {
-			User author = event.getMessage().getAuthor().orElse(null);
-			if (author != null && isDev(author.getId())) {
-				String subject = command.getArguments().get(1);
-				List<String> response = new ArrayList<>(command.getArguments());
-				String strResponse = StringUtils.join(response.subList(3, response.size()), " ");				
-				add(subject, strResponse);
-				sendMessage(event, spec -> spec.setContent(strResponse));
-			}
-			return;
+		// Is a mention
+		if (who.startsWith("<@") && who.endsWith(">")) {
+			return event.reply(buildDontAtReply(event.getInteraction().getUser()));
 		}
 
 		Map<String, List<String>> responses = loadResponsesFromCollection();
-		if (responses.containsKey(command.getArguments().get(0))) {
-			sendMessage(event, spec -> spec.setContent(Utils.getRandom(responses.get(command.getArguments().get(0)))));
-			return;
+		if (responses.containsKey(who)) {
+			return event.reply(Utils.getRandom(responses.get(who)));
 		}
+		
+		return event.replyEphemeral(DONT_BE_RUDE);
 	}
 
-	static Consumer<MessageCreateSpec> buildDontAtReply(Message message) {
-		String authorMention = String.format("<@%s>", message.getAuthor().get());
-		return spec -> spec.setContent(authorMention + ". Don't @ people, you dingus.");
-	}
+	static final String NO_YOU_REPLY = "No U.";
+	static final String HAZELUFF_REPLY = "Hazeluff doesn't give a fuck.";
+	static final String DONT_BE_RUDE = "Don't be rude, please.";
 
-	static Consumer<MessageCreateSpec> buildAddReply(String subject, String response) {
-		return spec -> spec.setContent(
-				String.format("Added new response.\nSubject: `%s`\nResponse: `%s`", subject.toLowerCase(), response));
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase(getName());
+	static String buildDontAtReply(User user) {
+		return user.getMention() + ". Don't @ people, you dingus.";
 	}
 
 	void add(String subject, String response) {
@@ -115,7 +99,7 @@ public class FuckCommand extends Command {
 
 		saveToCollection(subject, responses.get(subject));
 	}
-	
+
 	private Map<String, List<String>> loadResponsesFromCollection() {
 		return nhlBot.getPersistentData().getFucksData().getFucks();
 	}

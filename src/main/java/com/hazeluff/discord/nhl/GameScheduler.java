@@ -412,15 +412,10 @@ public class GameScheduler extends Thread {
 	 * @throws NHLGameSchedulerException
 	 */
 	public Game getGameByChannelName(String channelName) {
-		try {
-			return games.stream()
-					.filter(game -> GameDayChannel.getChannelName(game).equalsIgnoreCase(channelName))
-					.findAny()
-					.get();
-		} catch (NoSuchElementException e) {
-			LOGGER.warn("No channel by name [{}]", channelName);
-			return null;
-		}
+		return games.stream()
+				.filter(game -> GameDayChannel.getChannelName(game).equalsIgnoreCase(channelName))
+				.findAny()
+				.orElse(null);
 	}
 
 	/**

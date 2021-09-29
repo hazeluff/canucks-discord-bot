@@ -1,7 +1,8 @@
 package com.hazeluff.discord.bot.command;
 
 import java.util.List;
-import java.util.function.Consumer;
+
+import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
@@ -9,23 +10,23 @@ import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.GameStatus;
 import com.hazeluff.discord.nhl.Team;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
+import discord4j.common.util.Snowflake;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
  * Displays all the goals in game of a 'Game Day Channel'
  */
 public class GoalsCommand extends Command {
+	static final String NAME = "goals";
 
 	public GoalsCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 	
 	public String getName() {
-		return "goals";
+		return NAME;
 	}
 	
 	public ApplicationCommandRequest getACR() {
@@ -36,41 +37,29 @@ public class GoalsCommand extends Command {
 	}
 
 	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {
-		List<Team> preferredTeams = nhlBot.getPersistentData()
-				.getPreferencesData()
-				.getGuildPreferences(event.getGuildId().get().asLong())
-				.getTeams();
-
+	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
+		Snowflake guildId = event.getInteraction().getGuildId().get();
+		List<Team> preferredTeams = nhlBot.getPersistentData().getPreferencesData()
+				.getGuildPreferences(guildId.asLong()).getTeams();
 		if (preferredTeams.isEmpty()) {
-			sendMessage(event, SUBSCRIBE_FIRST_MESSAGE);
-			return;
+			return event.replyEphemeral(SUBSCRIBE_FIRST_MESSAGE);
 		}
 
 		TextChannel channel = getChannel(event);
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
-			sendMessage(event, getRunInGameDayChannelsMessage(getGuild(event), preferredTeams));
-			return;
+			return event.replyEphemeral(getRunInGameDayChannelsMessage(getGuild(event), preferredTeams));
 		}
 
 		if (game.getStatus() == GameStatus.PREVIEW) {
-			sendMessage(event, GAME_NOT_STARTED_MESSAGE);
-			return;
+			return event.replyEphemeral(GAME_NOT_STARTED_MESSAGE);
 		}
 
-		sendMessage(event, getGoalsMessage(game));
-		return;
+		return event.replyEphemeral(getGoalsMessage(game));
 	}
 
-	public Consumer<MessageCreateSpec> getGoalsMessage(Game game) {
-		return spec -> spec.setContent(
-				String.format("%s\n%s", GameDayChannel.getScoreMessage(game), GameDayChannel.getGoalsMessage(game)));
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase(getName());
+	public String getGoalsMessage(Game game) {
+		return String.format("%s\n%s", GameDayChannel.getScoreMessage(game), GameDayChannel.getGoalsMessage(game));
 	}
 
 }

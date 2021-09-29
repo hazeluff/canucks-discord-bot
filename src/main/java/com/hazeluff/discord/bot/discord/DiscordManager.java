@@ -142,6 +142,11 @@ public class DiscordManager {
 	}
 
 	public void sendMessage(TextChannel channel, String message) {
+		if (channel == null) {
+			logNullArgumentsStackTrace("`channel` was null.");
+			return;
+		}
+
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return;

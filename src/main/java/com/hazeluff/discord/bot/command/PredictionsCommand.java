@@ -1,18 +1,17 @@
 package com.hazeluff.discord.bot.command;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.javatuples.Pair;
+import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.predictions.campaigns.PredictionsScore;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
 
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.entity.Message;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
@@ -20,13 +19,14 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
  * Displays information about NHLBot and the author
  */
 public class PredictionsCommand extends Command {
+	static final String NAME = "predictions";
 
 	public PredictionsCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 
 	public String getName() {
-		return "predictions";
+		return NAME;
 	}
 
 	public ApplicationCommandRequest getACR() {
@@ -34,51 +34,51 @@ public class PredictionsCommand extends Command {
 	}
 
 	@Override
-	public void execute(MessageCreateEvent event, CommandArguments command) {		
+	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
+		// Personal Score
+		if (event.getOption("self").get().getValue().get().asBoolean()) {
 
-		if (command.getArguments().isEmpty()) {
-			List<Pair<Long, Integer>> playerRankings = 
-					SeasonCampaign.getRankings(nhlBot, Config.CURRENT_SEASON.getAbbreviation());
-			
-			StringBuilder messageBuilder = new StringBuilder("Here are the results for Season Predictions:\n");
-			messageBuilder.append("```");
-			int listedNameLength = 32;
-			for (Pair<Long, Integer> userRanking : playerRankings) {
-				long userId = userRanking.getValue0();
-				int score = userRanking.getValue1();
-				User user = nhlBot.getDiscordManager().getUser(userId);
-				String listedUserName = user != null 
-						? getAndPadUserName(user, listedNameLength)
-						: getInvalidUserName(userId, listedNameLength);
-							
-				messageBuilder.append(String.format("%s %s", listedUserName, score));
-				messageBuilder.append("\n");
-			}
-			messageBuilder.append("```");
+			long userId = event.getInteraction().getUser().getId().asLong();
 
-			sendMessage(event, messageBuilder.toString());
-			return;
-		}
-
-		if (Arrays.asList("rank", "score").contains(command.getArguments().get(0).toLowerCase())) {
-			long userId = event.getMember().get().getId().asLong();
-
-			PredictionsScore score = SeasonCampaign.getScore(nhlBot,
-					Config.CURRENT_SEASON.getAbbreviation(), userId);
+			PredictionsScore score = SeasonCampaign.getScore(nhlBot, Config.CURRENT_SEASON.getAbbreviation(),
+					userId);
 			if (score == null) {
-				String message = "[Internal Error] Required database did not have results for the season.";
-				sendMessage(event, message);
-				return;
+				return event.reply(NO_RESULTS);
 			}
 
 			String place = "x'th";
 
+			// TODO Implment logic to get your place
+
 			String message = String.format("You placed %s.\n"
 					+ "You predicted %s games correctly out of %s. There are/were a total of %s games to predict on.",
 					place, score.getNumCorrect(), score.getTotalPredictions(), score.getTotalGames());
-			sendMessage(event, message);
+			return event.replyEphemeral(message);
 		}
+		
+		// Server Ranking/Scores
+		List<Pair<Long, Integer>> playerRankings = 
+				SeasonCampaign.getRankings(nhlBot, Config.CURRENT_SEASON.getAbbreviation());
+		
+		StringBuilder messageBuilder = new StringBuilder("Here are the results for Season Predictions:\n");
+		messageBuilder.append("```");
+		int listedNameLength = 32;
+		for (Pair<Long, Integer> userRanking : playerRankings) {
+			long userId = userRanking.getValue0();
+			int score = userRanking.getValue1();
+			User user = nhlBot.getDiscordManager().getUser(userId);
+			String listedUserName = user != null 
+					? getAndPadUserName(user, listedNameLength)
+					: getInvalidUserName(userId, listedNameLength);
+						
+			messageBuilder.append(String.format("%s %s", listedUserName, score));
+			messageBuilder.append("\n");
+		}
+		messageBuilder.append("```");
+		return event.reply(messageBuilder.toString());
 	}
+
+	static String NO_RESULTS = "[Internal Error] Required database did not have results for the season.";
 
 	static String getAndPadUserName(User user, int length) {
 		String userName = user.getUsername();
@@ -96,10 +96,5 @@ public class PredictionsCommand extends Command {
 			strUserId = strUserId.substring(0, length - addedCharLength) + "..";
 		}
 		return StringUtils.rightPad(String.format("unknown(%s)", strUserId), length);
-	}
-
-	@Override
-	public boolean isAccept(Message message, CommandArguments command) {
-		return command.getCommand().equalsIgnoreCase(getName());
 	}
 }

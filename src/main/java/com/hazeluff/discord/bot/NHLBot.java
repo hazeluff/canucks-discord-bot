@@ -203,28 +203,29 @@ public class NHLBot extends Thread {
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
 		List<Snowflake> guilds = discordManager.block(getPrivilegedGuilds(discordManager).map(Guild::getId));
+		for (Command command : commands) {
+			LOGGER.info("Adding Command: " + command.getName());
 
-		for (Snowflake guild : guilds) {
-			for (Command command : commands) {
-				ApplicationCommandRequest acr = command.getACR();
-				// Only register commands with ACR
-				if(acr != null) {
-					// Register Command
-					restClient.getApplicationService()
-							.createGuildApplicationCommand(applicationId, guild.asLong(), acr)
-							.doOnError(t -> LOGGER.error("Unable to create guild command.", t))
-							.onErrorResume(e -> Mono.empty())
-							.block();
+			ApplicationCommandRequest acr = command.getACR();
+			// Only register commands with ACR
+			if (acr != null) {
+				for (Snowflake guild : guilds) {
+					LOGGER.info("Registering command with guild: " + guild.asLong());
+					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guild.asLong(), acr)
+							.doOnError(t -> LOGGER.error("Unable to create guild command: " + acr.name(), t))
+							.onErrorResume(e -> Mono.empty()).block();
 
-					// Register Listener for the command
-					discordManager.getClient()
-							.on(command)
-							.doOnError(t -> LOGGER.error("Unable to respond to command.", t))
-							.onErrorResume(e -> Mono.empty())
-							.blockLast();
 				}
-
+			} else {
+				LOGGER.warn("Command did not have ApplicationCommandRequest.");
 			}
+
+			LOGGER.info("Registering Command listeners with client: " + command.getName());
+			discordManager.getClient()
+				.on(command)
+				.doOnError(t -> LOGGER.error("Unable to respond to command: " + command.getName(), t))
+				.onErrorResume(e -> Mono.empty())
+				.subscribe();
 		}
 	}
 	

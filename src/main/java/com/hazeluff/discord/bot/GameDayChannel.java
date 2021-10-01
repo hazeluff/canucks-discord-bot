@@ -32,7 +32,6 @@ import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.GameEvent;
 import com.hazeluff.discord.nhl.GameEventStrength;
-import com.hazeluff.discord.nhl.GamePeriod;
 import com.hazeluff.discord.nhl.GameStatus;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.nhl.Player;
@@ -547,8 +546,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return end of game message
 	 */
 	String buildEndOfGameMessage() {
-		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + getScoreMessage() + "\n"
-				+ "Goals Scored:\n" + getGoalsMessage();
+		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
 
 		List<Game> nextGames = preferences.getTeams().stream()
 				.map(team -> nhlBot.getGameScheduler().getNextGame(team))
@@ -564,6 +562,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 		}
 		return message;
+	}
+
+	private static String buildGameScore(Game game) {
+		return String.format("%s **%s** - **%s** %s", 
+				game.getHomeTeam().getName(), game.getHomeScore(),
+				game.getAwayScore(), game.getAwayTeam().getName());
 	}
 
 	/*
@@ -707,72 +711,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	public String getDetailsMessage(ZoneId timeZone) {
 		return getDetailsMessage(game, timeZone);
-	}
-
-	/**
-	 * Gets the message that NHLBot will respond with when queried about the score
-	 * of the game
-	 * 
-	 * @return message in the format : "Home Team **homeScore** - **awayScore** Away
-	 *         Team"
-	 */
-	public String getScoreMessage() {
-		return getScoreMessage(game);
-	}
-	
-	/**
-	 * Gets the message that NHLBot will respond with when queried about the score
-	 * of the game
-	 * 
-	 * @param game
-	 * 		The game to get the score message of
-	 * @return message in the format : "Home Team **homeScore** - **awayScore** Away
-	 *         Team"
-	 */
-	public static String getScoreMessage(Game game) {
-		return String.format("%s **%s** - **%s** %s", game.getHomeTeam().getName(), game.getHomeScore(),
-				game.getAwayScore(), game.getAwayTeam().getName());
-	}
-
-	public String getGoalsMessage() {
-		return getGoalsMessage(game);
-	}
-
-	public static String getGoalsMessage(Game game) {
-		List<GameEvent> goals = game.getEvents();
-		StringBuilder response = new StringBuilder();
-		response.append("```\n");
-		for (int i = 1; i <= 3; i++) {
-			switch (i) {
-			case 1:
-				response.append("1st Period:");
-				break;
-			case 2:
-				response.append("\n\n2nd Period:");
-				break;
-			case 3:
-				response.append("\n\n3rd Period:");
-				break;
-			}
-			int period = i;
-			Predicate<GameEvent> isPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() == period;
-			if (goals.stream().anyMatch(isPeriod)) {
-				for (GameEvent gameEvent : goals.stream().filter(isPeriod).collect(Collectors.toList())) {
-					response.append("\n").append(gameEvent.getDetails());
-				}
-			} else {
-				response.append("\nNone");
-			}
-		}
-		Predicate<GameEvent> isOtherPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() > 3;
-		if (goals.stream().anyMatch(isOtherPeriod)) {
-			GameEvent gameEvent = goals.stream().filter(isOtherPeriod).findFirst().get();
-			GamePeriod period = gameEvent.getPeriod();
-			response.append("\n\n").append(period.getDisplayValue()).append(":");
-			goals.stream().filter(isOtherPeriod).forEach(event -> response.append("\n").append(event.getDetails()));
-		}
-		response.append("\n```");
-		return response.toString();
 	}
 
 	/**

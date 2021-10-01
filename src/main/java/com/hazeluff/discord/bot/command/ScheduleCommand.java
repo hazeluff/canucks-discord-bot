@@ -168,7 +168,7 @@ public class ScheduleCommand extends Command {
 
 		switch(state) {
 		case PAST:
-			message = GameDayChannel.getScoreMessage(game);
+			message = buildGameScore(game);
 			break;
 		case CURRENT:
 			if (game.getStatus() == GameStatus.POSTPONED) {
@@ -176,7 +176,7 @@ public class ScheduleCommand extends Command {
 			} else {
 				date.append(" **(current game)**");
 			}
-			message = GameDayChannel.getScoreMessage(game);
+			message = buildGameScore(game);
 			break;
 		case NEXT:
 			if (game.getStatus() == GameStatus.POSTPONED) {
@@ -200,4 +200,9 @@ public class ScheduleCommand extends Command {
 		return embed -> embed.addField(date.toString(), message, false);
 	}
 
+	private static String buildGameScore(Game game) {
+		return String.format("%s **%s** - **%s** %s", 
+				game.getHomeTeam().getName(), game.getHomeScore(),
+				game.getAwayScore(), game.getAwayTeam().getName());
+	}
 }

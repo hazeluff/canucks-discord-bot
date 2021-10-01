@@ -1,10 +1,10 @@
 package com.hazeluff.discord.bot.command;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.reactivestreams.Publisher;
 
-import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.GameStatus;
@@ -13,6 +13,7 @@ import com.hazeluff.discord.nhl.Team;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
 /**
@@ -55,10 +56,31 @@ public class ScoreCommand extends Command {
 			return event.replyEphemeral(GAME_NOT_STARTED_MESSAGE);
 		}
 
-		return event.reply(getScoreMessage(game));
+		return event.reply(spec -> spec.addEmbed(getEmbed(game)));
 	}
 
-	String getScoreMessage(Game game) {
-		return GameDayChannel.getScoreMessage(game);
+	public static Consumer<EmbedCreateSpec> getEmbed(Game game) {
+		return spec -> buildEmbed(spec, game);
+	}
+	
+	public static EmbedCreateSpec buildEmbed(EmbedCreateSpec spec, Game game) {
+		String homeGoals = "Goals:  **" + game.getHomeScore() + "**";
+		String awayGoals = "Goals:  **" + game.getAwayScore() + "**";
+		return spec
+				.addField(
+						game.getHomeTeam().getFullName(),
+						"Home\n" + homeGoals,
+						true
+				)
+				.addField(
+						"vs",
+						"~~", // For formatting
+						true
+				)
+				.addField(
+						game.getAwayTeam().getFullName(),
+						"Away\n" + awayGoals,
+						true
+				);
 	}
 }

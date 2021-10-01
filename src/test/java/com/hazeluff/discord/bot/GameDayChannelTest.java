@@ -36,8 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.GameEvent;
-import com.hazeluff.discord.nhl.GamePeriod;
-import com.hazeluff.discord.nhl.GamePeriod.Type;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.nhl.Player;
 import com.hazeluff.discord.nhl.Team;
@@ -161,119 +159,6 @@ public class GameDayChannelTest {
 		assertTrue(result.contains(gameDayChannel.getTime(TIME_ZONE)));
 		assertTrue(result.contains(gameDayChannel.getNiceDate(TIME_ZONE)));
 		assertEquals(result, staticResult);
-	}
-
-	@Test
-	public void getScoreMessageShouldReturnFormattedString() {
-		LOGGER.info("getScoreMessageShouldReturnFormattedString");
-		String result = gameDayChannel.getScoreMessage();
-		String staticResult = GameDayChannel.getScoreMessage(mockGame);
-
-		assertTrue(result.contains(String.valueOf(AWAY_SCORE)));
-		assertTrue(result.contains(String.valueOf(HOME_SCORE)));
-		assertEquals(result, staticResult);
-	}
-
-	@Test
-	public void getGoalMessageShouldDisplayRegularPeriodGoalsAndOvertimeGoal() {
-		LOGGER.info("getGoalMessageShouldDisplayRegularPeriodGoalsAndOvertimeGoal");
-		GameEvent mockGameEvent1 = mock(GameEvent.class);
-		String details1 = "d1";
-		when(mockGameEvent1.getPeriod()).thenReturn(new GamePeriod(1, Type.REGULAR, "1st"));
-		when(mockGameEvent1.getDetails()).thenReturn(details1);
-		GameEvent mockGameEvent2 = mock(GameEvent.class);
-		String details2 = "d2";
-		when(mockGameEvent2.getPeriod()).thenReturn(new GamePeriod(2, Type.REGULAR, "2nd"));
-		when(mockGameEvent2.getDetails()).thenReturn(details2);
-		GameEvent mockGameEvent3 = mock(GameEvent.class);
-		String details3 = "d3";
-		when(mockGameEvent3.getPeriod()).thenReturn(new GamePeriod(3, Type.REGULAR, "3rd"));
-		when(mockGameEvent3.getDetails()).thenReturn(details3);
-		GameEvent mockGameEvent4 = mock(GameEvent.class);
-		String details4 = "d4";
-		when(mockGameEvent4.getPeriod()).thenReturn(new GamePeriod(4, Type.OVERTIME, "1st"));
-		when(mockGameEvent4.getDetails()).thenReturn(details4);
-		events.addAll(Arrays.asList(mockGameEvent1, mockGameEvent2, mockGameEvent3, mockGameEvent4));
-
-		String result = gameDayChannel.getGoalsMessage();
-		String staticResult = GameDayChannel.getGoalsMessage(mockGame);
-
-		String expected = "```\n1st Period:\n" + details1 + "\n\n2nd Period:\n" + details2 + "\n\n3rd Period:\n" + details3
-				+ "\n\n" + mockGameEvent4.getPeriod().getDisplayValue() + ":\n" + details4 + "\n```";
-		assertEquals(expected, result);
-		assertEquals(expected, staticResult);
-	}
-
-	@Test
-	public void getGoalMessageShouldDisplayRegularPeriodGoalsAndShootoutGoals() {
-		LOGGER.info("getGoalMessageShouldDisplayRegularPeriodGoalsAndShootoutGoal");
-		GameEvent mockGameEvent1 = mock(GameEvent.class);
-		String details1 = "d1";
-		when(mockGameEvent1.getPeriod()).thenReturn(new GamePeriod(1, Type.REGULAR, "1st"));
-		when(mockGameEvent1.getDetails()).thenReturn(details1);
-		GameEvent mockGameEvent2 = mock(GameEvent.class);
-		String details2 = "d2";
-		when(mockGameEvent2.getPeriod()).thenReturn(new GamePeriod(2, Type.REGULAR, "2nd"));
-		when(mockGameEvent2.getDetails()).thenReturn(details2);
-		GameEvent mockGameEvent3 = mock(GameEvent.class);
-		String details3 = "d3";
-		when(mockGameEvent3.getPeriod()).thenReturn(new GamePeriod(3, Type.REGULAR, "3rd"));
-		when(mockGameEvent3.getDetails()).thenReturn(details3);
-		GameEvent mockGameEvent4 = mock(GameEvent.class);
-		String details4 = "d4";
-		when(mockGameEvent4.getPeriod()).thenReturn(new GamePeriod(5, Type.SHOOTOUT, "1st"));
-		when(mockGameEvent4.getDetails()).thenReturn(details4);
-		GameEvent mockGameEvent5 = mock(GameEvent.class);
-		String details5 = "d5";
-		when(mockGameEvent5.getPeriod()).thenReturn(new GamePeriod(5, Type.SHOOTOUT, "1st"));
-		when(mockGameEvent5.getDetails()).thenReturn(details5);
-		events.addAll(Arrays.asList(mockGameEvent1, mockGameEvent2, mockGameEvent3, mockGameEvent4, mockGameEvent5));
-
-		String result = gameDayChannel.getGoalsMessage();
-		String staticResult = GameDayChannel.getGoalsMessage(mockGame);
-
-		String expected = "```\n1st Period:\n" + details1 + "\n\n2nd Period:\n" + details2 + "\n\n3rd Period:\n" + details3
-				+ "\n\n" + mockGameEvent4.getPeriod().getDisplayValue() + ":\n" + details4 + "\n" + details5 + "\n```";
-		assertEquals(expected, result);
-		assertEquals(expected, staticResult);
-	}
-
-	@Test
-	public void getGoalMessageShouldNotDisplayOvertimeOrShootoutHeaderIfNoneAreScored() {
-		LOGGER.info("getGoalMessageShouldNotDisplayOvertimeOrShootoutHeaderIfNoneAreScored");
-		GameEvent mockGameEvent1 = mock(GameEvent.class);
-		String details1 = "d1";
-		when(mockGameEvent1.getPeriod()).thenReturn(new GamePeriod(1, Type.REGULAR, "1st"));
-		when(mockGameEvent1.getDetails()).thenReturn(details1);
-		GameEvent mockGameEvent2 = mock(GameEvent.class);
-		String details2 = "d2";
-		when(mockGameEvent2.getPeriod()).thenReturn(new GamePeriod(2, Type.REGULAR, "2nd"));
-		when(mockGameEvent2.getDetails()).thenReturn(details2);
-		GameEvent mockGameEvent3 = mock(GameEvent.class);
-		String details3 = "d3";
-		when(mockGameEvent3.getPeriod()).thenReturn(new GamePeriod(3, Type.REGULAR, "3rd"));
-		when(mockGameEvent3.getDetails()).thenReturn(details3);
-		events.addAll(Arrays.asList(mockGameEvent1, mockGameEvent2, mockGameEvent3));
-
-		String result = gameDayChannel.getGoalsMessage();
-		String staticResult = GameDayChannel.getGoalsMessage(mockGame);
-
-		String expected = "```\n1st Period:\n" + details1 + "\n\n2nd Period:\n" + details2 + "\n\n3rd Period:\n" + details3
-				+ "\n```";
-		assertEquals(expected, result);
-		assertEquals(expected, staticResult);
-	}
-
-	@Test
-	public void getGoalMessageShouldDisplayNoneStringIfNoGoalsScoredInRegularPeriods() {
-		LOGGER.info("getGoalMessageShouldNotDisplayOvertimeOrShootoutHeaderIfNoneAreScored");
-
-		String result = gameDayChannel.getGoalsMessage();
-		String staticResult = GameDayChannel.getGoalsMessage(mockGame);
-		
-		String expected = "```\n1st Period:\nNone\n\n2nd Period:\nNone\n\n3rd Period:\nNone\n```";
-		assertEquals(expected, result);
-		assertEquals(expected, staticResult);
 	}
 
 	@Test

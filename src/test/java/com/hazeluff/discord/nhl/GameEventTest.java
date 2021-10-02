@@ -134,55 +134,6 @@ public class GameEventTest {
 		assertEquals(2, players.size());
 	}
 
-	@Test
-	public void getDetailsShouldReturnDetailsIfContainsOnePlayer() {
-		LOGGER.info("getDetailsShouldReturnDetailsIfContainsOnePlayer");
-		List<Player> players = Arrays.asList(PLAYER);
-
-		String result = newGameEvent(players).getDetails();
-
-		assertTrue(result.contains(PERIOD_TIME));
-		assertTrue(result.contains(TEAM.getCode()));
-		assertTrue(result.contains(PLAYER.getFullName()));
-		assertTrue(!result.contains("Assist"));
-		assertTrue(!result.contains(PLAYER2.getFullName()));
-		assertTrue(!result.contains(PLAYER3.getFullName()));
-	}
-
-	@Test
-	public void getDetailsShouldReturnDetailsIfContainsTwoPlayers() {
-		LOGGER.info("getDetailsShouldReturnDetailsIfContainsTwoPlayers");
-		List<Player> players = Arrays.asList(PLAYER, PLAYER2);
-
-		String result = newGameEvent(players).getDetails();
-
-		assertTrue(result.contains(PERIOD_TIME));
-		assertTrue(result.contains(TEAM.getCode()));
-		assertTrue(result.contains(PLAYER.getFullName()));
-		assertTrue(result.contains("Assists"));
-		assertTrue(result.contains(PLAYER2.getFullName()));
-		assertTrue(!result.contains(PLAYER3.getFullName()));
-	}
-
-	@Test
-	public void getDetailsShouldReturnDetailsIfContainsThreePlayers() {
-		LOGGER.info("getDetailsShouldReturnDetailsIfContainsThreePlayers");
-		List<Player> players = Arrays.asList(PLAYER, PLAYER2, PLAYER3);
-
-		String result = newGameEvent(players).getDetails();
-
-		assertTrue(result.contains(PERIOD_TIME));
-		assertTrue(result.contains(TEAM.getCode()));
-		assertTrue(result.contains(PLAYER.getFullName()));
-		assertTrue(result.contains("Assists"));
-		assertTrue(result.contains(PLAYER2.getFullName()));
-		assertTrue(result.contains(PLAYER3.getFullName()));
-	}
-
-	private GameEvent newGameEvent(List<Player> players) {
-		return new GameEvent(ID, IDX, DATE, TYPE, TEAM, PERIOD_TIME, PERIOD, players, STRENGTH);
-	}
-
 	private static Player buildMockPlayer(int id, String fullName, EventRole role) {
 		Player mockPlayer = mock(Player.class);
 		when(mockPlayer.getId()).thenReturn(id);

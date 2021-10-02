@@ -22,8 +22,8 @@ public class GameEvent {
 	private final List<Player> players = new ArrayList<>();
 	private final GameEventStrength strength;
 
-	GameEvent(int id, int idx, ZonedDateTime date, GameEventType type, Team team, String periodTime, GamePeriod period,
-			List<Player> players, GameEventStrength strength) {
+	public GameEvent(int id, int idx, ZonedDateTime date, GameEventType type, Team team, String periodTime,
+			GamePeriod period, List<Player> players, GameEventStrength strength) {
 		this.id = id;
 		this.idx = idx;
 		this.date = date;
@@ -96,25 +96,6 @@ public class GameEvent {
 
 	public int getIdx() {
 		return idx;
-	}
-
-	/**
-	 * Builds the details to be displayed.
-	 * 
-	 * @return details as formatted string
-	 */
-	public String getDetails() {
-		StringBuilder details = new StringBuilder();
-		details.append(String.format("%s - %s %-18s", periodTime, team.getCode(), players.get(0).getFullName()));
-		if (players.size() > 1) {
-			details.append("  Assists: ");
-			details.append(players.get(1).getFullName());
-		}
-		if (players.size() > 2) {
-			details.append(", ");
-			details.append(players.get(2).getFullName());
-		}
-		return details.toString();
 	}
 
 	@Override

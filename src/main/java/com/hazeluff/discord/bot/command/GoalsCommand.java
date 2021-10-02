@@ -10,8 +10,8 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.GameEvent;
-import com.hazeluff.discord.nhl.GamePeriod;
 import com.hazeluff.discord.nhl.GameStatus;
+import com.hazeluff.discord.nhl.Player;
 import com.hazeluff.discord.nhl.Team;
 
 import discord4j.common.util.Snowflake;
@@ -63,46 +63,77 @@ public class GoalsCommand extends Command {
 		return event.reply(spec -> spec.addEmbed(getEmbed(game)));
 	}
 
-	public static String getGoalsMessage(Game game) {
-		List<GameEvent> goals = game.getEvents();
-		StringBuilder response = new StringBuilder();
-		response.append("```\n");
-		for (int i = 1; i <= 3; i++) {
-			switch (i) {
-			case 1:
-				response.append("1st Period:");
-				break;
-			case 2:
-				response.append("\n\n2nd Period:");
-				break;
-			case 3:
-				response.append("\n\n3rd Period:");
-				break;
-			}
-			int period = i;
-			Predicate<GameEvent> isPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() == period;
-			if (goals.stream().anyMatch(isPeriod)) {
-				for (GameEvent gameEvent : goals.stream().filter(isPeriod).collect(Collectors.toList())) {
-					response.append("\n").append(gameEvent.getDetails());
-				}
-			} else {
-				response.append("\nNone");
-			}
-		}
-		Predicate<GameEvent> isOtherPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() > 3;
-		if (goals.stream().anyMatch(isOtherPeriod)) {
-			GameEvent gameEvent = goals.stream().filter(isOtherPeriod).findFirst().get();
-			GamePeriod period = gameEvent.getPeriod();
-			response.append("\n\n").append(period.getDisplayValue()).append(":");
-			goals.stream().filter(isOtherPeriod).forEach(event -> response.append("\n").append(event.getDetails()));
-		}
-		response.append("\n```");
-		return response.toString();
-	}
-
 	public static Consumer<EmbedCreateSpec> getEmbed(Game game) {
-		return spec -> ScoreCommand.buildEmbed(spec, game)
-				.addField("First Period", "Test", false);
+		return spec -> { 
+			List<GameEvent> goals = game.getEvents();
+			EmbedCreateSpec embedSpec = ScoreCommand.buildEmbed(spec, game);
+			// Regulation Periods
+			for (int period = 1; period <= 3; period++) {
+				String strPeriod = ""; // Field Title
+				switch (period) {
+				case 1:
+					strPeriod = "1st Period";
+					break;
+				case 2:
+					strPeriod = "2nd Period";
+					break;
+				case 3:
+					strPeriod = "3rd Period";
+					break;
+				}
+				String strGoals = ""; // Field Body
+				int fPeriod = period;
+				Predicate<GameEvent> isPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() == fPeriod;
+				if (goals.stream().anyMatch(isPeriod)) {
+					List<GameEvent> periodGoals = goals.stream().filter(isPeriod).collect(Collectors.toList());
+					StringBuilder sbGoals = new StringBuilder();
+					for (GameEvent gameEvent : periodGoals) {
+						if (sbGoals.length() != 0) {
+							sbGoals.append("\n");
+						}
+						sbGoals.append(buildGoalLine(gameEvent));
+					}
+					strGoals = sbGoals.toString();
+				} else {
+					strGoals = "None";
+				}
+				embedSpec.addField(strPeriod, strGoals, false);
+			}
+			// Overtime and Shootouts
+			Predicate<GameEvent> isExtraPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() > 3;
+			if (goals.stream().anyMatch(isExtraPeriod)) {
+				List<GameEvent> extraPeriodGoals = goals.stream().filter(isExtraPeriod).collect(Collectors.toList());
+				String strPeriod = extraPeriodGoals.get(0).getPeriod().getDisplayValue();
+				StringBuilder sbGoals = new StringBuilder();
+				for (GameEvent goal : extraPeriodGoals) {
+					if (sbGoals.length() == 0) {
+						sbGoals.append("\n");
+					}
+					sbGoals.append(buildGoalLine(goal));
+				}
+				embedSpec.addField(strPeriod, sbGoals.toString(), false);
+			}
+		};
 	}
 
+	/**
+	 * Builds the details to be displayed.
+	 * 
+	 * @return details as formatted string
+	 */
+	public static String buildGoalLine(GameEvent gameEvent) {
+		StringBuilder details = new StringBuilder();
+		List<Player> players = gameEvent.getPlayers();
+		details.append(String.format("**%s** @ %s - **%-18s**",
+				gameEvent.getTeam().getCode(), gameEvent.getPeriodTime(), players.get(0).getFullName()));
+		if (players.size() > 1) {
+			details.append("  Assists: ");
+			details.append(players.get(1).getFullName());
+		}
+		if (players.size() > 2) {
+			details.append(", ");
+			details.append(players.get(2).getFullName());
+		}
+		return details.toString();
+	}
 }

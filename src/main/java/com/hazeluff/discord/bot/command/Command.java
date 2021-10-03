@@ -32,7 +32,15 @@ import discord4j.rest.util.PermissionSet;
 import reactor.core.publisher.Mono;
 
 /**
- * Interface for commands that the NHLBot can accept and the replies to those commands.
+ * <p>
+ * Interface for commands that the NHLBot can accept and the replies to those
+ * commands.
+ * </p>
+ * 
+ * <p>
+ * New Commands should be added to {@link NHLBot#getCommands}
+ * </p>
+ * 
  */
 public abstract class Command extends ReactiveEventAdapter {
 	static final String SUBSCRIBE_FIRST_MESSAGE = 
@@ -53,6 +61,10 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	public abstract String getName();
 	public abstract ApplicationCommandRequest getACR();
+
+	public boolean isDevOnly() {
+		return false;
+	}
 
 	public abstract Publisher<?> onChatCommandInput(ChatInputInteractionEvent event);
 

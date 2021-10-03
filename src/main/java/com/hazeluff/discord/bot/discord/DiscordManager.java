@@ -15,6 +15,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
 import discord4j.discordjson.json.gateway.StatusUpdate;
 import reactor.core.publisher.Flux;
@@ -201,6 +202,30 @@ public class DiscordManager {
 		}
 
 		subscribe(message.edit(spec -> spec.setContent(newMessage)));
+	}
+
+	/**
+	 * Updates the message in Discord. Returns the new Message if successful. Else
+	 * it returns the original Message.
+	 * 
+	 * @param messages
+	 *            existing message in Discord
+	 * @param newMessage
+	 *            new message
+	 * @return
+	 */
+	public void updateMessage(Message message, Consumer<MessageEditSpec> newMessageSpec) {
+		if (message == null) {
+			logNullArgumentsStackTrace("`message` was null.");
+			return;
+		}
+
+		if (newMessageSpec == null) {
+			logNullArgumentsStackTrace("`newMessageSpec` was null.");
+			return;
+		}
+
+		subscribe(message.edit(newMessageSpec));
 	}
 
 	/**

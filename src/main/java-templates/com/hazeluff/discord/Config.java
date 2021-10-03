@@ -30,7 +30,17 @@ public class Config {
 	public static final Season CURRENT_SEASON = Seasons.S21_22;
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> GUILD_PRIVILEGED_LIST = Arrays.asList(268247727400419329l, 276953120964083713l);
+	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
+			268247727400419329l, 
+			276953120964083713l
+	);
+
+	// List of guilds allowed to access the bot. (not strictly enforced access)
+	public static final List<Long> PRIVILEGED_GUILD_LIST = Arrays.asList(
+			268247727400419329l, 
+			276953120964083713l, 
+			238870084003561472l // /r/canucks
+	);
 	
 	/*
 	 *  Technical Config

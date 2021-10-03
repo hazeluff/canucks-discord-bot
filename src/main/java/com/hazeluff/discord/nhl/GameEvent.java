@@ -22,8 +22,8 @@ public class GameEvent {
 	private final List<Player> players = new ArrayList<>();
 	private final GameEventStrength strength;
 
-	public GameEvent(int id, int idx, ZonedDateTime date, GameEventType type, Team team, String periodTime,
-			GamePeriod period, List<Player> players, GameEventStrength strength) {
+	GameEvent(int id, int idx, ZonedDateTime date, GameEventType type, Team team, String periodTime, GamePeriod period,
+			List<Player> players, GameEventStrength strength) {
 		this.id = id;
 		this.idx = idx;
 		this.date = date;

@@ -1,5 +1,8 @@
 package com.hazeluff.discord.bot;
 
+import static com.hazeluff.discord.Config.DEV_GUILD_LIST;
+import static com.hazeluff.discord.Config.PRIVILEGED_GUILD_LIST;
+
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +26,7 @@ import com.hazeluff.discord.bot.command.ScheduleCommand;
 import com.hazeluff.discord.bot.command.ScoreCommand;
 import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
+import com.hazeluff.discord.bot.command.TestCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
@@ -33,7 +37,6 @@ import com.hazeluff.discord.bot.listener.ReactionListener;
 import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.discord.utils.Utils;
 
-import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
@@ -51,7 +54,6 @@ import discord4j.rest.http.client.ClientException;
 import discord4j.rest.request.RouteMatcher;
 import discord4j.rest.response.ResponseFunction;
 import discord4j.rest.route.Routes;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.retry.Retry;
 
@@ -127,9 +129,15 @@ public class NHLBot extends Thread {
 		// Add Bot Commands
 		addCommands(nhlBot);
 		
-		// Manage WelcomeChannels
+		// Manage WelcomeChannels (Only for my dev servers)
 		LOGGER.info("Posting update to Discord channel.");
-		getPrivilegedGuilds(nhlBot.getDiscordManager())
+		nhlBot.getDiscordManager().getClient().getGuilds()
+			.filter(
+					guild -> Arrays.asList(
+							268247727400419329l, 276953120964083713l
+					)
+					.contains(guild.getId().asLong())
+			)
 			.map(Guild::getChannels)
 			.filter(TextChannel.class::isInstance)
 			.flatMap(channels -> channels.filter(channel -> 
@@ -186,41 +194,26 @@ public class NHLBot extends Thread {
 		
 		DiscordManager discordManager = nhlBot.getDiscordManager();
 		
-		// List of all enabled commands. I'm not doing reflections so add it here when you make a new one, dummy.
-		List<Command> commands = Arrays.asList(
-			new AboutCommand(nhlBot),
-			new FuckCommand(nhlBot),
-			new GoalsCommand(nhlBot),
-			new HelpCommand(nhlBot),
-			new NextGameCommand(nhlBot),
-			new PredictionsCommand(nhlBot),
-			new ScoreCommand(nhlBot),
-			new SubscribeCommand(nhlBot),
-			new ScheduleCommand(nhlBot),
-			new StatsCommand(nhlBot),
-			new ThreadsCommand(nhlBot),
-			new UnsubscribeCommand(nhlBot),
-			new WordcloudCommand(nhlBot)					
-		);
+		List<Command> commands = getCommands(nhlBot);
 		
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
-		List<Snowflake> guilds = discordManager.block(getPrivilegedGuilds(discordManager).map(Guild::getId));
 		for (Command command : commands) {
 			LOGGER.debug("Adding Command: " + command.getName());
 
 			ApplicationCommandRequest acr = command.getACR();
 			// Only register commands with ACR
 			if (acr != null) {
-				for (Snowflake guild : guilds) {
-					LOGGER.info("Registering command with guild: " + guild.asLong());
-					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guild.asLong(), acr)
+				List<Long> guilds = command.isDevOnly() ? DEV_GUILD_LIST : PRIVILEGED_GUILD_LIST;
+				for (Long guildId : guilds) {
+					LOGGER.debug("Registering command with guild: " + guildId);
+					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr)
 							.doOnError(t -> LOGGER.error("Unable to create guild command: " + acr.name(), t))
 							.onErrorResume(e -> Mono.empty()).block();
 
 				}
 			} else {
-				LOGGER.warn("Command did not have ApplicationCommandRequest.");
+				LOGGER.debug("Command did not have ApplicationCommandRequest.");
 			}
 
 			LOGGER.debug("Registering Command listeners with client: " + command.getName());
@@ -329,9 +322,35 @@ public class NHLBot extends Thread {
 		return "<@!" + getDiscordManager().getId().asString() + ">";
 	}
 
-	// Helpers
-	private static Flux<Guild> getPrivilegedGuilds(DiscordManager discordManager) {
-		return discordManager.getClient().getGuilds()
-				.filter(guild -> Config.GUILD_PRIVILEGED_LIST.contains(guild.getId().asLong()));
+	/**
+	 * <p>
+	 * Configures which Commands are used/added to discord as slash commands.
+	 * </p>
+	 * 
+	 * <p>
+	 * NEW COMMANDS NEED TO BE ADDED HERE!
+	 * </p>
+	 * 
+	 * @param nhlBot
+	 * @return
+	 */
+	private static List<Command> getCommands(NHLBot nhlBot) {
+		return Arrays.asList(
+				new AboutCommand(nhlBot),
+				new FuckCommand(nhlBot),
+				new GoalsCommand(nhlBot),
+				new HelpCommand(nhlBot),
+				new NextGameCommand(nhlBot),
+				new PredictionsCommand(nhlBot),
+				new ScoreCommand(nhlBot),
+				new SubscribeCommand(nhlBot),
+				new ScheduleCommand(nhlBot),
+				new StatsCommand(nhlBot),
+				new TestCommand(nhlBot),
+				new ThreadsCommand(nhlBot),
+				new UnsubscribeCommand(nhlBot),
+				new WordcloudCommand(nhlBot)					
+		);
 	}
+
 }

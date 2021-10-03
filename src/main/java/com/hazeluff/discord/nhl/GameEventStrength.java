@@ -5,7 +5,7 @@ import java.util.Map;
 
 
 public enum GameEventStrength {
-	EVEN("EVEN", "Even"), PPG("PPG", "Power Play"), SHORTHANDED("SHG", "Short Handed");
+	EVEN("EVEN", "Even Strength"), PPG("PPG", "Power Play"), SHORTHANDED("SHG", "Short Handed");
 
 	private final String id;
 	private final String value;

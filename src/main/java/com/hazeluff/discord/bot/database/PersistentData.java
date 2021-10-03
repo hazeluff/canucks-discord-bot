@@ -1,8 +1,8 @@
 package com.hazeluff.discord.bot.database;
 
 import com.hazeluff.discord.Config;
+import com.hazeluff.discord.bot.database.channel.ChannelMessagesData;
 import com.hazeluff.discord.bot.database.fuck.FucksData;
-import com.hazeluff.discord.bot.database.pole.PollsData;
 import com.hazeluff.discord.bot.database.preferences.PreferencesData;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
@@ -15,14 +15,15 @@ public class PersistentData {
 
 	private final PreferencesData preferencesData;
 	private final FucksData fucksData;
-	private final PollsData polesData;
+	private final ChannelMessagesData channelMessagesData;
 
 
-	PersistentData(MongoDatabase database, PreferencesData preferencesData, FucksData fucksData, PollsData polesData) {
+	PersistentData(MongoDatabase database, PreferencesData preferencesData, FucksData fucksData,
+			ChannelMessagesData channelMessagesData) {
 		this.database = database;
 		this.preferencesData = preferencesData;
 		this.fucksData = fucksData;
-		this.polesData = polesData;
+		this.channelMessagesData = channelMessagesData;
 	}
 
 	public static PersistentData load() {
@@ -32,8 +33,8 @@ public class PersistentData {
 	static PersistentData load(MongoDatabase database) {
 		PreferencesData preferencesManager = PreferencesData.load(database);
 		FucksData fucksManager = FucksData.load(database);
-		PollsData polesManager = PollsData.load(database);
-		return new PersistentData(database, preferencesManager, fucksManager, polesManager);
+		ChannelMessagesData channelMessagesData = ChannelMessagesData.load(database);
+		return new PersistentData(database, preferencesManager, fucksManager, channelMessagesData);
 	}
 
 	@SuppressWarnings("resource")
@@ -50,8 +51,8 @@ public class PersistentData {
 		return fucksData;
 	}
 
-	public PollsData getPolesData() {
-		return polesData;
+	public ChannelMessagesData getChannelMessagesData() {
+		return channelMessagesData;
 	}
 
 	public MongoDatabase getMongoDatabase() {

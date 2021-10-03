@@ -1,30 +1,30 @@
-package com.hazeluff.discord.bot.database.pole;
+package com.hazeluff.discord.bot.database.channel;
 
 import org.bson.Document;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 
-public class PollMessage {
+public class ChannelMessage {
+	private static final String MESSAGE_KEY_ID_KEY = "messageKeyId";
 	private static final String CHANNEL_ID_KEY = "channelId";
 	private static final String MESSAGE_ID_KEY = "messageId";
-	private static final String POLE_ID_KEY = "poleId";
 
 	private final long channelId;
 	private final long messageId;
-	private final String pollId;
+	private final String messageKeyId;
 
-	PollMessage(long channelId, long messageId, String pollId) {
+	ChannelMessage(long channelId, long messageId, String messageKeyId) {
 		this.channelId = channelId;
 		this.messageId = messageId;
-		this.pollId = pollId;
+		this.messageKeyId = messageKeyId;
 	}
 
-	public static PollMessage of(long channelId, long messageId, String pollId) {
-		return new PollMessage(channelId, messageId, pollId);
+	public static ChannelMessage of(long channelId, long messageId, String messageKeyId) {
+		return new ChannelMessage(channelId, messageId, messageKeyId);
 	}
 
-	static PollMessage findFromCollection(MongoCollection<Document> collection, Document filter) {
+	static ChannelMessage findFromCollection(MongoCollection<Document> collection, Document filter) {
 		Document doc = collection.find(filter).first();
 
 		if (doc == null) {
@@ -33,24 +33,24 @@ public class PollMessage {
 
 		long messageId = doc.getLong(MESSAGE_ID_KEY);
 		long channelId = doc.getLong(CHANNEL_ID_KEY);
-		String poleId = doc.getString(POLE_ID_KEY);
+		String messageKeyId = doc.getString(MESSAGE_KEY_ID_KEY);
 
-		return new PollMessage(channelId, messageId, poleId);
+		return new ChannelMessage(channelId, messageId, messageKeyId);
 	}
 
-	static PollMessage findFromCollection(MongoCollection<Document> collection, long messageId) {
+	static ChannelMessage findFromCollection(MongoCollection<Document> collection, long messageId) {
 		return findFromCollection(
 				collection, 
 				new Document()
 						.append(MESSAGE_ID_KEY, messageId));
 	}
 
-	static PollMessage findFromCollection(MongoCollection<Document> collection, long channelId, String poleId) {
+	static ChannelMessage findFromCollection(MongoCollection<Document> collection, long channelId, String messageKeyId) {
 		return findFromCollection(
 				collection, 
 				new Document()
 						.append(CHANNEL_ID_KEY, channelId)
-						.append(POLE_ID_KEY, poleId));
+						.append(MESSAGE_KEY_ID_KEY, messageKeyId));
 	}
 
 	void saveToCollection(MongoCollection<Document> collection) {
@@ -58,8 +58,7 @@ public class PollMessage {
 				new Document(MESSAGE_ID_KEY, messageId),
 				new Document("$set", new Document()
 						.append(CHANNEL_ID_KEY, channelId)
-						.append(POLE_ID_KEY,
-								pollId)),
+						.append(MESSAGE_KEY_ID_KEY, messageKeyId)),
 				new UpdateOptions().upsert(true));
 	}
 
@@ -71,8 +70,8 @@ public class PollMessage {
 		return messageId;
 	}
 
-	public String getPollId() {
-		return pollId;
+	public String getMessageKeyId() {
+		return messageKeyId;
 	}
 
 	@Override
@@ -81,7 +80,7 @@ public class PollMessage {
 		int result = 1;
 		result = prime * result + (int) (channelId ^ (channelId >>> 32));
 		result = prime * result + (int) (messageId ^ (messageId >>> 32));
-		result = prime * result + ((pollId == null) ? 0 : pollId.hashCode());
+		result = prime * result + ((messageKeyId == null) ? 0 : messageKeyId.hashCode());
 		return result;
 	}
 
@@ -93,22 +92,22 @@ public class PollMessage {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PollMessage other = (PollMessage) obj;
+		ChannelMessage other = (ChannelMessage) obj;
 		if (channelId != other.channelId)
 			return false;
 		if (messageId != other.messageId)
 			return false;
-		if (pollId == null) {
-			if (other.pollId != null)
+		if (messageKeyId == null) {
+			if (other.messageKeyId != null)
 				return false;
-		} else if (!pollId.equals(other.pollId))
+		} else if (!messageKeyId.equals(other.messageKeyId))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "PollMessage [channelId=" + channelId + ", messageId=" + messageId + ", pollId=" + pollId + "]";
+		return "ChannelMessage [channelId=" + channelId + ", messageId=" + messageId + ", messageKeyId=" + messageKeyId
+				+ "]";
 	}
-
 }

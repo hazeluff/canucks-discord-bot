@@ -645,7 +645,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return the date in the format "EEEE dd MMM yyyy"
 	 */
 	public static String getNiceDate(Game game, ZoneId zone) {
-		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE d/MMM/yyyy"));
+		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
 	}
 
 	/**

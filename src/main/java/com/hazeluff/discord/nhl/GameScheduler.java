@@ -135,12 +135,12 @@ public class GameScheduler extends Thread {
 	public void initGames() throws HttpException {
 		LOGGER.info("Initializing");
 		// Retrieve schedule/game information from NHL API
-		Map<Integer, Game> games = getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate())
+		games = getRawGames(currentSeason.getStartDate(), currentSeason
+				.getEndDate())
 				.entrySet()
 		        .stream()
-				.collect(Collectors.toMap(e -> e.getKey(), e -> Game.parse(e.getValue())));
+				.collect(Collectors.toConcurrentMap(e -> e.getKey(), e -> Game.parse(e.getValue())));
 		LOGGER.info("Retrieved all games: [" + games.size() + "]");
-
 		LOGGER.info("Finished Initialization.");
 	}
 
@@ -322,7 +322,8 @@ public class GameScheduler extends Thread {
 	public Game getFutureGame(Team team, int futureIndex) {
 		List<Game> futureGames = games.entrySet().stream()
 				.map(Entry::getValue)
-				.filter(game -> game.containsTeam(team))
+				.sorted(GAME_COMPARATOR)
+				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> !game.getStatus().isStarted())
 				.collect(Collectors.toList());
 		if (futureIndex >= futureGames.size()) {
@@ -359,7 +360,8 @@ public class GameScheduler extends Thread {
 	public Game getPastGame(Team team, int beforeIndex) {
 		List<Game> previousGames = games.entrySet().stream()
 				.map(Entry::getValue)
-				.filter(game -> game.containsTeam(team))
+				.sorted(GAME_COMPARATOR)
+				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> game.getStatus().isFinished())
 				.collect(Collectors.toList());
 		if (beforeIndex >= previousGames.size()) {
@@ -394,7 +396,8 @@ public class GameScheduler extends Thread {
 	public Game getCurrentLiveGame(Team team) {
 		return games.entrySet().stream()
 				.map(Entry::getValue)
-				.filter(game -> game.containsTeam(team))
+				.sorted(GAME_COMPARATOR)
+				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> game.getStatus().isLive())
 				.findAny()
 				.orElse(null);
@@ -451,6 +454,7 @@ public class GameScheduler extends Thread {
 		return games.entrySet().stream().map(
 				Entry::getValue)
 				.filter(game -> game.containsTeam(team))
+				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> !getActiveGames(team).contains(game))
 				.collect(Collectors.toList());
 	}

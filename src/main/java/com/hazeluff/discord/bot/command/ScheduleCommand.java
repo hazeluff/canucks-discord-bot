@@ -77,8 +77,6 @@ public class ScheduleCommand extends Command {
 					+ getTeamsListBlock();
 
 	Consumer<InteractionApplicationCommandCallbackSpec> getScheduleMessage(Team team) {
-		String message = "Here is the schedule for the " + team.getFullName();
-
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
 		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
 
@@ -101,6 +99,7 @@ public class ScheduleCommand extends Command {
 			if (game == null) {
 				break;
 			}
+
 			if (currentGame == null && i == 0) {
 				embedAppends.add(getEmbedGameAppend(game, team, GameState.NEXT));
 			} else {
@@ -110,7 +109,7 @@ public class ScheduleCommand extends Command {
 		}
 
 		return spec -> spec
-				.setContent(message)
+				.setContent("Here is the schedule for the " + team.getFullName())
 				.addEmbed(embed -> {
 					embed.setColor(team.getColor());
 					embedAppends.forEach(e -> e.accept(embed));
@@ -118,9 +117,6 @@ public class ScheduleCommand extends Command {
 	}
 
 	Consumer<InteractionApplicationCommandCallbackSpec> getScheduleMessage(List<Team> teams) {
-		String message = "Here is the schedule for all your teams. "
-				+ "Use `?schedule [team] to get more detailed schedules.";
-
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
 		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
 		for (Team team : teams) {
@@ -145,8 +141,13 @@ public class ScheduleCommand extends Command {
 		}
 
 		return spec -> spec
-				.setContent(message)
-				.addEmbed(embed -> embedAppends.forEach(e -> e.accept(embed)));
+				.setContent("Here is the schedule for all your teams. You may use the `team` option to specify a team.")
+				.addEmbed(embed -> {
+					if (teams.size() == 1) {
+						embed.setColor(teams.get(0).getColor());
+					}
+					embedAppends.forEach(e -> e.accept(embed));
+				});
 	}
 
 	enum GameState {
@@ -164,7 +165,7 @@ public class ScheduleCommand extends Command {
 		};
 
 		// Add Time
-		date.append(" at ").append(GameDayChannel.getTime(game, preferedTeam.getTimeZone()));
+		date.append("  at  ").append(GameDayChannel.getTime(game, preferedTeam.getTimeZone()));
 
 		switch(state) {
 		case PAST:
@@ -172,23 +173,25 @@ public class ScheduleCommand extends Command {
 			break;
 		case CURRENT:
 			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
-				date.append(" **(postponed)**");
+				date.append(" (postponed)");
+			} else if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
+				date.append(" **(LIVE)**");
 			} else {
-				date.append(" **(current game)**");
+				date.append(" (current game)");
 			}
 			message = buildGameScore(game);
 			break;
 		case NEXT:
 			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
-				date.append(" **(postponed)**");
+				date.append(" (postponed)");
 			} else {
-				date.append(" **(next game)**");
+				date.append(" (next game)");
 			}
 			message = preferedTeam.getFullName() + " " + getAgainstTeamMessage.apply(game);
 			break;
 		case FUTURE:
 			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
-				date.append(" **(postponed)**");
+				date.append(" (postponed)");
 			}
 			message = preferedTeam.getFullName() + " " + getAgainstTeamMessage.apply(game);
 			break;

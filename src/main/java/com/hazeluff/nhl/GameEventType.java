@@ -1,4 +1,4 @@
-package com.hazeluff.discord.nhl;
+package com.hazeluff.nhl;
 
 import java.util.HashMap;
 import java.util.Map;

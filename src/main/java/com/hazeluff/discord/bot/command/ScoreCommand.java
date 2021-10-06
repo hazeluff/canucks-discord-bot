@@ -6,9 +6,8 @@ import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.nhl.Game;
-import com.hazeluff.discord.nhl.GameStatus;
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.Team;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -52,7 +51,7 @@ public class ScoreCommand extends Command {
 			return event.replyEphemeral(getRunInGameDayChannelsMessage(getGuild(event), preferredTeams));
 		}
 
-		if (game.getStatus() == GameStatus.PREVIEW) {
+		if (!game.getStatus().isStarted()) {
 			return event.replyEphemeral(GAME_NOT_STARTED_MESSAGE);
 		}
 

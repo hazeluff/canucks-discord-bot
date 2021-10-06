@@ -12,6 +12,7 @@ import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.nhl.Game;
 
 /**
  * <p>
@@ -82,7 +83,7 @@ public class GameTracker extends Thread {
 	public void run() {
 		try {
 			setName(GameDayChannel.getChannelName(game));
-			if (game.getStatus() != GameStatus.FINAL) {
+			if (!game.getStatus().isFinished()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
 				idleUntilNearStart();
@@ -100,7 +101,7 @@ public class GameTracker extends Thread {
 				while (timeAfterLast < POST_GAME_UPDATE_DURATION) {
 					updateGame();
 
-					if (game.getStatus() == GameStatus.FINAL) {
+					if (game.getStatus().isFinished()) {
 						if (lastFinal == null) {
 							LOGGER.info("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();
@@ -151,8 +152,8 @@ public class GameTracker extends Thread {
 	void waitForStart() throws HttpException {
 		boolean started = false;
 		do {
-			game.update();
-			started = game.getStatus() != GameStatus.PREVIEW;
+			game.updateLiveData();
+			started = game.getStatus().isStarted();
 			if (!started) {
 				LOGGER.trace("Game almost started. Sleeping for [" + ACTIVE_POLL_RATE_MS + "]");
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
@@ -166,10 +167,10 @@ public class GameTracker extends Thread {
 	 * @throws HttpException
 	 */
 	void updateGame() throws HttpException {
-		while (game.getStatus() != GameStatus.FINAL) {
-			game.update();
+		while (!game.getStatus().isFinished()) {
+			game.updateLiveData();
 
-			if (game.getStatus() != GameStatus.FINAL) {
+			if (!game.getStatus().isFinished()) {
 				LOGGER.trace("Game in Progress. Sleeping for [" + ACTIVE_POLL_RATE_MS + "]");
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
 			}

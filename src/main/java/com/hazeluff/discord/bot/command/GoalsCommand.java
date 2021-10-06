@@ -8,11 +8,11 @@ import java.util.stream.Collectors;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.nhl.Game;
-import com.hazeluff.discord.nhl.GameEvent;
-import com.hazeluff.discord.nhl.GameStatus;
-import com.hazeluff.discord.nhl.Player;
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.GameEvent;
+import com.hazeluff.nhl.GameStatus;
+import com.hazeluff.nhl.Player;
+import com.hazeluff.nhl.Team;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -56,7 +56,7 @@ public class GoalsCommand extends Command {
 			return event.replyEphemeral(getRunInGameDayChannelsMessage(getGuild(event), preferredTeams));
 		}
 
-		if (game.getStatus() == GameStatus.PREVIEW) {
+		if (!game.getStatus().isStarted()) {
 			return event.replyEphemeral(GAME_NOT_STARTED_MESSAGE);
 		}
 
@@ -113,6 +113,9 @@ public class GoalsCommand extends Command {
 				}
 				embedSpec.addField(strPeriod, sbGoals.toString(), false);
 			}
+
+			GameStatus status = game.getStatus();
+			embedSpec.setFooter("Status: " + status.getDetailedState().toString(), null);
 		};
 	}
 

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.hazeluff.discord.nhl.Player;
+import com.hazeluff.nhl.Player;
 
 public class CanucksCustomMessages {
 

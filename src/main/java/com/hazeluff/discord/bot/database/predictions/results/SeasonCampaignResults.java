@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import org.bson.Document;
 
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.Team;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 

@@ -9,7 +9,8 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.nhl.Player.EventRole;
+import com.hazeluff.nhl.Player;
+import com.hazeluff.nhl.Player.EventRole;
 
 @RunWith(PowerMockRunner.class)
 public class PlayerTest {

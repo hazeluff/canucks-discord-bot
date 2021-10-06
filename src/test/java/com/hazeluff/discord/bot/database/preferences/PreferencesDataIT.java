@@ -11,8 +11,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.nhl.Team;
 import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.nhl.Team;
 import com.hazeluff.test.DatabaseIT;
 import com.mongodb.MongoClient;
 

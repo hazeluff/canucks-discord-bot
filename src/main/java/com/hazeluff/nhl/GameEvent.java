@@ -1,4 +1,4 @@
-package com.hazeluff.discord.nhl;
+package com.hazeluff.nhl;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 
 import org.json.JSONObject;
 
-import com.hazeluff.discord.nhl.Player.EventRole;
 import com.hazeluff.discord.utils.DateUtils;
+import com.hazeluff.nhl.Player.EventRole;
 
 public class GameEvent {
 	private final int id;

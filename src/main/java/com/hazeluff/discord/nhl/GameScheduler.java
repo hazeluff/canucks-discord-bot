@@ -12,10 +12,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -28,10 +28,11 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.nhl.Seasons.Season;
-import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.HttpUtils;
 import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.Team;
 
 /**
  * This class is used to start GameTrackers for games and to maintain the channels in discord for those games.
@@ -47,7 +48,7 @@ public class GameScheduler extends Thread {
 	// Poll for if the day has rolled over every 30 minutes
 	static final long UPDATE_RATE = 1800000L;
 
-	private Set<Game> games = new ConcurrentSkipListSet<>(GAME_COMPARATOR);
+	private Map<Integer, Game> games = new ConcurrentHashMap<>();
 	private AtomicBoolean init = new AtomicBoolean(false);
 
 	/**
@@ -78,7 +79,7 @@ public class GameScheduler extends Thread {
 	 * @param teamSubscriptions
 	 * @param teamLatestGames
 	 */
-	GameScheduler(Set<Game> games, Map<Game, GameTracker> activeGameTrackers) {
+	GameScheduler(Map<Integer, Game> games, Map<Game, GameTracker> activeGameTrackers) {
 		this.games = games;
 		this.activeGameTrackers = activeGameTrackers;
 	}
@@ -134,9 +135,10 @@ public class GameScheduler extends Thread {
 	public void initGames() throws HttpException {
 		LOGGER.info("Initializing");
 		// Retrieve schedule/game information from NHL API
-		for (Team team : Team.values()) {
-			games.addAll(getGames(team, currentSeason.getStartDate(), currentSeason.getEndDate()));
-		}
+		Map<Integer, Game> games = getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate())
+				.entrySet()
+		        .stream()
+				.collect(Collectors.toMap(e -> e.getKey(), e -> Game.parse(e.getValue())));
 		LOGGER.info("Retrieved all games: [" + games.size() + "]");
 
 		LOGGER.info("Finished Initialization.");
@@ -166,33 +168,21 @@ public class GameScheduler extends Thread {
 	 */
 	void updateGameSchedule() throws HttpException {
 		LOGGER.info("Updating game schedule.");
-		// Update schedule
-		for (Team team : Team.values()) {
-			ZonedDateTime startDate = DateUtils.now();
-			ZonedDateTime endDate = startDate.plusDays(7);
-			List<Game> fetchedGames = getGames(team, startDate, endDate);
-			fetchedGames.forEach(updatedGame -> {
-				Game existingGame = games.stream()
-						.filter(game -> game.getGamePk() == updatedGame.getGamePk()).findAny()
-						.orElse(null);
-				if (existingGame == null) {
-					games.add(updatedGame);
-				} else {
-					existingGame.updateTo(updatedGame);
-				}
-			});
-			LOGGER.info("Fetched games for team [{}]: {}", team, fetchedGames);
-			if (!fetchedGames.isEmpty()) {
-				List<Game> gamesToRemove = games.stream()
-						.filter(game -> game.containsTeam(team))
-						.filter(game -> DateUtils.isBetweenRange(game.getDate(), startDate, endDate))
-						.filter(game -> fetchedGames.stream()
-								.noneMatch(updatedGame -> updatedGame.getGamePk() == game.getGamePk()))
-						.collect(Collectors.toList());
-				LOGGER.info("Removing games: " + gamesToRemove);
-				games.removeAll(gamesToRemove);
+
+		Map<Integer, JSONObject> fetchedGames = getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate());
+		fetchedGames.entrySet().stream().forEach(fetchedGame -> {
+			int gamePk = fetchedGame.getKey();
+			Game existingGame = games.get(gamePk);
+			if (existingGame == null) {
+				// Create a new game object and put it in our map
+				games.put(gamePk, Game.parse(fetchedGame.getValue()));
+			} else {
+				existingGame.updateGameData(fetchedGame.getValue());
 			}
-		}
+		});
+
+		// Remove the game if it isn't in the list of games fetched
+		games.entrySet().removeIf(entry -> !fetchedGames.containsKey(entry.getKey()));
 	}
 
 	/**
@@ -202,8 +192,14 @@ public class GameScheduler extends Thread {
 		LOGGER.info("Removing finished trackers.");
 		activeGameTrackers.entrySet().removeIf(map -> {
 			GameTracker gameTracker = map.getValue();
-			if (gameTracker.isFinished()) {
+			int gamePk = gameTracker.getGame().getGamePk();
+			if (!games.containsKey(gamePk)) {
+				LOGGER.info("Game is has been removed: " + gamePk);
+				gameTracker.interrupt();
+				return true;
+			} else if (gameTracker.isFinished()) {
 				LOGGER.info("Game is finished: " + gameTracker.getGame());
+				gameTracker.interrupt();
 				return true;
 			} else {
 				return false;
@@ -218,15 +214,12 @@ public class GameScheduler extends Thread {
 		}
 	}
 
-	/**
-	 * Gets games for the specified team between the given time period.
-	 * 
-	 * @param team
-	 *            team to get games of
-	 * @return list of games
-	 * @throws HttpException
-	 */
-	List<Game> getGames(Team team, ZonedDateTime startDate, ZonedDateTime endDate) throws HttpException {
+	Map<Integer, JSONObject> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate) throws HttpException {
+		return getRawGames(startDate, endDate, null);
+	}
+
+	Map<Integer, JSONObject> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate, Team team)
+			throws HttpException {
 		LOGGER.info("Retrieving games of [" + team + "]");
 		String strStartDate = startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		String strEndDate = endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -236,7 +229,9 @@ public class GameScheduler extends Thread {
 			URIBuilder uriBuilder = new URIBuilder(Config.NHL_API_URL + "/schedule");
 			uriBuilder.addParameter("startDate", strStartDate);
 			uriBuilder.addParameter("endDate", strEndDate);
-			uriBuilder.addParameter("teamId", String.valueOf(team.getId()));
+			if (team != null) {
+				uriBuilder.addParameter("teamId", String.valueOf(team.getId()));
+			}
 			uriBuilder.addParameter("expand", "schedule.scoringplays");
 			uri = uriBuilder.build();
 		} catch (URISyntaxException e) {
@@ -246,20 +241,23 @@ public class GameScheduler extends Thread {
 			throw runtimeException;
 		}
 
-		String strJSONSchedule = HttpUtils.getAndRetry(uri, 
-				288, // 288 retries (tries over a day)
-				300000l, // Wait 5 minutes between tries
-				"Get Games.");
-		List<Game> games = new ArrayList<>();
+		String strJSONSchedule = HttpUtils.getAndRetry(uri, 5, 10000l, "Get Game Schedule.");
+		Map<Integer, JSONObject> games = new HashMap<>();
 		JSONObject jsonSchedule = new JSONObject(strJSONSchedule);
 		JSONArray jsonDates = jsonSchedule.getJSONArray("dates");
-		for (int i = 0; i < jsonDates.length(); i++) {
-			JSONObject jsonGame = jsonDates.getJSONObject(i).getJSONArray("games").getJSONObject(0);
-			Game game = Game.parse(jsonGame);
-			if (game != null) {
-				LOGGER.debug("Adding additional game [" + game + "]");
-				games.add(game);
+		for (int d = 0; d < jsonDates.length(); d++) {
+			JSONArray gamesJSONArray = jsonDates.getJSONObject(d).getJSONArray("games");
+			for (int g = 0; g < gamesJSONArray.length(); g++) {
+				JSONObject jsonGame = gamesJSONArray.getJSONObject(g);
+				int gamePk = jsonGame.optInt("gamePk", -1);
+				if (gamePk > 0) {
+					LOGGER.debug("Adding additional game [" + gamePk + "]");
+					games.put(gamePk, jsonGame);
+				} else {
+					LOGGER.warn("Could not parse 'gamePk': " + jsonGame.toString());
+				}
 			}
+
 		}
 		return games;
 	}
@@ -283,7 +281,7 @@ public class GameScheduler extends Thread {
 		if (lastGame != null) {
 			list.add(lastGame);
 		}
-		Game currentGame = getCurrentGame(team);
+		Game currentGame = getCurrentLiveGame(team);
 		if (currentGame != null) {
 			list.add(currentGame);
 		}
@@ -322,10 +320,10 @@ public class GameScheduler extends Thread {
 	 * @return NHLGame of game in the future for the provided team
 	 */
 	public Game getFutureGame(Team team, int futureIndex) {
-		List<Game> futureGames = games.stream()
+		List<Game> futureGames = games.entrySet().stream()
+				.map(Entry::getValue)
 				.filter(game -> game.containsTeam(team))
-				.filter(game -> game.getStatus() == GameStatus.PREVIEW || game.getStatus() == GameStatus.SCHEDULED
-						|| game.getStatus() == GameStatus.POSTPONED)
+				.filter(game -> !game.getStatus().isStarted())
 				.collect(Collectors.toList());
 		if (futureIndex >= futureGames.size()) {
 			return null;
@@ -359,9 +357,10 @@ public class GameScheduler extends Thread {
 	 * @return NHLGame of next game for the provided team
 	 */
 	public Game getPastGame(Team team, int beforeIndex) {
-		List<Game> previousGames = games.stream()
+		List<Game> previousGames = games.entrySet().stream()
+				.map(Entry::getValue)
 				.filter(game -> game.containsTeam(team))
-				.filter(game -> game.getStatus() == GameStatus.FINAL)
+				.filter(game -> game.getStatus().isFinished())
 				.collect(Collectors.toList());
 		if (beforeIndex >= previousGames.size()) {
 			return null;
@@ -392,10 +391,11 @@ public class GameScheduler extends Thread {
 	 *            team to get current game for
 	 * @return
 	 */
-	public Game getCurrentGame(Team team) {
-		return games.stream()
+	public Game getCurrentLiveGame(Team team) {
+		return games.entrySet().stream()
+				.map(Entry::getValue)
 				.filter(game -> game.containsTeam(team))
-				.filter(game -> game.getStatus() == GameStatus.LIVE || game.getStatus() == GameStatus.STARTED)
+				.filter(game -> game.getStatus().isLive())
 				.findAny()
 				.orElse(null);
 	}
@@ -411,7 +411,9 @@ public class GameScheduler extends Thread {
 	 * @throws NHLGameSchedulerException
 	 */
 	public Game getGameByChannelName(String channelName) {
-		return games.stream()
+		return games.entrySet()
+				.stream()
+				.map(Entry::getValue)
 				.filter(game -> GameDayChannel.getChannelName(game).equalsIgnoreCase(channelName))
 				.findAny()
 				.orElse(null);
@@ -446,7 +448,8 @@ public class GameScheduler extends Thread {
 	 * @return list of inactive games
 	 */
 	List<Game> getInactiveGames(Team team) {
-		return games.stream()
+		return games.entrySet().stream().map(
+				Entry::getValue)
 				.filter(game -> game.containsTeam(team))
 				.filter(game -> !getActiveGames(team).contains(game))
 				.collect(Collectors.toList());
@@ -483,7 +486,7 @@ public class GameScheduler extends Thread {
 	}
 
 	public Set<Game> getGames() {
-		return new HashSet<>(games);
+		return new HashSet<>(games.values());
 	}
 
 	public GameTracker toGameTracker(Game game) {
@@ -491,6 +494,6 @@ public class GameScheduler extends Thread {
 	}
 
 	public boolean isGameExist(Game game) {
-		return games.contains(game);
+		return games.containsKey(game.getGamePk());
 	}
 }

@@ -18,8 +18,8 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.predictions.IPrediction;
 import com.hazeluff.discord.bot.database.predictions.results.SeasonCampaignResults;
-import com.hazeluff.discord.nhl.Game;
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.Team;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.UpdateOptions;
@@ -193,7 +193,7 @@ public class SeasonCampaign extends Campaign {
 		String campaignId = buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
 		Set<Game> games = nhlBot.getGameScheduler().getGames();
 		Map<Integer, Team> gamesResults = games.stream()
-				.filter(Game::isFinished)
+				.filter(game -> game.getStatus().isFinished())
 				.filter(game -> game.getWinningTeam() != null)
 				.collect(Collectors.toMap(Game::getGamePk, Game::getWinningTeam));
 		return new SeasonCampaignResults(campaignId, gamesResults, games.size());

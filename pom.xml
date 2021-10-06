@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hazeluff.discord</groupId>
   <artifactId>canucksbot</artifactId>
-  <version>0.9.2</version>
+  <version>0.10.0</version>
   <packaging>jar</packaging>
   <name>CanucksBot</name>
   <url>http://maven.apache.org</url>
@@ -35,8 +35,14 @@
     <dependency>
       <groupId>org.json</groupId>
       <artifactId>json</artifactId>
-      <version>20160810</version>
+      <version>20210307</version>
     </dependency>
+    
+	<dependency>
+	  <groupId>com.ebay.bsonpatch</groupId>
+	  <artifactId>bsonpatch</artifactId>
+	  <version>0.4.9</version>
+	</dependency>
     
     <dependency>
 	    <groupId>commons-lang</groupId>

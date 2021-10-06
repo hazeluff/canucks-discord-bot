@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.Team;
 
 public class GuildPreferences {
 	private Set<Team> teams;

@@ -8,7 +8,7 @@ import org.apache.commons.lang.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;

@@ -10,10 +10,10 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.nhl.Game;
 import com.hazeluff.discord.nhl.GameScheduler;
-import com.hazeluff.discord.nhl.GameStatus;
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.DetailedGameState;
+import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.Team;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -89,7 +89,7 @@ public class ScheduleCommand extends Command {
 			}
 		}
 		
-		Game currentGame = gameScheduler.getCurrentGame(team);
+		Game currentGame = gameScheduler.getCurrentLiveGame(team);
 
 		if (currentGame != null) {
 			embedAppends.add(getEmbedGameAppend(currentGame, team, GameState.CURRENT));
@@ -124,7 +124,7 @@ public class ScheduleCommand extends Command {
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
 		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
 		for (Team team : teams) {
-			Game currentGame = gameScheduler.getCurrentGame(team);
+			Game currentGame = gameScheduler.getCurrentLiveGame(team);
 
 			if (currentGame != null) {
 				embedAppends.add(getEmbedGameAppend(currentGame, team, GameState.CURRENT));
@@ -171,7 +171,7 @@ public class ScheduleCommand extends Command {
 			message = buildGameScore(game);
 			break;
 		case CURRENT:
-			if (game.getStatus() == GameStatus.POSTPONED) {
+			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
 				date.append(" **(postponed)**");
 			} else {
 				date.append(" **(current game)**");
@@ -179,7 +179,7 @@ public class ScheduleCommand extends Command {
 			message = buildGameScore(game);
 			break;
 		case NEXT:
-			if (game.getStatus() == GameStatus.POSTPONED) {
+			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
 				date.append(" **(postponed)**");
 			} else {
 				date.append(" **(next game)**");
@@ -187,7 +187,7 @@ public class ScheduleCommand extends Command {
 			message = preferedTeam.getFullName() + " " + getAgainstTeamMessage.apply(game);
 			break;
 		case FUTURE:
-			if (game.getStatus() == GameStatus.POSTPONED) {
+			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
 				date.append(" **(postponed)**");
 			}
 			message = preferedTeam.getFullName() + " " + getAgainstTeamMessage.apply(game);

@@ -11,8 +11,8 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.nhl.Game;
-import com.hazeluff.discord.nhl.Team;
+import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.Team;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.ReactiveEventAdapter;
@@ -121,7 +121,7 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	Game getLatestGame(Team team) {
-		Game game = nhlBot.getGameScheduler().getCurrentGame(team);
+		Game game = nhlBot.getGameScheduler().getCurrentLiveGame(team);
 		if (game == null) {
 			game = nhlBot.getGameScheduler().getLastGame(team);
 		}

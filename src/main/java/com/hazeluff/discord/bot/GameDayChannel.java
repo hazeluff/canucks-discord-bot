@@ -29,15 +29,14 @@ import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Prediction;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
-import com.hazeluff.discord.nhl.Game;
-import com.hazeluff.discord.nhl.GameEvent;
-import com.hazeluff.discord.nhl.GameStatus;
 import com.hazeluff.discord.nhl.GameTracker;
-import com.hazeluff.discord.nhl.Player;
-import com.hazeluff.discord.nhl.Team;
 import com.hazeluff.discord.nhl.custommessages.CanucksCustomMessages;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.GameEvent;
+import com.hazeluff.nhl.Player;
+import com.hazeluff.nhl.Team;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
@@ -183,8 +182,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	@Override
 	public void start() {
-		if (!started.get()) {
-			started.set(true);
+		if (started.compareAndSet(false, true)) {
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");
@@ -204,9 +202,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Post Predictions poll
 		pollMessage = createPredictionPoll();
-		// TODO: summaryMessage = createSummaryMessage();
+		summaryMessage = createSummaryMessage();
 
-		if (game.getStatus() != GameStatus.FINAL) {
+		if (!game.getStatus().isFinished()) {
 
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
@@ -227,14 +225,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 			while (!gameTracker.isFinished()) {
 				List<GameEvent> fetchedEvents = game.getEvents();
-				if (!isRetryEventFetch(fetchedEvents) && fetchedEvents.equals(events)) {
+				if (!fetchedEvents.equals(events) && !isRetryEventFetch(fetchedEvents)) {
 					updateEventMessages(fetchedEvents);
-					// TODO: updateSummaryMessage();
+					updateSummaryMessage();
 
 					this.events = fetchedEvents;
 				}
 
-				if (game.getStatus() == GameStatus.FINAL) {
+				if (game.getStatus().isFinished()) {
 					updateEndOfGameMessage();
 				}
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
@@ -335,10 +333,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @throws InterruptedException
 	 */
 	boolean waitForStart() {
-		boolean alreadyStarted = game.getStatus() != GameStatus.PREVIEW;
+		boolean alreadyStarted = game.getStatus().isStarted();
 		boolean started = false;
 		do {
-			started = game.getStatus() != GameStatus.PREVIEW;
+			started = game.getStatus().isStarted();
 			if (!started && !isInterrupted()) {
 				LOGGER.trace("Game almost started. Sleeping for [" + ACTIVE_POLL_RATE_MS + "]");
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
@@ -504,8 +502,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	void sendStartOfGameMessage() {
 		LOGGER.info("Sending start message.");
-		sendMessage("Game is about to start! " + preferences.getCheer() +
-				"\nRemember: Be Kind, Be Calm, Be Safe");
+		sendMessage("Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe");
 	}
 
 	/*

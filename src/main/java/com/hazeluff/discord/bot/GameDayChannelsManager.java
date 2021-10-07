@@ -122,39 +122,11 @@ public class GameDayChannelsManager extends Thread {
 				LOGGER.info("Updating Channels...");
 				removeFinishedGameDayChannels();
 				deleteInactiveChannels();
-				initChannels();
+				updateChannels();
 				lastUpdate = schedulerUpdate;
 			} else {
 				LOGGER.trace("Waiting for GameScheduler to update...");
 				Utils.sleep(UPDATE_RATE);
-			}
-		}
-	}
-
-	/**
-	 * Creates channels for all active games.
-	 */
-	void createChannels() {
-		LOGGER.info("Creating channels for latest games.");
-		for (Team team : Team.values()) {
-			List<Game> activeGames = nhlBot.getGameScheduler().getActiveGames(team);
-			List<Guild> guilds = getSubscribedGuilds(team);
-			for (Guild guild : guilds) {
-				for (Game game : activeGames) {
-					createChannel(game, guild);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Creates channels in all Guilds subscribed to the teams playing in the specified game.
-	 */
-	public void createChannels(Game game) {
-		LOGGER.info("Creating channels for game [" + GameDayChannel.getChannelName(game) + "]");
-		for (Team team : game.getTeams()) {
-			for (Guild guild : getSubscribedGuilds(team)) {
-				createChannel(game, guild);
 			}
 		}
 	}
@@ -296,7 +268,7 @@ public class GameDayChannelsManager extends Thread {
 	 * @param guild
 	 *            guild to initialize channels for
 	 */
-	void initChannels() {
+	void updateChannels() {
 		LOGGER.info("Initializing channels for all guilds.");
 		for (Guild guild : nhlBot.getDiscordManager().getGuilds()) {
 			initGuildChannels(guild);

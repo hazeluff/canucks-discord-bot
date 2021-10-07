@@ -80,11 +80,8 @@ public class ScheduleCommand extends Command {
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
 		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
 
-		for (int i = 1; i >= 0; i--) {
-			Game game = gameScheduler.getPastGame(team, i);
-			if (game != null) {
-				embedAppends.add(getEmbedGameAppend(game, team, GameState.PAST));
-			}
+		for (Game game : gameScheduler.getPastGames(team, 1)) {
+			embedAppends.add(getEmbedGameAppend(game, team, GameState.PAST));
 		}
 		
 		Game currentGame = gameScheduler.getCurrentLiveGame(team);
@@ -93,15 +90,12 @@ public class ScheduleCommand extends Command {
 			embedAppends.add(getEmbedGameAppend(currentGame, team, GameState.CURRENT));
 		}
 		
-		int futureGames = currentGame == null ? 4 : 3;
-		for (int i = 0; i < futureGames; i++) {
-			Game game = gameScheduler.getFutureGame(team, i);
-			if (game == null) {
-				break;
-			}
-
-			if (currentGame == null && i == 0) {
+		int numFutureGames = currentGame == null ? 4 : 3;
+		boolean isNext = true;
+		for (Game game : gameScheduler.getFutureGames(team, numFutureGames)) {
+			if (currentGame == null && isNext) {
 				embedAppends.add(getEmbedGameAppend(game, team, GameState.NEXT));
+				isNext = false;
 			} else {
 				embedAppends.add(getEmbedGameAppend(game, team, GameState.FUTURE));
 
@@ -120,22 +114,25 @@ public class ScheduleCommand extends Command {
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
 		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
 		for (Team team : teams) {
+			for (Game game : gameScheduler.getPastGames(team, 1)) {
+				embedAppends.add(getEmbedGameAppend(game, team, GameState.PAST));
+			}
+
 			Game currentGame = gameScheduler.getCurrentLiveGame(team);
 
 			if (currentGame != null) {
 				embedAppends.add(getEmbedGameAppend(currentGame, team, GameState.CURRENT));
 			}
 
-			int futureGames = currentGame == null ? 2 : 1;
-			for (int i = 0; i < futureGames; i++) {
-				Game game = gameScheduler.getFutureGame(team, i);
-				if (game == null) {
-					break;
-				}
-				if (currentGame == null && i == 0) {
+			int numFutureGames = currentGame == null ? 2 : 1;
+			boolean isNext = true;
+			for (Game game : gameScheduler.getFutureGames(team, numFutureGames)) {
+				if (currentGame == null && isNext) {
 					embedAppends.add(getEmbedGameAppend(game, team, GameState.NEXT));
+					isNext = false;
 				} else {
 					embedAppends.add(getEmbedGameAppend(game, team, GameState.FUTURE));
+
 				}
 			}
 		}

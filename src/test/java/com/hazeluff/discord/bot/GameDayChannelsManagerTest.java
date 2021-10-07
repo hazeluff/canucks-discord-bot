@@ -121,7 +121,7 @@ public class GameDayChannelsManagerTest {
 	public void runShouldInvokeMethodsAndSleep() {
 		LOGGER.info("runShouldInvokeMethodsAndSleep");
 		mockStatic(Utils.class);
-		doNothing().when(spyGameDayChannelsManager).initChannels();
+		doNothing().when(spyGameDayChannelsManager).updateChannels();
 		doNothing().when(spyGameDayChannelsManager).deleteInactiveChannels();
 		LocalDate today = LocalDate.now();
 		LocalDate tomorrow = today.plusDays(1);
@@ -133,7 +133,7 @@ public class GameDayChannelsManagerTest {
 		spyGameDayChannelsManager.run();
 		verify(spyGameDayChannelsManager, times(2)).removeFinishedGameDayChannels();
 		verify(spyGameDayChannelsManager, times(2)).deleteInactiveChannels();
-		verify(spyGameDayChannelsManager, times(2)).initChannels();
+		verify(spyGameDayChannelsManager, times(2)).updateChannels();
 	}
 
 	@Test

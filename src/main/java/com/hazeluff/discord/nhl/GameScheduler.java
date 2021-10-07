@@ -276,25 +276,15 @@ public class GameScheduler extends Thread {
 	 * @return list of active/active games
 	 */
 	public List<Game> getActiveGames(Team team) {
-		List<Game> list = new ArrayList<>();
-		Game lastGame = getLastGame(team);
-		if (lastGame != null) {
-			list.add(lastGame);
-		}
+		List<Game> games = new ArrayList<>();
+		games.addAll(getPastGames(team, 0));
 		Game currentGame = getCurrentLiveGame(team);
 		if (currentGame != null) {
-			list.add(currentGame);
+			games.add(currentGame);
 		}
-		int futureGameIndex = 0;
-		while (list.size() < 2) {
-			Game futureGame = getFutureGame(team, futureGameIndex++);
-			if (futureGame != null) {
-				list.add(futureGame);
-			} else {
-				break;
-			}
-		}
-		return list;
+
+		games.addAll(getFutureGames(team, 2));
+		return games;
 	}
 
 	/**
@@ -310,64 +300,53 @@ public class GameScheduler extends Thread {
 				.collect(Collectors.toList())));
 	}
 
-	/**
-	 * Gets a future game for the provided team.
-	 * 
-	 * @param team
-	 *            team to get future game for
-	 * @param before
-	 *            index index of how many games in the future to get (0 for first game)
-	 * @return NHLGame of game in the future for the provided team
-	 */
-	public Game getFutureGame(Team team, int futureIndex) {
-		List<Game> futureGames = games.entrySet().stream()
+	public List<Game> getFutureGames(Team team) {
+		return games.entrySet().stream()
 				.map(Entry::getValue)
 				.sorted(GAME_COMPARATOR)
 				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> !game.getStatus().isStarted())
 				.collect(Collectors.toList());
-		if (futureIndex >= futureGames.size()) {
-			return null;
-		}
-		return futureGames.get(futureIndex);
-	}
-	
-	/**
-	 * <p>
-	 * Gets the next game for the provided team.
-	 * </p>
-	 * <p>
-	 * See {@link #getFutureGame(Team, int)}
-	 * </p>
-	 * 
-	 * @param team
-	 *            team to get next game for
-	 * @return NHLGame of next game for the provided team
-	 */
-	public Game getNextGame(Team team) {
-		return getFutureGame(team, 0);
 	}
 
-	/**
-	 * Gets a previous game for the provided team.
-	 * 
-	 * @param team
-	 *            team to get previous game for
-	 * @param before
-	 *            index index of how many games after to get (0 for first games)
-	 * @return NHLGame of next game for the provided team
-	 */
-	public Game getPastGame(Team team, int beforeIndex) {
-		List<Game> previousGames = games.entrySet().stream()
+	public List<Game> getFutureGames(Team team, int numGames) {
+		List<Game> games = getFutureGames(team);
+		if (games.isEmpty()) {
+			return games;
+		}
+		if (numGames > games.size()) {
+			numGames = games.size();
+		}
+		return games.subList(0, numGames);
+	}
+	
+	public Game getNextGame(Team team) {
+		List<Game> games = getFutureGames(team);
+		if (games.isEmpty()) {
+			return null;
+		}
+		return games.get(0);
+	}
+
+
+	public List<Game> getPastGames(Team team) {
+		return games.entrySet().stream()
 				.map(Entry::getValue)
-				.sorted(GAME_COMPARATOR)
+				.sorted(GAME_COMPARATOR.reversed())
 				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> game.getStatus().isFinished())
 				.collect(Collectors.toList());
-		if (beforeIndex >= previousGames.size()) {
-			return null;
+	}
+
+	public List<Game> getPastGames(Team team, int numGames) {
+		List<Game> games = getPastGames(team);
+		if (games.isEmpty()) {
+			return games;
 		}
-		return previousGames.get(previousGames.size() - 1 - beforeIndex);
+		if (numGames > games.size()) {
+			numGames = games.size();
+		}
+		return games.subList(0, numGames);
 	}
 
 	/**
@@ -383,7 +362,11 @@ public class GameScheduler extends Thread {
 	 * @return NHLGame of last game for the provided team
 	 */
 	public Game getLastGame(Team team) {
-		return getPastGame(team, 0);
+		List<Game> games = getPastGames(team);
+		if (games.isEmpty()) {
+			return null;
+		}
+		return games.get(0);
 	}
 
 	/**
@@ -396,7 +379,6 @@ public class GameScheduler extends Thread {
 	public Game getCurrentLiveGame(Team team) {
 		return games.entrySet().stream()
 				.map(Entry::getValue)
-				.sorted(GAME_COMPARATOR)
 				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> game.getStatus().isLive())
 				.findAny()

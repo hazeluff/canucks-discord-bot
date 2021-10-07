@@ -2,6 +2,7 @@ package com.hazeluff.discord.bot.database;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.database.channel.ChannelMessagesData;
+import com.hazeluff.discord.bot.database.channel.gdc.GDCMetaData;
 import com.hazeluff.discord.bot.database.fuck.FucksData;
 import com.hazeluff.discord.bot.database.preferences.PreferencesData;
 import com.mongodb.MongoClient;
@@ -16,14 +17,16 @@ public class PersistentData {
 	private final PreferencesData preferencesData;
 	private final FucksData fucksData;
 	private final ChannelMessagesData channelMessagesData;
+	private final GDCMetaData gdcMetaData;
 
 
 	PersistentData(MongoDatabase database, PreferencesData preferencesData, FucksData fucksData,
-			ChannelMessagesData channelMessagesData) {
+			ChannelMessagesData channelMessagesData, GDCMetaData gdcMetaData) {
 		this.database = database;
 		this.preferencesData = preferencesData;
 		this.fucksData = fucksData;
 		this.channelMessagesData = channelMessagesData;
+		this.gdcMetaData = gdcMetaData;
 	}
 
 	public static PersistentData load() {
@@ -34,7 +37,8 @@ public class PersistentData {
 		PreferencesData preferencesManager = PreferencesData.load(database);
 		FucksData fucksManager = FucksData.load(database);
 		ChannelMessagesData channelMessagesData = ChannelMessagesData.load(database);
-		return new PersistentData(database, preferencesManager, fucksManager, channelMessagesData);
+		GDCMetaData gdcMetaData = GDCMetaData.load(database);
+		return new PersistentData(database, preferencesManager, fucksManager, channelMessagesData, gdcMetaData);
 	}
 
 	@SuppressWarnings("resource")
@@ -53,6 +57,10 @@ public class PersistentData {
 
 	public ChannelMessagesData getChannelMessagesData() {
 		return channelMessagesData;
+	}
+
+	public GDCMetaData getGDCMetaData() {
+		return gdcMetaData;
 	}
 
 	public MongoDatabase getMongoDatabase() {

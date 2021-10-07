@@ -34,8 +34,11 @@ public class GameEvent {
 		}
 	}
 
-	public int getId() {
-		return rawJson.getInt32("eventId").getValue();
+	public Integer getId() {
+		if (rawJson.containsKey("eventId")) {
+			return rawJson.getInt32("eventId").getValue();
+		}
+		return null;
 	}
 
 	public int getIdx() {

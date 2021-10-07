@@ -38,13 +38,6 @@ public class ChannelMessage {
 		return new ChannelMessage(channelId, messageId, messageKeyId);
 	}
 
-	static ChannelMessage findFromCollection(MongoCollection<Document> collection, long messageId) {
-		return findFromCollection(
-				collection, 
-				new Document()
-						.append(MESSAGE_ID_KEY, messageId));
-	}
-
 	static ChannelMessage findFromCollection(MongoCollection<Document> collection, long channelId, String messageKeyId) {
 		return findFromCollection(
 				collection, 

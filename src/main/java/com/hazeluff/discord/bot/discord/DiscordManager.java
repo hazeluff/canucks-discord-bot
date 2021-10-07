@@ -104,7 +104,7 @@ public class DiscordManager {
 	}
 
 	public Message getMessage(long channelId, long messageId) {
-		return block(getClient().getMessageById(Snowflake.of(channelId), Snowflake.of(messageId)));
+		return block(getClient().getMessageById(Snowflake.of(channelId), Snowflake.of(messageId)).onErrorReturn(null));
 	}
 
 	public Message sendAndGetMessage(TextChannel channel, Consumer<MessageCreateSpec> messageSpec) {
@@ -117,7 +117,7 @@ public class DiscordManager {
 			logNullArgumentsStackTrace("`messageSpec` was null.");
 			return null;
 		}
-		return block(channel.createMessage(messageSpec));
+		return block(channel.createMessage(messageSpec).onErrorReturn(null));
 	}
 
 	public Message sendAndGetMessage(TextChannel channel, String message) {
@@ -177,7 +177,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(message.edit(spec -> spec.setContent(newMessage)));
+		return block(message.edit(spec -> spec.setContent(newMessage)).onErrorReturn(null));
 	}
 
 	/**
@@ -256,7 +256,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(channel.getPinnedMessages().collectList());
+		return block(channel.getPinnedMessages().collectList().onErrorReturn(null));
 	}
 
 	/**
@@ -307,7 +307,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(guild.createTextChannel(channelSpec));
+		return block(guild.createTextChannel(channelSpec).onErrorReturn(null));
 	}
 
 	/**
@@ -350,7 +350,9 @@ public class DiscordManager {
 				.filter(txtchnl -> txtchnl.getName().equals(channelName))
 				.take(1)
 				.cast(TextChannel.class)
-				.next());
+				.next()
+				.onErrorReturn(null)
+		);
 	}
 
 	public TextChannel getOrCreateTextChannel(Guild guild, String channelName) {
@@ -420,7 +422,9 @@ public class DiscordManager {
 				.filter(category -> category.getName().equalsIgnoreCase(categoryName))
 				.take(1)
 				.cast(Category.class)
-				.next());
+				.next()
+				.onErrorReturn(null)
+		);
 	}
 
 	public Category getOrCreateCategory(Guild guild, String categoryName) {
@@ -457,7 +461,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(channel.getCategory());
+		return block(channel.getCategory().onErrorReturn(null));
 	}
 
 	public List<TextChannel> getTextChannels(Guild guild) {

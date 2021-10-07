@@ -141,6 +141,7 @@ public class Game {
 				.collect(Collectors.toList());
 	}
 
+	// TODO: Cache the result and refresh when hash of raw json changes.
 	public List<GoalEvent> getScoringEvents() {
 		if (gameLiveData == null) {
 			return rawScheduleData.getArray("scoringPlays").stream()

@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.command.GoalsCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
-import com.hazeluff.discord.bot.database.channel.ChannelMessage;
+import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Prediction;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
@@ -97,11 +97,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private List<GoalEvent> goalEvents = new ArrayList<>();
 	private int eventsRetries = 0;
 
+	private GDCMeta meta;
 	// Map<eventId, message>
 	private final Map<Integer, Message> eventMessages = new HashMap<>();
 
-	private Message pollMessage;
 	private Message summaryMessage;
+	private Message pollMessage;
 	private Message endOfGameMessage;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
@@ -128,8 +129,39 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
 		GameDayChannel gameDayChannel = new GameDayChannel(nhlBot, gameTracker, guild);
 		gameDayChannel.createChannel();
+		gameDayChannel.loadMetadata();
 		gameDayChannel.start();
 		return gameDayChannel;
+	}
+
+	void createChannel() {
+		String channelName = getChannelName();
+		Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
+		preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong());
+		Category category = nhlBot.getGdcCategoryManager().get(guild);
+		if (!nhlBot.getDiscordManager().getTextChannels(guild).stream().anyMatch(channelMatcher)) {
+			Consumer<TextChannelCreateSpec> channelSpec = spec -> {
+				spec.setName(channelName);
+				spec.setTopic(preferences.getCheer());
+				if (category != null) {
+					spec.setParentId(category.getId());
+				}
+			};
+			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, channelSpec);
+			if (channel != null) {
+				preferences.getTimeZone();
+				Message message = sendAndGetMessage(getDetailsMessage(preferences.getTimeZone()));
+				nhlBot.getDiscordManager().pinMessage(message);
+			}
+		} else {
+			LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
+			channel = nhlBot.getDiscordManager().getTextChannels(guild).stream().filter(channelMatcher).findAny()
+					.orElse(null);
+
+			if (!channel.getCategoryId().isPresent() && category != null) {
+				nhlBot.getDiscordManager().moveChannel(category, channel);
+			}
+		}
 	}
 
 	/**
@@ -143,41 +175,23 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		return new GameDayChannel(nhlBot, game, guild);
 	}
 
-	/**
-	 * Updates messages for Events
-	 * 
-	 * @param currentEvents
+	/*
+	 * Metadata
 	 */
-	private void updateGoalMessages() {
-		// Update Messages
-		game.getScoringEvents().forEach(currentEvent -> {
-			if (currentEvent.getPlayers().isEmpty()) {
-				return;
+	private void loadMetadata() {
+		LOGGER.trace("Load Metadata.");
+		if (channel != null) {
+			meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(channel.getId().asLong());
+			if (meta == null) {
+				meta = GDCMeta.of(channel.getId().asLong());
+				nhlBot.getPersistentData().getGDCMetaData().save(meta);
 			}
+		}
+	}
 
-			GoalEvent existingEvent = goalEvents.stream()
-					.filter(event -> event.getId() == currentEvent
-					.getId())
-					.findAny()
-					.orElse(null);
-			if (existingEvent == null) {
-				// New events
-				LOGGER.debug("New event: [" + currentEvent + "]");
-				sendGoalMessage(currentEvent);
-			} else if (isGoalEventUpdated(existingEvent, currentEvent)) {
-				// Updated events
-				LOGGER.debug("Updated event: [" + currentEvent + "]");
-				updateGoalMessage(currentEvent);
-			}
-		});
-
-		// Deleted events
-		goalEvents.forEach(event -> {
-			if (game.getScoringEvents().stream().noneMatch(currentEvent -> event.getId() == currentEvent.getId())) {
-				LOGGER.debug("Removed event: [" + event + "]");
-				sendDeletedEventMessage(event);
-			}
-		});
+	private void saveMetadata() {
+		LOGGER.trace("Save Metadata.");
+		nhlBot.getPersistentData().getGDCMetaData().save(meta);
 	}
 
 	/*
@@ -205,8 +219,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		LOGGER.info("Started thread for channel [{}] in guild [{}]", channelName, guild.getName());
 
 		// Post Predictions poll
-		pollMessage = createPredictionPoll();
-		summaryMessage = createSummaryMessage();
+		summaryMessage = getSummaryMessage();
+		pollMessage = getPredictionMessage();
 
 		if (!game.getStatus().isFinished()) {
 
@@ -261,38 +275,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	/*
 	 * Other Methods
 	 */
-	void createChannel() {
-		String channelName = getChannelName();
-		Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
-		preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong());
-
-		Category category = nhlBot.getGdcCategoryManager().get(guild);
-		if (!nhlBot.getDiscordManager().getTextChannels(guild).stream().anyMatch(channelMatcher)) {
-			Consumer<TextChannelCreateSpec> channelSpec = spec -> {
-				spec.setName(channelName);
-				spec.setTopic(preferences.getCheer());
-				if (category != null) {
-					spec.setParentId(category.getId());
-				}
-			};
-			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, channelSpec);
-			if (channel != null) {
-				preferences.getTimeZone();
-				Message message = sendAndGetMessage(getDetailsMessage(preferences.getTimeZone()));
-				nhlBot.getDiscordManager().pinMessage(message);
-			}
-		} else {
-			LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
-			channel = nhlBot.getDiscordManager().getTextChannels(guild).stream()
-					.filter(channelMatcher)
-					.findAny()
-					.orElse(null);
-
-			if (!channel.getCategoryId().isPresent() && category != null) {
-				nhlBot.getDiscordManager().moveChannel(category, channel);
-			}
-		}
-	}
 
 	/**
 	 * Sends reminders of time till the game starts.
@@ -392,6 +374,55 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		return false;
 	}
 
+	/*
+	 * Goals
+	 */
+	
+	/**
+	 * Updates messages for Events
+	 * 
+	 * @param currentEvents
+	 */
+	private void updateGoalMessages() {
+		// Update Messages
+		game.getScoringEvents().forEach(currentEvent -> {
+			if (currentEvent.getPlayers().isEmpty()) {
+				return;
+			}
+
+			GoalEvent existingEvent = goalEvents.stream()
+					.filter(event -> {
+						// Ids may be null
+						if (event.getId() == null) {
+							return false;
+						}
+						if (currentEvent.getId() == null) {
+							return false;
+						}
+						return event.getId() == currentEvent.getId();
+					})
+					.findAny()
+					.orElse(null);
+			if (existingEvent == null) {
+				// New events
+				LOGGER.debug("New event: [" + currentEvent + "]");
+				sendGoalMessage(currentEvent);
+			} else if (isGoalEventUpdated(existingEvent, currentEvent)) {
+				// Updated events
+				LOGGER.debug("Updated event: [" + currentEvent + "]");
+				updateGoalMessage(currentEvent);
+			}
+		});
+
+		// Deleted events
+		goalEvents.forEach(event -> {
+			if (game.getScoringEvents().stream().noneMatch(currentEvent -> event.getId() == currentEvent.getId())) {
+				LOGGER.debug("Removed event: [" + event + "]");
+				sendDeletedEventMessage(event);
+			}
+		});
+	}
+
 	/**
 	 * Sends a message with information of the specified event to game channels of
 	 * the specified game.
@@ -455,7 +486,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	public static String buildCustomMessage(GameEvent event) {
-		if (event.getId() % 4 != 0) {
+		if (event.getId() == null || event.getId() % 4 != 0) {
 			return null;
 		}
 
@@ -483,7 +514,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			assists = " Assists: " + players.get(1).getFullName();
 		}
 		if (players.size() > 2) {
-			assists += " , %s" + players.get(2).getFullName();
+			assists += " , " + players.get(2).getFullName();
 		}
 
 		String fAssists = assists;
@@ -520,27 +551,23 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	/*
 	 * Summary Message
 	 */
-	private Message createSummaryMessage() {
-		String messageKeyId = "gameday-summary-" + getChannelName();
-		ChannelMessage channelMessage = nhlBot.getPersistentData().getChannelMessagesData()
-				.loadMessage(channel.getId().asLong(), messageKeyId);
+	private Message getSummaryMessage() {
 		Message message;
-		if (channelMessage == null) {
+		Long messageId = meta.getSummaryMessageId();
+		if (messageId == null) {
 			message = sendSummaryMessage();
-
-			channelMessage = ChannelMessage.of(channel.getId().asLong(), message.getId().asLong(), messageKeyId);
-
-			// Save pole to database
-			nhlBot.getPersistentData().getChannelMessagesData().saveMessage(channelMessage);
 		} else {
-			message = nhlBot.getDiscordManager().getMessage(channelMessage.getChannelId(),
-					channelMessage.getMessageId());
+			message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
 			if (message == null) {
 				message = sendSummaryMessage();
 			}
-			nhlBot.getDiscordManager().pinMessage(message);
 		}
 
+		if (message != null) {
+			nhlBot.getDiscordManager().pinMessage(message);
+			meta.setSummaryMessageId(message.getId().asLong());
+			saveMetadata();
+		}
 		return message;
 	}
 
@@ -615,165 +642,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/*
-	 * Getters
+	 * Discord Convenience Methods
 	 */
-
-	public Guild getGuild() {
-		return guild;
-	}
-
-	public Game getGame() {
-		return game;
-	}
-
-	/**
-	 * Gets the date in the format "YY-MM-DD"
-	 * 
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the date in the format "YY-MM-DD"
-	 */
-	public String getShortDate(ZoneId zone) {
-		return getShortDate(game, zone);
-	}
-
-	/**
-	 * Gets the date in the format "YY-MM-DD"
-	 * 
-	 * @param game
-	 *            game to get the date from
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the date in the format "YY-MM-DD"
-	 */
-	public static String getShortDate(Game game, ZoneId zone) {
-		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("yy-MM-dd"));
-	}
-
-	/**
-	 * Gets the date in the format "EEEE dd MMM yyyy"
-	 * 
-	 * @param game
-	 *            game to get the date for
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the date in the format "EEEE dd MMM yyyy"
-	 */
-	public static String getNiceDate(Game game, ZoneId zone) {
-		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
-	}
-
-	/**
-	 * Gets the date in the format "EEEE dd MMM yyyy"
-	 * 
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the date in the format "EEEE dd MMM yyyy"
-	 */
-	public String getNiceDate(ZoneId zone) {
-		return getNiceDate(game, zone);
-	}
-
-	/**
-	 * Gets the time in the format "HH:mm aaa"
-	 * 
-	 * @param game
-	 * 			  game to get the time from
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the time in the format "HH:mm aaa"
-	 */
-	public static String getTime(Game game, ZoneId zone) {
-		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("H:mm z"));
-	}
-
-	/**
-	 * Gets the time in the format "HH:mm aaa"
-	 * 
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the time in the format "HH:mm aaa"
-	 */
-	public String getTime(ZoneId zone) {
-		return getTime(game, zone);
-	}
-
-	/**
-	 * Gets the name that a channel in Discord related to this game would have.
-	 * 
-	 * @return channel name in format: "AAA_vs_BBB-yy-MM-DD". <br>
-	 *         AAA is the 3 letter code of home team<br>
-	 *         BBB is the 3 letter code of away team<br>
-	 *         yy-MM-DD is a date format
-	 */
-	public String getChannelName() {
-		return getChannelName(game);
-	}
-
-	/**
-	 * Gets the name that a channel in Discord related to this game would have.
-	 * 
-	 * @param game
-	 *            game to get channel name for
-	 * @return channel name in format: "AAA-vs-BBB-yy-MM-DD". <br>
-	 *         AAA is the 3 letter code of home team<br>
-	 *         BBB is the 3 letter code of away team<br>
-	 *         yy-MM-DD is a date format
-	 */
-	public static String getChannelName(Game game) {
-		String channelName = String.format("%.3s-vs-%.3s-%s", game.getHomeTeam().getCode(),
-				game.getAwayTeam().getCode(), getShortDate(game, ZoneId.of("America/New_York")));
-		return channelName.toLowerCase();
-
-	}
-
-	/**
-	 * Gets the message that NHLBot will respond with when queried about this game
-	 * 
-	 * @param game
-	 * 		      the game to get the message for
-	 * @param timeZone
-	 *            the time zone to localize to
-	 * 
-	 * @return message in the format: "The next game is:\n<br>
-	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
-	 */
-	public static String getDetailsMessage(Game game, ZoneId timeZone) {
-		String message = String.format("**%s** vs **%s** at **%s** on **%s**", game.getHomeTeam().getFullName(),
-				game.getAwayTeam().getFullName(), getTime(game, timeZone), getNiceDate(game, timeZone));
-		return message;
-	}
-
-	/**
-	 * Gets the message that NHLBot will respond with when queried about this game
-	 * 
-	 * @param timeZone
-	 *            the time zone to localize to
-	 * 
-	 * @return message in the format: "The next game is:\n<br>
-	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
-	 */
-	public String getDetailsMessage(ZoneId timeZone) {
-		return getDetailsMessage(game, timeZone);
-	}
-
-	/**
-	 * Determines if the given channel name is that of a possible game. Does not
-	 * factor into account whether or not the game is real.
-	 * 
-	 * @param channelName
-	 *            name of the channel
-	 * @return true, if is of game channel format;<br>
-	 *         false, otherwise.
-	 */
-	public static boolean isChannelNameFormat(String channelName) {
-		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
-				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
-		teamRegex = String.format("(%s)", teamRegex);
-		String regex = String.format("%1$s-vs-%1$s-[0-9]{2}-[0-9]{2}-[0-9]{2}", teamRegex);
-		return channelName.matches(regex);
-	}
-
 	protected void sendMessage(String message) {
 		if (channel != null) {
 			nhlBot.getDiscordManager().sendMessage(channel, message);
@@ -795,7 +665,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/*
-	 * Predictions related
+	 * Predictions
 	 */
 	private void registerToListener() {
 		nhlBot.getReactionListener().addProccessor(this, ReactionAddEvent.class);
@@ -886,9 +756,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	/*
-	 * Predictions
-	 */
 	/**
 	 * 
 	 * @param excludedReaction
@@ -903,25 +770,22 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	private Message createPredictionPoll() {
-		String messageKeyId = "gameday-poll-" + getChannelName();
-		ChannelMessage channelMessage = nhlBot.getPersistentData().getChannelMessagesData()
-				.loadMessage(channel.getId().asLong(), messageKeyId);
+	private Message getPredictionMessage() {
 		Message message;
-		if (channelMessage == null) {
+		Long messageId = meta.getPollMessageId();
+		if (messageId == null) {
 			message = sendPredictionMessage();
-
-			channelMessage = ChannelMessage.of(channel.getId().asLong(), message.getId().asLong(), messageKeyId);
-
-			// Save pole to database
-			nhlBot.getPersistentData().getChannelMessagesData().saveMessage(channelMessage);
 		} else {
-			message = nhlBot.getDiscordManager().getMessage(channelMessage.getChannelId(),
-					channelMessage.getMessageId());
+			message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
 			if (message == null) {
 				message = sendPredictionMessage();
 			}
+		}
+
+		if (message != null) {
 			nhlBot.getDiscordManager().pinMessage(message);
+			meta.setPollMessageId(message.getId().asLong());
+			saveMetadata();
 		}
 
 		registerToListener();
@@ -963,6 +827,164 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	boolean isBotSelf(User user) {
 		return user.getId().equals(nhlBot.getDiscordManager().getId());
+	}/*
+		 * Getters
+		 */
+
+	public Guild getGuild() {
+		return guild;
+	}
+
+	public Game getGame() {
+		return game;
+	}
+
+	/**
+	 * Gets the date in the format "YY-MM-DD"
+	 * 
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the date in the format "YY-MM-DD"
+	 */
+	public String getShortDate(ZoneId zone) {
+		return getShortDate(game, zone);
+	}
+
+	/**
+	 * Gets the date in the format "YY-MM-DD"
+	 * 
+	 * @param game
+	 *            game to get the date from
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the date in the format "YY-MM-DD"
+	 */
+	public static String getShortDate(Game game, ZoneId zone) {
+		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("yy-MM-dd"));
+	}
+
+	/**
+	 * Gets the date in the format "EEEE dd MMM yyyy"
+	 * 
+	 * @param game
+	 *            game to get the date for
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the date in the format "EEEE dd MMM yyyy"
+	 */
+	public static String getNiceDate(Game game, ZoneId zone) {
+		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
+	}
+
+	/**
+	 * Gets the date in the format "EEEE dd MMM yyyy"
+	 * 
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the date in the format "EEEE dd MMM yyyy"
+	 */
+	public String getNiceDate(ZoneId zone) {
+		return getNiceDate(game, zone);
+	}
+
+	/**
+	 * Gets the time in the format "HH:mm aaa"
+	 * 
+	 * @param game
+	 *            game to get the time from
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the time in the format "HH:mm aaa"
+	 */
+	public static String getTime(Game game, ZoneId zone) {
+		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("H:mm z"));
+	}
+
+	/**
+	 * Gets the time in the format "HH:mm aaa"
+	 * 
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the time in the format "HH:mm aaa"
+	 */
+	public String getTime(ZoneId zone) {
+		return getTime(game, zone);
+	}
+
+	/**
+	 * Gets the name that a channel in Discord related to this game would have.
+	 * 
+	 * @return channel name in format: "AAA_vs_BBB-yy-MM-DD". <br>
+	 *         AAA is the 3 letter code of home team<br>
+	 *         BBB is the 3 letter code of away team<br>
+	 *         yy-MM-DD is a date format
+	 */
+	public String getChannelName() {
+		return getChannelName(game);
+	}
+
+	/**
+	 * Gets the name that a channel in Discord related to this game would have.
+	 * 
+	 * @param game
+	 *            game to get channel name for
+	 * @return channel name in format: "AAA-vs-BBB-yy-MM-DD". <br>
+	 *         AAA is the 3 letter code of home team<br>
+	 *         BBB is the 3 letter code of away team<br>
+	 *         yy-MM-DD is a date format
+	 */
+	public static String getChannelName(Game game) {
+		String channelName = String.format("%.3s-vs-%.3s-%s", game.getHomeTeam().getCode(),
+				game.getAwayTeam().getCode(), getShortDate(game, ZoneId.of("America/New_York")));
+		return channelName.toLowerCase();
+
+	}
+
+	/**
+	 * Gets the message that NHLBot will respond with when queried about this game
+	 * 
+	 * @param game
+	 *            the game to get the message for
+	 * @param timeZone
+	 *            the time zone to localize to
+	 * 
+	 * @return message in the format: "The next game is:\n<br>
+	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
+	 */
+	public static String getDetailsMessage(Game game, ZoneId timeZone) {
+		String message = String.format("**%s** vs **%s** at **%s** on **%s**", game.getHomeTeam().getFullName(),
+				game.getAwayTeam().getFullName(), getTime(game, timeZone), getNiceDate(game, timeZone));
+		return message;
+	}
+
+	/**
+	 * Gets the message that NHLBot will respond with when queried about this game
+	 * 
+	 * @param timeZone
+	 *            the time zone to localize to
+	 * 
+	 * @return message in the format: "The next game is:\n<br>
+	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
+	 */
+	public String getDetailsMessage(ZoneId timeZone) {
+		return getDetailsMessage(game, timeZone);
+	}
+
+	/**
+	 * Determines if the given channel name is that of a possible game. Does not
+	 * factor into account whether or not the game is real.
+	 * 
+	 * @param channelName
+	 *            name of the channel
+	 * @return true, if is of game channel format;<br>
+	 *         false, otherwise.
+	 */
+	public static boolean isChannelNameFormat(String channelName) {
+		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
+				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
+		teamRegex = String.format("(%s)", teamRegex);
+		String regex = String.format("%1$s-vs-%1$s-[0-9]{2}-[0-9]{2}-[0-9]{2}", teamRegex);
+		return channelName.matches(regex);
 	}
 
 	/*

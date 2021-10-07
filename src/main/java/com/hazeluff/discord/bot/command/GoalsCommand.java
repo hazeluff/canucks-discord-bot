@@ -9,10 +9,11 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.nhl.Game;
-import com.hazeluff.nhl.GameEvent;
 import com.hazeluff.nhl.GameStatus;
 import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.event.GameEvent;
+import com.hazeluff.nhl.event.GoalEvent;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -65,7 +66,7 @@ public class GoalsCommand extends Command {
 
 	public static Consumer<EmbedCreateSpec> getEmbed(Game game) {
 		return spec -> { 
-			List<GameEvent> goals = game.getEvents();
+			List<GoalEvent> goals = game.getScoringEvents();
 			EmbedCreateSpec embedSpec = ScoreCommand.buildEmbed(spec, game);
 			// Regulation Periods
 			for (int period = 1; period <= 3; period++) {

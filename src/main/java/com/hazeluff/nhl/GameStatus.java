@@ -1,6 +1,6 @@
 package com.hazeluff.nhl;
 
-import org.json.JSONObject;
+import org.bson.BsonDocument;
 
 public class GameStatus {
 	private final int statusCode;
@@ -18,12 +18,14 @@ public class GameStatus {
 		this.detailedState = detailedState;
 	}
 
-	public static GameStatus parse(JSONObject json) {
-		int statusCode = Integer.parseInt(json.getString("statusCode"));
-		int codedGameState = Integer.parseInt(json.getString("codedGameState"));
-		boolean startTimeTBD = json.getBoolean("startTimeTBD");
-		final AbstractGameState abstractGameState = AbstractGameState.parse(json.getString("abstractGameState"));
-		final DetailedGameState detailedState = DetailedGameState.parse(json.getString("detailedState"));
+	public static GameStatus parse(BsonDocument json) {
+		int statusCode = Integer.parseInt(json.getString("statusCode").getValue());
+		int codedGameState = Integer.parseInt(json.getString("codedGameState").getValue());
+		boolean startTimeTBD = json.getBoolean("startTimeTBD").getValue();
+		final AbstractGameState abstractGameState = AbstractGameState.parse(
+				json.getString("abstractGameState").getValue());
+		final DetailedGameState detailedState = DetailedGameState.parse(
+				json.getString("detailedState").getValue());
 		
 		return new GameStatus(statusCode, codedGameState, startTimeTBD, abstractGameState, detailedState);
 	}

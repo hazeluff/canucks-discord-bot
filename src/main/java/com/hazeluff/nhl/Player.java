@@ -3,7 +3,7 @@ package com.hazeluff.nhl;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.json.JSONObject;
+import org.bson.BsonDocument;
 
 public class Player {
 	private final int id;
@@ -47,11 +47,12 @@ public class Player {
 		this.role = role;
 	}
 
-	public static Player parse(JSONObject jsonPlayer) {
+	public static Player parse(BsonDocument jsonPlayer) {
 		return new Player(
-				jsonPlayer.getJSONObject("player").getInt("id"), 
-				jsonPlayer.getJSONObject("player").getString("fullName"), 
-				EventRole.parse(jsonPlayer.getString("playerType")));
+				jsonPlayer.getDocument("player").getInt32("id").getValue(), 
+				jsonPlayer.getDocument("player").getString("fullName").getValue(), 
+				EventRole.parse(jsonPlayer.getString("playerType").getValue())
+		);
 	}
 
 	public int getId() {

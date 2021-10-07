@@ -20,8 +20,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -169,7 +170,7 @@ public class GameScheduler extends Thread {
 	void updateGameSchedule() throws HttpException {
 		LOGGER.info("Updating game schedule.");
 
-		Map<Integer, JSONObject> fetchedGames = getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate());
+		Map<Integer, BsonDocument> fetchedGames = getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate());
 		fetchedGames.entrySet().stream().forEach(fetchedGame -> {
 			int gamePk = fetchedGame.getKey();
 			Game existingGame = games.get(gamePk);
@@ -214,11 +215,12 @@ public class GameScheduler extends Thread {
 		}
 	}
 
-	Map<Integer, JSONObject> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate) throws HttpException {
+	Map<Integer, BsonDocument> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate) throws HttpException {
 		return getRawGames(startDate, endDate, null);
 	}
 
-	Map<Integer, JSONObject> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate, Team team)
+	Map<Integer, BsonDocument> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate,
+			Team team)
 			throws HttpException {
 		LOGGER.info("Retrieving games of [" + team + "]");
 		String strStartDate = startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -242,23 +244,21 @@ public class GameScheduler extends Thread {
 		}
 
 		String strJSONSchedule = HttpUtils.getAndRetry(uri, 5, 10000l, "Get Game Schedule.");
-		Map<Integer, JSONObject> games = new HashMap<>();
-		JSONObject jsonSchedule = new JSONObject(strJSONSchedule);
-		JSONArray jsonDates = jsonSchedule.getJSONArray("dates");
-		for (int d = 0; d < jsonDates.length(); d++) {
-			JSONArray gamesJSONArray = jsonDates.getJSONObject(d).getJSONArray("games");
-			for (int g = 0; g < gamesJSONArray.length(); g++) {
-				JSONObject jsonGame = gamesJSONArray.getJSONObject(g);
-				int gamePk = jsonGame.optInt("gamePk", -1);
+		Map<Integer, BsonDocument> games = new HashMap<>();
+		BsonDocument jsonSchedule = BsonDocument.parse(strJSONSchedule);
+		BsonArray jsonDates = jsonSchedule.getArray("dates");
+		jsonDates.forEach(jsonDate -> {
+			BsonArray jsonGames = jsonDate.asDocument().getArray("games");
+			jsonGames.forEach(jsonGame -> {
+				int gamePk = jsonGame.asDocument().getInt32("gamePk", new BsonInt32(-1)).getValue();
 				if (gamePk > 0) {
 					LOGGER.debug("Adding additional game [" + gamePk + "]");
-					games.put(gamePk, jsonGame);
+					games.put(gamePk, jsonGame.asDocument());
 				} else {
 					LOGGER.warn("Could not parse 'gamePk': " + jsonGame.toString());
 				}
-			}
-
-		}
+			});
+		});
 		return games;
 	}
 

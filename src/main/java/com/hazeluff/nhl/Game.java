@@ -2,15 +2,17 @@ package com.hazeluff.nhl;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.json.JSONObject;
+import org.bson.BsonDocument;
+import org.bson.BsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.utils.DateUtils;
+import com.hazeluff.nhl.event.GameEvent;
+import com.hazeluff.nhl.event.GoalEvent;
 
 
 public class Game {
@@ -21,26 +23,26 @@ public class Game {
 	private final Team awayTeam;
 	private final Team homeTeam;
 	
-	private JSONObject rawGameData;
+	private BsonDocument rawScheduleData;
 	private GameLiveData gameLiveData = null;
 
-	Game(ZonedDateTime date, int gamePk, Team awayTeam, Team homeTeam, JSONObject rawGameData) {
+	Game(ZonedDateTime date, int gamePk, Team awayTeam, Team homeTeam, BsonDocument rawScheduleData) {
 		this.date = date;
 		this.gamePk = gamePk;
 		this.awayTeam = awayTeam;
 		this.homeTeam = homeTeam;
 
-		this.rawGameData = rawGameData;
+		this.rawScheduleData = rawScheduleData;
 	}
 
-	public static Game parse(JSONObject rawScheduleGameJson) {
+	public static Game parse(BsonDocument rawScheduleGameJson) {
 		try {
-			ZonedDateTime date = DateUtils.parseNHLDate(rawScheduleGameJson.getString("gameDate"));
-			int gamePk = rawScheduleGameJson.getInt("gamePk");
-			Team awayTeam = Team.parse(rawScheduleGameJson.getJSONObject("teams").getJSONObject("away")
-					.getJSONObject("team").getInt("id"));
-			Team homeTeam = Team.parse(rawScheduleGameJson.getJSONObject("teams").getJSONObject("home")
-					.getJSONObject("team").getInt("id"));
+			ZonedDateTime date = DateUtils.parseNHLDate(rawScheduleGameJson.getString("gameDate").getValue());
+			int gamePk = rawScheduleGameJson.getInt32("gamePk").getValue();
+			Team awayTeam = Team.parse(rawScheduleGameJson.getDocument("teams").getDocument("away")
+					.getDocument("team").getInt32("id").getValue());
+			Team homeTeam = Team.parse(rawScheduleGameJson.getDocument("teams").getDocument("home")
+					.getDocument("team").getInt32("id").getValue());
 			Game game = new Game(date, gamePk, awayTeam, homeTeam, rawScheduleGameJson);
 
 			return game;
@@ -50,9 +52,9 @@ public class Game {
 		}
 	}
 
-	public void updateGameData(JSONObject rawGameData) {
-		LOGGER.trace("Updating Game Data. [" + gamePk + "]");
-		this.rawGameData = rawGameData;
+	public void updateGameData(BsonDocument rawScheduleData) {
+		LOGGER.trace("Updating Game Schedule Data. [" + gamePk + "]");
+		this.rawScheduleData = rawScheduleData;
 	}
 
 	public void updateLiveData() {
@@ -115,22 +117,40 @@ public class Game {
 	}
 
 	public int getAwayScore() {
-		return rawGameData.getJSONObject("teams").getJSONObject("away").getInt("score");
+		return rawScheduleData.getDocument("teams").getDocument("away").getInt32("score").getValue();
 	}
 
 	public int getHomeScore() {
-		return rawGameData.getJSONObject("teams").getJSONObject("home").getInt("score");
+		return rawScheduleData.getDocument("teams").getDocument("home").getInt32("score").getValue();
 	}
 
 	public GameStatus getStatus() {
-		return GameStatus.parse(rawGameData.getJSONObject("status"));
+		return GameStatus.parse(rawScheduleData.getDocument("status"));
 	}
 
-	public List<GameEvent> getEvents() {
-		return rawGameData.getJSONArray("scoringPlays").toList().stream()
-				.map(HashMap.class::cast)
-				.map(JSONObject::new)
-				.map(GameEvent::parse)
+	public List<GoalEvent> getEvents() {
+		if (gameLiveData == null) {
+			return null;
+		}
+		return gameLiveData.getJSON().getDocument("liveData").getDocument("plays").getArray("allPlays").getValues()
+				.stream()
+				.map(BsonValue::asDocument)
+				.map(GameEvent::of)
+				.filter(GoalEvent.class::isInstance)
+				.map(GoalEvent.class::cast)
+				.collect(Collectors.toList());
+	}
+
+	public List<GoalEvent> getScoringEvents() {
+		if (gameLiveData == null) {
+			return rawScheduleData.getArray("scoringPlays").stream()
+					.map(jsonPlay -> jsonPlay.asDocument())
+					.map(GameEvent::of)
+					.map(GoalEvent.class::cast)
+					.collect(Collectors.toList());
+		}
+		return getEvents().stream()
+				.filter(event -> GameEventType.GOAL.equals(event.getType()))
 				.collect(Collectors.toList());
 	}
 
@@ -140,7 +160,7 @@ public class Game {
 		return "Game [getDate()=" + getDate() + ", getGamePk()=" + getGamePk() + ", getAwayTeam()=" + getAwayTeam()
 				+ ", getHomeTeam()=" + getHomeTeam() + ", getWinningTeam()=" + getWinningTeam() + ", getTeams()="
 				+ getTeams() + ", getAwayScore()=" + getAwayScore() + ", getHomeScore()=" + getHomeScore()
-				+ ", getStatus()=" + getStatus() + ", getEvents()=" + getEvents() + "]";
+				+ ", getStatus()=" + getStatus() + ", getEvents()=" + getScoringEvents() + "]";
 	}
 
 	public boolean equals(Game other) {

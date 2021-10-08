@@ -25,11 +25,7 @@ public enum GameEventType {
 	}
 
 	public static GameEventType parse(String typeId) {
-		GameEventType result = VALUES_MAP.get(typeId);
-		if (result == null) {
-			throw new IllegalArgumentException("No value exists for: " + typeId);
-		}
-		return result;
+		return VALUES_MAP.get(typeId);
 	}
 }
 

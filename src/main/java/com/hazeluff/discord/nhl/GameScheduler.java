@@ -277,7 +277,7 @@ public class GameScheduler extends Thread {
 	 */
 	public List<Game> getActiveGames(Team team) {
 		List<Game> games = new ArrayList<>();
-		games.addAll(getPastGames(team, 0));
+		games.addAll(getPastGames(team, 1));
 		Game currentGame = getCurrentLiveGame(team);
 		if (currentGame != null) {
 			games.add(currentGame);

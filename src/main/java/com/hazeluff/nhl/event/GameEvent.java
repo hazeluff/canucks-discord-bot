@@ -14,7 +14,7 @@ import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.Team;
 
 public class GameEvent {
-	private BsonDocument rawJson;
+	protected BsonDocument rawJson;
 
 	private GameEvent(BsonDocument rawJson) {
 		this.rawJson = rawJson;
@@ -34,17 +34,6 @@ public class GameEvent {
 		}
 	}
 
-	public Integer getId() {
-		if (rawJson.containsKey("eventId")) {
-			return rawJson.getInt32("eventId").getValue();
-		}
-		return null;
-	}
-
-	public int getIdx() {
-		return rawJson.getInt32("eventIdx").getValue();
-	}
-
 	protected BsonDocument getResultJson() {
 		return rawJson.getDocument("result");
 	}
@@ -55,6 +44,14 @@ public class GameEvent {
 
 	protected BsonDocument getAboutJson() {
 		return rawJson.getDocument("about");
+	}
+
+	public Integer getId() {
+		return getAboutJson().getInt32("eventId").getValue();
+	}
+
+	public int getIdx() {
+		return getAboutJson().getInt32("eventIdx").getValue();
 	}
 
 	public ZonedDateTime getDate() {

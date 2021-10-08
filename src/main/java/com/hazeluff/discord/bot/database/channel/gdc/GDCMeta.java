@@ -1,5 +1,6 @@
 package com.hazeluff.discord.bot.database.channel.gdc;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -66,8 +67,7 @@ public class GDCMeta {
 				new Document(CHANNEL_ID_KEY,
 						channelId),
 				new Document("$set", new Document()
-						.append(SUMMARY_MESSAGE_ID_KEY,
-								summaryMessageId)
+						.append(SUMMARY_MESSAGE_ID_KEY, summaryMessageId)
 						.append(POLL_MESSAGE_ID_KEY, pollMessageId)
 						.append(GOAL_MESSAGE_IDS_KEY, strGoalMessages)
 				),
@@ -95,8 +95,11 @@ public class GDCMeta {
 	}
 
 	public Map<Integer, Long> getGoalMessageIds() {
-		return 
-		BsonDocument.parse(strGoalMessages).entrySet()
+		if (strGoalMessages == null) {
+			return Collections.emptyMap();
+		}
+		return BsonDocument.parse(strGoalMessages)
+				.entrySet()
 				.stream()
 				.collect(Collectors.toMap(
 						e -> Integer.parseInt(e.getKey()), 

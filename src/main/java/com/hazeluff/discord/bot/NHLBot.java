@@ -18,12 +18,11 @@ import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.command.FuckCommand;
-import com.hazeluff.discord.bot.command.GoalsCommand;
+import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
 import com.hazeluff.discord.bot.command.PredictionsCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
-import com.hazeluff.discord.bot.command.ScoreCommand;
 import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.TestCommand;
@@ -338,11 +337,10 @@ public class NHLBot extends Thread {
 		return Arrays.asList(
 				new AboutCommand(nhlBot),
 				new FuckCommand(nhlBot),
-				new GoalsCommand(nhlBot),
+				new GDCCommand(nhlBot),
 				new HelpCommand(nhlBot),
 				new NextGameCommand(nhlBot),
 				new PredictionsCommand(nhlBot),
-				new ScoreCommand(nhlBot),
 				new SubscribeCommand(nhlBot),
 				new ScheduleCommand(nhlBot),
 				new StatsCommand(nhlBot),

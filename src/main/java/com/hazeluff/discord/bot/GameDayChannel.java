@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.command.GoalsCommand;
+import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
@@ -619,12 +619,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		String header = String.format("%s - %s Penalty", event.getTeam().getLocation(), event.getSeverity());
 		StringBuilder description = new StringBuilder();
 		if (event.getPlayers().size() > 0) {
-			description.append(String.format("%s %s penalty", 
-					event.getPlayers().get(0).getFullName(),
-					event.getSecondaryType()));
+			description.append(event.getPlayers().get(0).getFullName());
 		}
 		if (event.getPlayers().size() > 1) {
-			description.append(" against " + event.getPlayers().get(1).getFullName());
+			description.append(" penalty against " + event.getPlayers().get(1).getFullName());
 		}
 		if (event.getPlayers().size() > 2) {
 			description.append(" served by " + event.getPlayers().get(2).getFullName());
@@ -664,12 +662,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private Message sendSummaryMessage() {
 		return nhlBot.getDiscordManager().sendAndGetMessage(channel, 
-				spec -> spec.addEmbed(GoalsCommand.getEmbed(game)));
+				messageSpec -> messageSpec.addEmbed(embedSpec -> GDCCommand.buildGoalsEmbed(embedSpec, game))
+		);
 	}
 
 	private void updateSummaryMessage() {
 		nhlBot.getDiscordManager().updateMessage(summaryMessage, 
-				spec -> spec.addEmbed(GoalsCommand.getEmbed(game)));
+				messageSpec -> messageSpec.addEmbed(embedSpec -> GDCCommand.buildGoalsEmbed(embedSpec, game))
+		);
 	}
 
 	/*

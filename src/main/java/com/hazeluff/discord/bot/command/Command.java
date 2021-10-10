@@ -48,8 +48,6 @@ public abstract class Command extends ReactiveEventAdapter {
 					+ "to a team by using the command `@NHLBot subscribe [team]`, "
 					+ "where [team] is the 3 letter code for your team.\n"
 					+ "To see a list of [team] codes use command `?subscribe help`";
-	static final String GAME_NOT_STARTED_MESSAGE = 
-			"The game hasn't started yet.";
 	static final String RUN_IN_SERVER_CHANNEL_MESSAGE = 
 			"This can only be run on a server's 'Game Day Channel'.";
 	
@@ -234,7 +232,8 @@ public abstract class Command extends ReactiveEventAdapter {
 	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
 				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asString).orElse(null);
+				.map(ApplicationCommandInteractionOptionValue::asString)
+				.orElse(null);
 	}
 
 	protected static Long getOptionAsLong(ChatInputInteractionEvent event, String option) {

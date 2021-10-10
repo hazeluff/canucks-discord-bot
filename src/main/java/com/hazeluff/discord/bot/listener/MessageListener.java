@@ -11,20 +11,6 @@ import com.hazeluff.discord.bot.chat.LovelyTopic;
 import com.hazeluff.discord.bot.chat.RudeTopic;
 import com.hazeluff.discord.bot.chat.Topic;
 import com.hazeluff.discord.bot.chat.WhatsUpTopic;
-import com.hazeluff.discord.bot.command.AboutCommand;
-import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.bot.command.FuckCommand;
-import com.hazeluff.discord.bot.command.GoalsCommand;
-import com.hazeluff.discord.bot.command.HelpCommand;
-import com.hazeluff.discord.bot.command.NextGameCommand;
-import com.hazeluff.discord.bot.command.PredictionsCommand;
-import com.hazeluff.discord.bot.command.ScheduleCommand;
-import com.hazeluff.discord.bot.command.ScoreCommand;
-import com.hazeluff.discord.bot.command.StatsCommand;
-import com.hazeluff.discord.bot.command.SubscribeCommand;
-import com.hazeluff.discord.bot.command.ThreadsCommand;
-import com.hazeluff.discord.bot.command.UnsubscribeCommand;
-import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.utils.UserThrottler;
 import com.hazeluff.discord.utils.Utils;
 
@@ -41,27 +27,12 @@ public class MessageListener extends EventListener {
 			.setContent("FUCK MESSIER");
 	static long FUCK_MESSIER_COUNT_LIFESPAN = 60000;
 
-	private final List<Command> commands;
 	private final List<Topic> topics;
 
 	private final UserThrottler userThrottler;
 
 	public MessageListener(NHLBot nhlBot) {
 		super(nhlBot);
-		commands = new ArrayList<>();
-		commands.add(new AboutCommand(nhlBot));
-		commands.add(new FuckCommand(nhlBot));
-		commands.add(new GoalsCommand(nhlBot));
-		commands.add(new HelpCommand(nhlBot));
-		commands.add(new NextGameCommand(nhlBot));
-		commands.add(new PredictionsCommand(nhlBot));
-		commands.add(new ScoreCommand(nhlBot));
-		commands.add(new SubscribeCommand(nhlBot));
-		commands.add(new ScheduleCommand(nhlBot));
-		commands.add(new StatsCommand(nhlBot));
-		commands.add(new ThreadsCommand(nhlBot));
-		commands.add(new UnsubscribeCommand(nhlBot));
-		commands.add(new WordcloudCommand(nhlBot));
 
 		topics = new ArrayList<>();
 		topics.add(new FriendlyTopic(nhlBot));
@@ -75,9 +46,8 @@ public class MessageListener extends EventListener {
 	/**
 	 * For Tests
 	 */
-	MessageListener(NHLBot nhlBot, List<Command> commands, List<Topic> topics, UserThrottler userThrottler) {
+	MessageListener(NHLBot nhlBot, List<Topic> topics, UserThrottler userThrottler) {
 		super(nhlBot);
-		this.commands = commands;
 		this.topics = topics;
 		this.userThrottler = userThrottler;
 	}

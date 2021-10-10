@@ -68,6 +68,10 @@ public class Game {
 		}
 	}
 
+	public BsonDocument getScheduledData() {
+		return rawScheduleData;
+	}
+
 	public ZonedDateTime getDate() {
 		return date;
 	}
@@ -119,22 +123,28 @@ public class Game {
 	}
 
 	public int getAwayScore() {
-		return rawScheduleData.getDocument("teams").getDocument("away").getInt32("score").getValue();
+		if(gameLiveData != null) {
+			return gameLiveData.getAwayScore();
+		}
+		return getScheduledData().getDocument("teams").getDocument("away").getInt32("score").getValue();
 	}
 
 	public int getHomeScore() {
-		return rawScheduleData.getDocument("teams").getDocument("home").getInt32("score").getValue();
+		if (gameLiveData != null) {
+			return gameLiveData.getHomeScore();
+		}
+		return getScheduledData().getDocument("teams").getDocument("home").getInt32("score").getValue();
 	}
 
 	public GameStatus getStatus() {
-		return GameStatus.parse(rawScheduleData.getDocument("status"));
+		return GameStatus.parse(getScheduledData().getDocument("status"));
 	}
 
 	public List<GameEvent> getEvents() {
 		if (gameLiveData == null) {
 			return Collections.emptyList();
 		}
-		return gameLiveData.getJSON().getDocument("liveData").getDocument("plays").getArray("allPlays").getValues()
+		return gameLiveData.getLiveData().getDocument("plays").getArray("allPlays").getValues()
 				.stream()
 				.map(BsonValue::asDocument)
 				.map(GameEvent::of)
@@ -144,7 +154,8 @@ public class Game {
 	// TODO: Cache the result and refresh when hash of raw json changes.
 	public List<GoalEvent> getScoringEvents() {
 		if (gameLiveData == null) {
-			return rawScheduleData.getArray("scoringPlays").stream()
+			return getScheduledData().getArray("scoringPlays")
+					.stream()
 					.map(jsonPlay -> jsonPlay.asDocument())
 					.map(GameEvent::of)
 					.map(GoalEvent.class::cast)

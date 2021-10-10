@@ -198,9 +198,13 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					))
 			);
 			// Load Penalty Messages
-			goalEventMessages
-					.putAll(meta.getPenaltyMessageIds().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
-							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue()))));
+			penaltyEventMessages.putAll(meta.getPenaltyMessageIds().entrySet()
+					.stream()
+					.collect(Collectors.toMap(
+							e -> e.getKey(),
+							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue())
+					))
+			);
 			saveMetadata();
 		}
 	}
@@ -430,11 +434,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 			if (!goalEventMessages.containsKey(currentEvent.getId())) {
 				// New event
-				LOGGER.info("New event: [" + currentEvent.toString() + "]");
 				sendGoalMessage(currentEvent);
 			} else if (isGoalEventUpdated(cachedEvent, currentEvent)) {
 				// Updated event
-				LOGGER.info("Updated event: [" + currentEvent + "]");
 				updateGoalMessage(currentEvent);
 			}
 		});
@@ -454,7 +456,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	
 	void sendGoalMessage(GoalEvent event) {
-		LOGGER.info("Sending message for event [" + event + "].");
+		LOGGER.debug("Sending message for event [" + event + "].");
 		String messageContent = buildCustomMessage(event);
 		Message message = sendAndGetMessage(spec -> spec
 				.setContent(messageContent)
@@ -467,7 +469,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	
 	void updateGoalMessage(GoalEvent event) {
-		LOGGER.info("Updating message for event [" + event + "].");
+		LOGGER.debug("Updating message for event [" + event + "].");
 		if (!goalEventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
@@ -480,9 +482,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	void sendRescindedGoalMessage(GoalEvent event) {
-		LOGGER.info("Sending rescinded message for goal event [" + event + "].");
-		String player = event.getPlayers().isEmpty() ? null : event.getPlayers().get(0).getFullName();
-		sendMessage(String.format("Goal by %s has been rescinded.", player));
+		LOGGER.debug("Sending rescinded message for goal event [" + event + "].");
+		if (event != null) {
+			sendMessage(String.format("Goal by %s has been rescinded.", event.getPlayers().get(0).getFullName()));
+		}
 	}
 
 	boolean isGoalEventUpdated(GoalEvent oldEvent, GoalEvent newEvent) {
@@ -537,8 +540,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	
 	public PenaltyEvent getCachedPenaltyEvent(int id) {
 		return cachedPenaltyEvents.stream()
-				.filter(cachedGoalEvent -> cachedGoalEvent.getId().intValue() == id)
-				.findAny().orElse(null);
+				.filter(cachedPenaltyEvent -> cachedPenaltyEvent.getId().intValue() == id)
+				.findAny()
+				.orElse(null);
 	}
 	
 	/**
@@ -547,7 +551,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @param currentEvents
 	 */
 	private void updatePenaltyMessages() {
-
 		// Update Messages
 		game.getPenaltyEvents().forEach(currentEvent -> {
 			PenaltyEvent cachedEvent = getCachedPenaltyEvent(currentEvent.getId().intValue());
@@ -556,11 +559,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 			if (!penaltyEventMessages.containsKey(currentEvent.getId())) {
 				// New event
-				LOGGER.info("New event: [" + currentEvent.toString() + "]");
 				sendPenaltyMessage(currentEvent);
 			} else if (isPenaltyEventUpdated(cachedEvent, currentEvent)) {
 				// Updated event
-				LOGGER.info("Updated event: [" + currentEvent + "]");
 				updatePenaltyMessage(currentEvent);
 			}
 		});
@@ -580,7 +581,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	
 	void sendPenaltyMessage(PenaltyEvent event) {
-		LOGGER.info("Sending message for event [" + event + "].");
+		LOGGER.debug("Sending message for event [" + event + "].");
 		Message message = sendAndGetMessage(spec -> spec
 				.addEmbed(buildPenaltyMessageEmbed(event)));
 		if (message != null) {
@@ -591,7 +592,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	
 	void updatePenaltyMessage(PenaltyEvent event) {
-		LOGGER.info("Updating message for event [" + event + "].");
+		LOGGER.debug("Updating message for event [" + event + "].");
 		if (!penaltyEventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
@@ -602,7 +603,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	void sendRescindedPenaltyMessage(PenaltyEvent event) {
-		LOGGER.info("Sending rescinded message for penalty event [" + event + "].");
+		LOGGER.debug("Sending rescinded message for penalty event [" + event + "].");
 		sendMessage(String.format("Penalty on %s has been rescinded.", event.getPlayers().get(0).getFullName()));
 	}
 

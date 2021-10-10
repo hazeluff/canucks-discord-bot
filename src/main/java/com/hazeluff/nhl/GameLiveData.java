@@ -42,10 +42,10 @@ public class GameLiveData {
 
 	private void applyPatch(BsonArray patches) {
 		try {
-			BsonPatch.applyInPlace(patches, rawJson);
+			BsonPatch.applyInPlace(patches, getJSON());
 		} catch (BsonPatchApplicationException e) {
 			LOGGER.warn("Could not process update: " + patches);
-			LOGGER.warn(rawJson.toString());
+			LOGGER.warn(getJSON().toString());
 		}
 	}
 
@@ -81,7 +81,31 @@ public class GameLiveData {
 		return rawJson;
 	}
 
+	public BsonDocument getLiveData() {
+		return getJSON().getDocument("liveData");
+	}
+
+	public BsonDocument getLinescore() {
+		return getLiveData().getDocument("linescore");
+	}
+
+	public int getHomeScore() {
+		return getLinescore().getDocument("teams").getDocument("home").getInt32("goals").getValue();
+	}
+
+	public int getHomeShots() {
+		return getLinescore().getDocument("teams").getDocument("home").getInt32("shotsOnGoal").getValue();
+	}
+
+	public int getAwayScore() {
+		return getLinescore().getDocument("teams").getDocument("away").getInt32("goals").getValue();
+	}
+
+	public int getAwayShots() {
+		return getLinescore().getDocument("teams").getDocument("away").getInt32("shotsOnGoal").getValue();
+	}
+
 	public String getTimecode() {
-		return rawJson.getDocument("metaData").getString("timeStamp").getValue();
+		return getJSON().getDocument("metaData").getString("timeStamp").getValue();
 	}
 }

@@ -38,6 +38,7 @@ import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
+import com.hazeluff.nhl.event.PenaltyEvent;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
@@ -95,11 +96,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private GuildPreferences preferences;
 
 	private List<GoalEvent> cachedGoalEvents = new ArrayList<>();
+	private List<PenaltyEvent> cachedPenaltyEvents = new ArrayList<>();
+	
 	private int eventsRetries = 0;
 
 	private GDCMeta meta;
 
 	private final Map<Integer, Message> goalEventMessages = new HashMap<>();
+	private final Map<Integer, Message> penaltyEventMessages = new HashMap<>();
 
 	private Message summaryMessage;
 	private Message pollMessage;
@@ -193,6 +197,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue())
 					))
 			);
+			// Load Penalty Messages
+			goalEventMessages
+					.putAll(meta.getPenaltyMessageIds().entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
+							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue()))));
 			saveMetadata();
 		}
 	}
@@ -254,6 +262,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			while (!gameTracker.isFinished()) {
 				if (isGameUpdated()) {
 					updateGoalMessages();
+					updatePenaltyMessages();
 					updateSummaryMessage();
 
 					updateCachedData();
@@ -281,11 +290,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private void updateCachedData() {
 		this.cachedGoalEvents = game.getScoringEvents();
+		this.cachedPenaltyEvents = game.getPenaltyEvents();
 	}
-
-	/*
-	 * Other Methods
-	 */
 
 	/**
 	 * Sends reminders of time till the game starts.
@@ -347,6 +353,17 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 		} while (!started && !isInterrupted());
 		return alreadyStarted;
+	}
+
+	/**
+	 * Sends the 'Start of game' message to the game channels of the specified game.
+	 * 
+	 * @param game
+	 *            game of which it's channels will have the messages sent to
+	 */
+	void sendStartOfGameMessage() {
+		LOGGER.info("Sending start message.");
+		sendMessage("Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe");
 	}
 
 	/**
@@ -435,16 +452,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			return false;
 		});
 	}
-
-	/**
-	 * Sends a message with information of the specified event to game channels of
-	 * the specified game.
-	 * 
-	 * @param game
-	 *            game of which it's channels will have the messages sent to
-	 * @param event
-	 *            to create the message from
-	 */
+	
 	void sendGoalMessage(GoalEvent event) {
 		LOGGER.info("Sending message for event [" + event + "].");
 		String messageContent = buildCustomMessage(event);
@@ -457,16 +465,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			saveMetadata();
 		}
 	}
-
-	/**
-	 * Update previously sent messages of the specified event with the new
-	 * information in the event.
-	 * 
-	 * @param game
-	 *            game of which it's channels will have the messages sent to
-	 * @param event
-	 *            updated event to create the new message from
-	 */
+	
 	void updateGoalMessage(GoalEvent event) {
 		LOGGER.info("Updating message for event [" + event + "].");
 		if (!goalEventMessages.containsKey(event.getId())) {
@@ -480,9 +479,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	void sendRescindedGoalMessage(GameEvent event) {
-		LOGGER.info("Sending 'deleted event' message for event [" + event + "].");
-		sendMessage(String.format("Goal by %s has been rescinded.", event.getPlayers().get(0).getFullName()));
+	void sendRescindedGoalMessage(GoalEvent event) {
+		LOGGER.info("Sending rescinded message for goal event [" + event + "].");
+		String player = event.getPlayers().isEmpty() ? null : event.getPlayers().get(0).getFullName();
+		sendMessage(String.format("Goal by %s has been rescinded.", player));
 	}
 
 	boolean isGoalEventUpdated(GoalEvent oldEvent, GoalEvent newEvent) {
@@ -491,7 +491,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				|| !oldEvent.getTeam().equals(newEvent.getTeam());
 	}
 
-	public static String buildCustomMessage(GameEvent event) {
+	public static String buildCustomMessage(GoalEvent event) {
 		if (event.getId() == null || event.getId() % 4 != 0) {
 			return null;
 		}
@@ -499,13 +499,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		return CanucksCustomMessages.getMessage(event.getPlayers());
 	}
 
-	/**
-	 * Build a message to deliver based on the event.
-	 * 
-	 * @param event
-	 *            event to build message from
-	 * @return message to send
-	 */
 	public static Consumer<EmbedCreateSpec> buildGoalMessageEmbed(GoalEvent event) {
 		List<Player> players = event.getPlayers();
 
@@ -538,15 +531,111 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	/**
-	 * Sends the 'Start of game' message to the game channels of the specified game.
-	 * 
-	 * @param game
-	 *            game of which it's channels will have the messages sent to
+	/*
+	 * Penalty Messages
 	 */
-	void sendStartOfGameMessage() {
-		LOGGER.info("Sending start message.");
-		sendMessage("Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe");
+	
+	public PenaltyEvent getCachedPenaltyEvent(int id) {
+		return cachedPenaltyEvents.stream()
+				.filter(cachedGoalEvent -> cachedGoalEvent.getId().intValue() == id)
+				.findAny().orElse(null);
+	}
+	
+	/**
+	 * Updates messages for Events
+	 * 
+	 * @param currentEvents
+	 */
+	private void updatePenaltyMessages() {
+
+		// Update Messages
+		game.getPenaltyEvents().forEach(currentEvent -> {
+			PenaltyEvent cachedEvent = getCachedPenaltyEvent(currentEvent.getId().intValue());
+			if (cachedEvent == null) {
+				return;
+			}
+			if (!penaltyEventMessages.containsKey(currentEvent.getId())) {
+				// New event
+				LOGGER.info("New event: [" + currentEvent.toString() + "]");
+				sendPenaltyMessage(currentEvent);
+			} else if (isPenaltyEventUpdated(cachedEvent, currentEvent)) {
+				// Updated event
+				LOGGER.info("Updated event: [" + currentEvent + "]");
+				updatePenaltyMessage(currentEvent);
+			}
+		});
+
+		// Remove Messages that do not have a corresponding event in the game's data.
+		penaltyEventMessages.entrySet().removeIf(entry -> {
+			int eventId = entry.getKey().intValue();
+			if (game.getPenaltyEvents().stream()
+					.noneMatch(currentEvent -> currentEvent.getId().intValue() == entry.getKey().intValue())) {
+
+				PenaltyEvent cachedEvent = getCachedPenaltyEvent(eventId);
+				sendRescindedPenaltyMessage(cachedEvent);
+				return true;
+			}
+			return false;
+		});
+	}
+	
+	void sendPenaltyMessage(PenaltyEvent event) {
+		LOGGER.info("Sending message for event [" + event + "].");
+		Message message = sendAndGetMessage(spec -> spec
+				.addEmbed(buildPenaltyMessageEmbed(event)));
+		if (message != null) {
+			penaltyEventMessages.put(event.getId(), message);
+			meta.setPenaltyMessageIds(penaltyEventMessages);
+			saveMetadata();
+		}
+	}
+	
+	void updatePenaltyMessage(PenaltyEvent event) {
+		LOGGER.info("Updating message for event [" + event + "].");
+		if (!penaltyEventMessages.containsKey(event.getId())) {
+			LOGGER.warn("No message exists for the event: {}", event);
+		} else {
+			Message message = penaltyEventMessages.get(event.getId());
+			nhlBot.getDiscordManager().updateMessage(message, spec -> spec
+					.addEmbed(buildPenaltyMessageEmbed(event)));
+		}
+	}
+
+	void sendRescindedPenaltyMessage(PenaltyEvent event) {
+		LOGGER.info("Sending rescinded message for penalty event [" + event + "].");
+		sendMessage(String.format("Penalty on %s has been rescinded.", event.getPlayers().get(0).getFullName()));
+	}
+
+	boolean isPenaltyEventUpdated(PenaltyEvent oldEvent, PenaltyEvent newEvent) {
+		return !oldEvent.getPlayers().equals(newEvent.getPlayers())
+				|| !oldEvent.getTeam().equals(newEvent.getTeam())
+				|| !oldEvent.getSeverity().equals(newEvent.getSeverity())
+				|| !oldEvent.getSecondaryType().equals(newEvent.getSecondaryType())
+				|| oldEvent.getMinutes() != newEvent.getMinutes();
+	}
+
+	public static Consumer<EmbedCreateSpec> buildPenaltyMessageEmbed(PenaltyEvent event) {
+		String header = String.format("%s - %s Penalty", event.getTeam().getLocation(), event.getSeverity());
+		StringBuilder description = new StringBuilder();
+		if (event.getPlayers().size() > 0) {
+			description.append(String.format("%s %s penalty", 
+					event.getPlayers().get(0).getFullName(),
+					event.getSecondaryType()));
+		}
+		if (event.getPlayers().size() > 1) {
+			description.append(" against " + event.getPlayers().get(1).getFullName());
+		}
+		if (event.getPlayers().size() > 2) {
+			description.append(" served by " + event.getPlayers().get(2).getFullName());
+		}
+		description.append(String.format("\n**%s** - **%s** minutes",
+				event.getSecondaryType(), event.getMinutes()));
+		
+		String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
+		return spec -> spec
+				.setColor(event.getTeam().getColor())
+				.addField(header, description.toString(), false)
+				.setFooter(time, null);
 	}
 
 	/*

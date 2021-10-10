@@ -18,22 +18,26 @@ public class GDCMeta {
 	private static final String POLL_MESSAGE_ID_KEY = "poll-messageId";
 	private static final String SUMMARY_MESSAGE_ID_KEY = "summary-messageId";
 	private static final String GOAL_MESSAGE_IDS_KEY = "goal-messageIds";
+	private static final String PENALTY_MESSAGE_IDS_KEY = "penalty-messageIds";
 
 	private final long channelId;
 	private long summaryMessageId;
 	private long pollMessageId;
 
 	private String strGoalMessages;
+	private String strPenaltyMessages;
 
 	GDCMeta(long channelId) {
 		this.channelId = channelId;
 	}
 
-	GDCMeta(long channelId, long summaryMessageId, long pollMessageId, String strGoalMessages) {
+	GDCMeta(long channelId, long summaryMessageId, long pollMessageId, String strGoalMessages,
+			String strPenaltyMessages) {
 		this(channelId);
 		this.summaryMessageId = summaryMessageId;
 		this.pollMessageId = pollMessageId;
 		this.strGoalMessages = strGoalMessages;
+		this.strPenaltyMessages = strPenaltyMessages;
 	}
 
 	public static GDCMeta of(long channelId) {
@@ -51,8 +55,9 @@ public class GDCMeta {
 		Long summaryMessageId = doc.getLong(SUMMARY_MESSAGE_ID_KEY);
 		Long pollMessageId = doc.getLong(POLL_MESSAGE_ID_KEY);
 		String goalMessageIds = doc.getString(GOAL_MESSAGE_IDS_KEY);
+		String penaltyMessageIds = doc.getString(PENALTY_MESSAGE_IDS_KEY);
 
-		return new GDCMeta(channelId, summaryMessageId, pollMessageId, goalMessageIds);
+		return new GDCMeta(channelId, summaryMessageId, pollMessageId, goalMessageIds, penaltyMessageIds);
 	}
 
 	static GDCMeta findFromCollection(MongoCollection<Document> collection, long channelId) {
@@ -70,6 +75,7 @@ public class GDCMeta {
 						.append(SUMMARY_MESSAGE_ID_KEY, summaryMessageId)
 						.append(POLL_MESSAGE_ID_KEY, pollMessageId)
 						.append(GOAL_MESSAGE_IDS_KEY, strGoalMessages)
+						.append(PENALTY_MESSAGE_IDS_KEY, strPenaltyMessages)
 				),
 				new UpdateOptions().upsert(true));
 	}
@@ -117,7 +123,22 @@ public class GDCMeta {
 		strGoalMessages = doc.toJson();
 	}
 
-	public void setGoalMessageIds(String strGoalMessages) {
-		this.strGoalMessages = strGoalMessages;
+	public Map<Integer, Long> getPenaltyMessageIds() {
+		if (strPenaltyMessages == null) {
+			return Collections.emptyMap();
+		}
+		return BsonDocument.parse(strPenaltyMessages).entrySet().stream()
+				.collect(Collectors.toMap(
+						e -> Integer.parseInt(e.getKey()), 
+						e -> e.getValue().asInt64().getValue()));
+	}
+
+	public void setPenaltyMessageIds(Map<Integer, Message> penaltyMessages) {
+		BsonDocument doc = new BsonDocument();
+		doc.putAll(penaltyMessages.entrySet().stream().collect(
+				Collectors.toMap(
+						e -> String.valueOf(e.getKey()), 
+						e -> new BsonInt64(e.getValue().getId().asLong()))));
+		strPenaltyMessages = doc.toJson();
 	}
 }

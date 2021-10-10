@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public enum GameEventType {
-	GOAL("GOAL");
+	GOAL("GOAL"), PENALTY("PENALTY");
 
 	private final String typeId;
 

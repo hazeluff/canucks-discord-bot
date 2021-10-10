@@ -26,9 +26,14 @@ public class GameEvent {
 
 	public static GameEvent of(BsonDocument rawJson) {
 		GameEvent event = new GameEvent(rawJson);
+		if (event.getType() == null) {
+			return null;
+		}
 		switch (event.getType()) {
 		case GOAL:
 			return new GoalEvent(event);
+		case PENALTY:
+			return new PenaltyEvent(event);
 		default:
 			return event;
 		}

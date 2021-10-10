@@ -2,6 +2,7 @@ package com.hazeluff.nhl;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
+import com.hazeluff.nhl.event.PenaltyEvent;
 
 
 public class Game {
@@ -128,16 +130,14 @@ public class Game {
 		return GameStatus.parse(rawScheduleData.getDocument("status"));
 	}
 
-	public List<GoalEvent> getEvents() {
+	public List<GameEvent> getEvents() {
 		if (gameLiveData == null) {
-			return null;
+			return Collections.emptyList();
 		}
 		return gameLiveData.getJSON().getDocument("liveData").getDocument("plays").getArray("allPlays").getValues()
 				.stream()
 				.map(BsonValue::asDocument)
 				.map(GameEvent::of)
-				.filter(GoalEvent.class::isInstance)
-				.map(GoalEvent.class::cast)
 				.collect(Collectors.toList());
 	}
 
@@ -151,17 +151,25 @@ public class Game {
 					.collect(Collectors.toList());
 		}
 		return getEvents().stream()
-				.filter(event -> GameEventType.GOAL.equals(event.getType()))
+				.filter(GoalEvent.class::isInstance)
+				.map(GoalEvent.class::cast)
 				.collect(Collectors.toList());
 	}
-
+	
+	public List<PenaltyEvent> getPenaltyEvents() {
+		return getEvents().stream()
+				.filter(PenaltyEvent.class::isInstance)
+				.map(PenaltyEvent.class::cast)
+				.collect(Collectors.toList());
+	}
 
 	@Override
 	public String toString() {
 		return "Game [getDate()=" + getDate() + ", getGamePk()=" + getGamePk() + ", getAwayTeam()=" + getAwayTeam()
 				+ ", getHomeTeam()=" + getHomeTeam() + ", getWinningTeam()=" + getWinningTeam() + ", getTeams()="
 				+ getTeams() + ", getAwayScore()=" + getAwayScore() + ", getHomeScore()=" + getHomeScore()
-				+ ", getStatus()=" + getStatus() + ", getEvents()=" + getScoringEvents() + "]";
+				+ ", getStatus()=" + getStatus() + ", getEvents()=" + getEvents() + ", getScoringEvents()="
+				+ getScoringEvents() + ", getPenaltyEvents()=" + getPenaltyEvents() + "]";
 	}
 
 	public boolean equals(Game other) {

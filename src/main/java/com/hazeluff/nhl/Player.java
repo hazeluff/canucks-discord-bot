@@ -4,15 +4,20 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bson.BsonDocument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Player {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
+
 	private final int id;
 	private final String fullName;
 	private final EventRole role;
 
 	// role the player had in an event
 	public enum EventRole {
-		SCORER("Scorer"), ASSIST("Assist"), GOALIE("Goalie");
+		SCORER("Scorer"), ASSIST("Assist"), GOALIE("Goalie"), 
+		PENALTY_ON("PenaltyOn"), DREW_BY("DrewBy"), SERVED_BY("ServedBy");
 
 		private final String value;
 
@@ -35,7 +40,7 @@ public class Player {
 		public static EventRole parse(String value) {
 			EventRole result = VALUES_MAP.get(value);
 			if (result == null) {
-				throw new IllegalArgumentException("No value exists for: " + value);
+				LOGGER.warn("Unknown value: " + value);
 			}
 			return result;
 		}

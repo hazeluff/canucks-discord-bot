@@ -136,11 +136,11 @@ public class GameScheduler extends Thread {
 	public void initGames() throws HttpException {
 		LOGGER.info("Initializing");
 		// Retrieve schedule/game information from NHL API
-		games = getRawGames(currentSeason.getStartDate(), currentSeason
-				.getEndDate())
-				.entrySet()
+		games = getRawGames().entrySet()
 		        .stream()
-				.collect(Collectors.toConcurrentMap(e -> e.getKey(), e -> Game.parse(e.getValue())));
+				.collect(Collectors.toConcurrentMap(
+						e -> e.getKey(),
+						e -> Game.parse(e.getValue())));
 		LOGGER.info("Retrieved all games: [" + games.size() + "]");
 		LOGGER.info("Finished Initialization.");
 	}
@@ -170,7 +170,7 @@ public class GameScheduler extends Thread {
 	void updateGameSchedule() throws HttpException {
 		LOGGER.info("Updating game schedule.");
 
-		Map<Integer, BsonDocument> fetchedGames = getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate());
+		Map<Integer, BsonDocument> fetchedGames = getRawGames();
 		fetchedGames.entrySet().stream().forEach(fetchedGame -> {
 			int gamePk = fetchedGame.getKey();
 			Game existingGame = games.get(gamePk);
@@ -215,8 +215,8 @@ public class GameScheduler extends Thread {
 		}
 	}
 
-	Map<Integer, BsonDocument> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate) throws HttpException {
-		return getRawGames(startDate, endDate, null);
+	Map<Integer, BsonDocument> getRawGames() throws HttpException {
+		return getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate(), null);
 	}
 
 	Map<Integer, BsonDocument> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate,

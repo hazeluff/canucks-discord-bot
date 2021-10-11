@@ -37,7 +37,7 @@ public class GameTracker extends Thread {
 	// Time before game to poll faster
 	static final long CLOSE_TO_START_THRESHOLD_MS = 300000l;
 	// Time after game is final to continue updates
-	static final long POST_GAME_UPDATE_DURATION = 600000l;
+	static final long POST_GAME_UPDATE_DURATION = 300000l;
 
 	private static Map<Game, GameTracker> gameTrackers = new ConcurrentHashMap<>();
 
@@ -101,7 +101,7 @@ public class GameTracker extends Thread {
 				while (timeAfterLast < POST_GAME_UPDATE_DURATION) {
 					updateGame();
 
-					if (game.getStatus().isFinished()) {
+					if (game.getStatus().isFinal()) {
 						if (lastFinal == null) {
 							LOGGER.info("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();

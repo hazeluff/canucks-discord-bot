@@ -65,4 +65,8 @@ public class GameStatus {
 	public boolean isFinished() {
 		return abstractGameState == AbstractGameState.FINAL;
 	}
+
+	public boolean isFinal() {
+		return abstractGameState == AbstractGameState.FINAL && detailedState == DetailedGameState.FINAL;
+	}
 }

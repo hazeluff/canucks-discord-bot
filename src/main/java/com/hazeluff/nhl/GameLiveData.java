@@ -42,10 +42,10 @@ public class GameLiveData {
 
 	private void applyPatch(BsonArray patches) {
 		try {
-			BsonPatch.applyInPlace(patches, getJSON());
+			BsonPatch.applyInPlace(patches, getJson());
 		} catch (BsonPatchApplicationException e) {
 			LOGGER.warn("Could not process update: " + patches);
-			LOGGER.warn(getJSON().toString());
+			LOGGER.warn(getJson().toString());
 		}
 	}
 
@@ -77,16 +77,76 @@ public class GameLiveData {
 		throw new RuntimeException("Could not fetch live data. gamePk=" + gamePk);
 	}
 
-	public BsonDocument getJSON() {
+	public BsonDocument getJson() {
 		return rawJson;
 	}
 
+	public BsonDocument getGameData() {
+		return getJson().getDocument("gameData");
+	}
+
+	public GameStatus getStatus() {
+		return GameStatus.parse(getGameData().getDocument("status"));
+	}
+
 	public BsonDocument getLiveData() {
-		return getJSON().getDocument("liveData");
+		return getJson().getDocument("liveData");
 	}
 
 	public BsonDocument getLinescore() {
 		return getLiveData().getDocument("linescore");
+	}
+	
+	public int getPeriod() {
+		return getLinescore().getInt32("currentPeriod").getValue();
+	}
+	
+	public String getPeriodOrdinal() {
+		return getLinescore().getString("currentPeriodOrdinal").getValue();
+	}
+	
+	public String getPeriodTimeRemaining() {
+		return getLinescore().getString("currentPeriodTimeRemaining").getValue();
+	}
+
+	public boolean hasShootout() {
+		return getLinescore().getBoolean("hasShootout").getValue();
+	}
+
+	public BsonDocument getIntermissionInfo() {
+		return getLinescore().getDocument("intermissionInfo");
+	}
+
+	public boolean isIntermission() {
+		return getIntermissionInfo().getBoolean("inIntermission").getValue();
+	}
+
+	public int getIntermissionTimeElapsed() {
+		return getIntermissionInfo().getInt32("intermissionTimeElapsed").getValue();
+	}
+
+	public int getIntermissionTimeRemaining() {
+		return getIntermissionInfo().getInt32("intermissionTimeRemaining").getValue();
+	}
+
+	public BsonDocument getPowerPlayInfo() {
+		return getLinescore().getDocument("powerPlayInfo");
+	}
+
+	public boolean isPowerPlay() {
+		return getPowerPlayInfo().getBoolean("inSituation").getValue();
+	}
+
+	public int getPowerPlayTimeElapsed() {
+		return getPowerPlayInfo().getInt32("situationTimeElapsed").getValue();
+	}
+
+	public int getPowerPlayTimeRemaining() {
+		return getPowerPlayInfo().getInt32("situationTimeRemaining").getValue();
+	}
+	
+	public String getPowerPlayStrength() {
+		return getLinescore().getString("powerPlayStrength").getValue();
 	}
 
 	public int getHomeScore() {
@@ -106,6 +166,6 @@ public class GameLiveData {
 	}
 
 	public String getTimecode() {
-		return getJSON().getDocument("metaData").getString("timeStamp").getValue();
+		return getJson().getDocument("metaData").getString("timeStamp").getValue();
 	}
 }

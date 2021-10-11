@@ -51,6 +51,8 @@ public class HelpCommand extends Command {
 			return event.replyEphemeral(TEAMS_MESSAGE);
 		case ScheduleCommand.NAME:
 			return event.replyEphemeral(ScheduleCommand.HELP_MESSAGE);
+		case GDCCommand.NAME:
+			return event.reply(GDCCommand.HELP_MESSAGE);
 		case SubscribeCommand.NAME:
 			return event.replyEphemeral(SubscribeCommand.HELP_MESSAGE);
 		case UnsubscribeCommand.NAME:
@@ -71,11 +73,11 @@ public class HelpCommand extends Command {
 			+ "`schedule` - Displays information about the most recent and coming up games of your "
 			+ "subscribed teams. **(+)**\n"
 
-			+ "`score` - Displays the score of the game. "
-			+ "You must be in a 'Game Day Channel' to use this command.\n"
-
-			+ "`goals` - Displays the goals of the game. "
-			+ "You must be in a 'Game Day Channel' to use this command.\n"
+			+ "`gdc` - Game Day Channel commands. Must be used in Game Day Channels."
+			+ "`subcommand:` commands:.\n"
+			+ "```\n"
+			+ "score, goals"
+			+ "\n```"
 
 			+ "`about` - Displays information about me.\n\n"
 

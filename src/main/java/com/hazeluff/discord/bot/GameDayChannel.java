@@ -22,8 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Prediction;
@@ -111,7 +112,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 
-	GameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Game game, List<GoalEvent> goalEvents, Guild guild,
+	private GameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Game game, List<GoalEvent> goalEvents, Guild guild,
 			TextChannel channel) {
 		setUncaughtExceptionHandler(new ExceptionHandler(GameDayChannelsManager.class));
 		this.nhlBot = nhlBot;
@@ -662,13 +663,17 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private Message sendSummaryMessage() {
 		return nhlBot.getDiscordManager().sendAndGetMessage(channel, 
-				messageSpec -> messageSpec.addEmbed(embedSpec -> GDCCommand.buildGoalsEmbed(embedSpec, game))
+				messageSpec -> messageSpec
+						.addEmbed(embedSpec -> GDCScoreCommand.buildEmbed(embedSpec, game))
+						.addEmbed(embedSpec -> GDCGoalsCommand.buildEmbed(embedSpec, game))
 		);
 	}
 
 	private void updateSummaryMessage() {
 		nhlBot.getDiscordManager().updateMessage(summaryMessage, 
-				messageSpec -> messageSpec.addEmbed(embedSpec -> GDCCommand.buildGoalsEmbed(embedSpec, game))
+				messageSpec -> messageSpec
+						.addEmbed(embedSpec -> GDCScoreCommand.buildEmbed(embedSpec, game))
+						.addEmbed(embedSpec -> GDCGoalsCommand.buildEmbed(embedSpec, game))
 		);
 	}
 

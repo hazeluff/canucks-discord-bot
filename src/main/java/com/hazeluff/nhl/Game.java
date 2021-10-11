@@ -46,7 +46,6 @@ public class Game {
 			Team homeTeam = Team.parse(rawScheduleGameJson.getDocument("teams").getDocument("home")
 					.getDocument("team").getInt32("id").getValue());
 			Game game = new Game(date, gamePk, awayTeam, homeTeam, rawScheduleGameJson);
-			game.updateLiveData();
 			return game;
 		} catch (Exception e) {
 			LOGGER.error("Could not parse game.", e);

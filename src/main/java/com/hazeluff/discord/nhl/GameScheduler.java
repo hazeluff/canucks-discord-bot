@@ -1,5 +1,7 @@
 package com.hazeluff.discord.nhl;
 
+import static com.hazeluff.discord.Config.CURRENT_SEASON;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.LocalDate;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.GameDayChannel;
-import com.hazeluff.discord.nhl.Seasons.Season;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.HttpUtils;
 import com.hazeluff.discord.utils.Utils;
@@ -41,8 +42,6 @@ import com.hazeluff.nhl.Team;
 public class GameScheduler extends Thread {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameScheduler.class);
-
-	private Season currentSeason = Config.CURRENT_SEASON;
 	
 	static final long GAME_SCHEDULE_UPDATE_RATE = 43200000L;
 
@@ -95,6 +94,7 @@ public class GameScheduler extends Thread {
 	 */
 	@Override
 	public void run() {
+		LOGGER.info("Initializing...");
 		try {
 			/*
 			 * Initialize games, trackers, guild channels.
@@ -134,7 +134,7 @@ public class GameScheduler extends Thread {
 	 * @throws HttpException
 	 */
 	public void initGames() throws HttpException {
-		LOGGER.info("Initializing");
+		LOGGER.info("Initializing Games...");
 		// Retrieve schedule/game information from NHL API
 		games = getRawGames().entrySet()
 		        .stream()
@@ -216,7 +216,7 @@ public class GameScheduler extends Thread {
 	}
 
 	Map<Integer, BsonDocument> getRawGames() throws HttpException {
-		return getRawGames(currentSeason.getStartDate(), currentSeason.getEndDate(), null);
+		return getRawGames(CURRENT_SEASON.getStartDate(), CURRENT_SEASON.getEndDate(), null);
 	}
 
 	Map<Integer, BsonDocument> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate,

@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.game.Game;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;

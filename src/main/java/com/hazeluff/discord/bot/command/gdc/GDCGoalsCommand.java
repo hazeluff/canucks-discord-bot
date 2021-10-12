@@ -6,11 +6,11 @@ import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 
-import com.hazeluff.nhl.Game;
-import com.hazeluff.nhl.GameStatus;
 import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
+import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.Status;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -24,7 +24,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 
 	@Override
 	public String getDescription() {
-		return "Get the game's current score and goals.";
+		return "List of goals and their players.";
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 			embedSpec.addField(strPeriod, sbGoals.toString(), false);
 		}
 
-		GameStatus status = game.getStatus();
+		Status status = game.getStatus();
 		embedSpec.setFooter("Status: " + status.getDetailedState().toString(), null);
 		return embedSpec;
 	}

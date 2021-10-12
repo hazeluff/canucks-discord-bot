@@ -2,8 +2,8 @@ package com.hazeluff.nhl.event;
 
 import java.util.List;
 
-import com.hazeluff.nhl.GamePeriod;
 import com.hazeluff.nhl.Player;
+import com.hazeluff.nhl.game.Period;
 
 public class PenaltyEvent extends GameEvent {
 	protected PenaltyEvent(GameEvent gameEvent) {
@@ -13,7 +13,7 @@ public class PenaltyEvent extends GameEvent {
 	@Override
 	public List<Player> getPlayers() {
 		List<Player> players = super.getPlayers();
-		return getPeriod().getType() == GamePeriod.Type.SHOOTOUT ? players.subList(0, 1) : players;
+		return getPeriod().getType() == Period.Type.SHOOTOUT ? players.subList(0, 1) : players;
 	}
 
 	public String getDescription() {

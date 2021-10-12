@@ -2,8 +2,7 @@ package com.hazeluff.discord.bot.command.gdc;
 
 import org.reactivestreams.Publisher;
 
-import com.hazeluff.nhl.Game;
-import com.hazeluff.nhl.GameLiveData;
+import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -12,12 +11,12 @@ public class GDCStatusCommand extends GDCSubCommand {
 
 	@Override
 	public String getName() {
-		return "score";
+		return "status";
 	}
 
 	@Override
 	public String getDescription() {
-		return "Get the game's current score.";
+		return "Game/Intermission status.";
 	}
 
 	@Override
@@ -31,17 +30,58 @@ public class GDCStatusCommand extends GDCSubCommand {
 
 	public static EmbedCreateSpec buildEmbed(EmbedCreateSpec embedSpec, Game game) {
 		embedSpec.setTitle("Status Report");
-		embedSpec.setDescription(game.getHomeTeam().getFullName() + " vs " + game.getAwayTeam().getFullName());
-		GameLiveData liveData = game.getLiveData();
+		embedSpec.setDescription(
+				String.format("%s vs %s", game.getHomeTeam().getFullName(), game.getAwayTeam().getFullName()));
+		embedSpec.setFooter("Status: " + game.getStatus().getDetailedState().toString(), null);
+
+		String description;
 		if (game.getStatus().isFinished()) {
-			String description = "Game has finished in ";
-			// TODO COmplete this
-			if (liveData.getPeriod() > 3) {
-				if (liveData.hasShootout()) {
-					description += "shootout.";
-				}
+			description = "Game has finished";
+			if (game.getLineScore().hasShootout()) {
+				description += " in shootout.";
+				// Add shootout score
 			}
-			embedSpec.setDescription(description);
+			int numOvertime = game.getLineScore().getCurrentPeriod() - 3;
+			if (numOvertime <= 0) {
+				description += " in regulation time.";
+
+			} else if (numOvertime == 1) {
+				description += " in overtime";
+			} else {
+				description += " in " + numOvertime + " overtimes";
+			}
+		} else if (game.getStatus().isStarted()) {
+			description = "Game is in progress.";
+			if (game.getLineScore().hasShootout()) {
+				description += " Currently in shootout.";
+				// Add shootout score
+			}
+			int numOvertime = game.getLineScore().getCurrentPeriod() - 3;
+			if (numOvertime <= 0) {
+				description += " Currently in regulation time.";
+			} else if (numOvertime == 1) {
+				description += " Currently in overtime.";
+			} else {
+				description += " Currently in " + numOvertime + " overtimes";
+			}
+		} else {
+			description = "Game has not started.";
+		}
+
+		String score = String.format("%s %s - %s %s",
+				game.getHomeTeam().getName(), game.getHomeScore(),
+				game.getAwayScore(), game.getAwayTeam().getName());
+		embedSpec.addField(description, score, false);
+		
+		if (game.getStatus().isLive()) {
+			if (game.getLineScore().isIntermission()) {
+				String intermissionTitle = "Currently in an intermission: "
+						+ game.getLineScore().getCurrentPeriodOrdinal();
+				String intermissionDescription = String.format("Elapsed: %s. Remaining: %s.",
+						game.getLineScore().getIntermissionTimeElapsed(),
+						game.getLineScore().getIntermissionTimeRemaining());
+				embedSpec.addField(intermissionTitle, intermissionDescription, false);
+			}
 		}
 		return embedSpec;
 	}

@@ -6,7 +6,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.nhl.AbstractGameState;
+import com.hazeluff.nhl.game.AbstractGameState;
 
 public enum JSONOperation {
 	ADD("add"), REPLACE("replace"), REMOVE("remove");

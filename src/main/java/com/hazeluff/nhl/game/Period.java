@@ -1,9 +1,9 @@
-package com.hazeluff.nhl;
+package com.hazeluff.nhl.game;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class GamePeriod {
+public class Period {
 	private final int periodNum;
 	private final Type type;
 	private final String ordinalNum;
@@ -43,7 +43,7 @@ public class GamePeriod {
 		}
 	}
 
-	public GamePeriod(int periodNum, Type type, String ordinalNum) {
+	public Period(int periodNum, Type type, String ordinalNum) {
 		this.periodNum = periodNum;
 		this.type = type;
 		this.ordinalNum = ordinalNum;
@@ -92,7 +92,7 @@ public class GamePeriod {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		GamePeriod other = (GamePeriod) obj;
+		Period other = (Period) obj;
 		if (ordinalNum == null) {
 			if (other.ordinalNum != null)
 				return false;

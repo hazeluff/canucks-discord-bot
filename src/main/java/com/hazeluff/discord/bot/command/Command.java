@@ -11,8 +11,8 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.nhl.Game;
 import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.game.Game;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.ReactiveEventAdapter;

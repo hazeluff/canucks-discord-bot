@@ -1,4 +1,4 @@
-package com.hazeluff.nhl;
+package com.hazeluff.nhl.game;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.utils.DateUtils;
+import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
@@ -26,7 +27,7 @@ public class Game {
 	private final Team homeTeam;
 	
 	private BsonDocument rawScheduleData;
-	private GameLiveData gameLiveData = null;
+	private LiveData liveData = null;
 
 	Game(ZonedDateTime date, int gamePk, Team awayTeam, Team homeTeam, BsonDocument rawScheduleData) {
 		this.date = date;
@@ -60,10 +61,10 @@ public class Game {
 
 	public void updateLiveData() {
 		LOGGER.debug("Updating Game Live Data. [" + gamePk + "]");
-		if (gameLiveData == null) {
-			gameLiveData = GameLiveData.create(getGamePk());
+		if (liveData == null) {
+			liveData = LiveData.create(getGamePk());
 		} else {
-			gameLiveData.update();
+			liveData.update();
 		}
 	}
 
@@ -91,10 +92,10 @@ public class Game {
 		if (!getStatus().isFinished()) {
 			return null;
 		}
-		if (getHomeScore() > getAwayScore()) {
+		if (getLineScore().getHomeScore() > getLineScore().getAwayScore()) {
 			return homeTeam;
 		}
-		if (getAwayScore() > getHomeScore()) {
+		if (getLineScore().getAwayScore() > getLineScore().getHomeScore()) {
 			return awayTeam;
 		}
 
@@ -121,32 +122,37 @@ public class Game {
 		return awayTeam == team || homeTeam == team;
 	}
 
-	public int getAwayScore() {
-		if(gameLiveData != null) {
-			return gameLiveData.getAwayScore();
+	public Status getStatus() {
+		if (liveData != null) {
+			return liveData.getStatus();
 		}
-		return getScheduledData().getDocument("teams").getDocument("away").getInt32("score").getValue();
+		return Status.parse(getScheduledData().getDocument("status"));
+	}
+
+	public LineScore getLineScore() {
+		return liveData == null ? null : liveData.getLinescore();
 	}
 
 	public int getHomeScore() {
-		if (gameLiveData != null) {
-			return gameLiveData.getHomeScore();
+		if (liveData != null) {
+			return liveData.getLinescore().getHomeScore();
 		}
 		return getScheduledData().getDocument("teams").getDocument("home").getInt32("score").getValue();
 	}
 
-	public GameStatus getStatus() {
-		if (gameLiveData != null) {
-			return gameLiveData.getStatus();
+	public int getAwayScore() {
+		if (liveData != null) {
+			return liveData.getLinescore().getAwayScore();
 		}
-		return GameStatus.parse(getScheduledData().getDocument("status"));
+		return getScheduledData().getDocument("teams").getDocument("away").getInt32("score").getValue();
 	}
 
 	public List<GameEvent> getEvents() {
-		if (gameLiveData == null) {
+		if (liveData == null) {
 			return Collections.emptyList();
 		}
-		return gameLiveData.getLiveData().getDocument("plays").getArray("allPlays").getValues()
+		return liveData.getLiveData().getDocument("plays").getArray("allPlays")
+				.getValues()
 				.stream()
 				.map(BsonValue::asDocument)
 				.map(GameEvent::of)
@@ -155,7 +161,7 @@ public class Game {
 
 	// TODO: Cache the result and refresh when hash of raw json changes.
 	public List<GoalEvent> getScoringEvents() {
-		if (gameLiveData == null) {
+		if (liveData == null) {
 			return getScheduledData().getArray("scoringPlays")
 					.stream()
 					.map(jsonPlay -> jsonPlay.asDocument())
@@ -176,17 +182,10 @@ public class Game {
 				.collect(Collectors.toList());
 	}
 
-	public GameLiveData getLiveData() {
-		return gameLiveData;
-	}
-
 	@Override
 	public String toString() {
-		return "Game [getDate()=" + getDate() + ", getGamePk()=" + getGamePk() + ", getAwayTeam()=" + getAwayTeam()
-				+ ", getHomeTeam()=" + getHomeTeam() + ", getWinningTeam()=" + getWinningTeam() + ", getTeams()="
-				+ getTeams() + ", getAwayScore()=" + getAwayScore() + ", getHomeScore()=" + getHomeScore()
-				+ ", getStatus()=" + getStatus() + ", getEvents()=" + getEvents() + ", getScoringEvents()="
-				+ getScoringEvents() + ", getPenaltyEvents()=" + getPenaltyEvents() + "]";
+		return "Game [date=" + date + ", gamePk=" + gamePk + ", awayTeam=" + awayTeam + ", homeTeam=" + homeTeam
+				+ ", rawScheduleData=" + rawScheduleData + ", liveData=" + liveData + "]";
 	}
 
 	public boolean equals(Game other) {

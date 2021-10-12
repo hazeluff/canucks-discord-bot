@@ -1,15 +1,15 @@
-package com.hazeluff.nhl;
+package com.hazeluff.nhl.game;
 
 import org.bson.BsonDocument;
 
-public class GameStatus {
+public class Status {
 	private final int statusCode;
 	private final int codedGameState;
 	private final boolean startTimeTBD;
 	private final AbstractGameState abstractGameState;
 	private final DetailedGameState detailedState;
 
-	private GameStatus(int statusCode, int codedGameState, boolean startTimeTBD, AbstractGameState abstractGameState,
+	private Status(int statusCode, int codedGameState, boolean startTimeTBD, AbstractGameState abstractGameState,
 			DetailedGameState detailedState) {
 		this.statusCode = statusCode;
 		this.codedGameState = codedGameState;
@@ -18,7 +18,7 @@ public class GameStatus {
 		this.detailedState = detailedState;
 	}
 
-	public static GameStatus parse(BsonDocument json) {
+	public static Status parse(BsonDocument json) {
 		int statusCode = Integer.parseInt(json.getString("statusCode").getValue());
 		int codedGameState = Integer.parseInt(json.getString("codedGameState").getValue());
 		boolean startTimeTBD = json.getBoolean("startTimeTBD").getValue();
@@ -27,7 +27,7 @@ public class GameStatus {
 		final DetailedGameState detailedState = DetailedGameState.parse(
 				json.getString("detailedState").getValue());
 		
-		return new GameStatus(statusCode, codedGameState, startTimeTBD, abstractGameState, detailedState);
+		return new Status(statusCode, codedGameState, startTimeTBD, abstractGameState, detailedState);
 	}
 
 	public int getStatusCode() {

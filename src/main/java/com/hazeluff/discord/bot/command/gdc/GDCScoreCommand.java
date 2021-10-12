@@ -2,7 +2,7 @@ package com.hazeluff.discord.bot.command.gdc;
 
 import org.reactivestreams.Publisher;
 
-import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -16,7 +16,7 @@ public class GDCScoreCommand extends GDCSubCommand {
 
 	@Override
 	public String getDescription() {
-		return "Get the game's current score.";
+		return "Current score.";
 	}
 
 	@Override

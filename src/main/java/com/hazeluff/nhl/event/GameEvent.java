@@ -8,10 +8,10 @@ import org.bson.BsonDocument;
 import org.bson.BsonValue;
 
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.GameEventType;
-import com.hazeluff.nhl.GamePeriod;
 import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.game.EventType;
+import com.hazeluff.nhl.game.Period;
 
 public class GameEvent {
 	protected BsonDocument rawJson;
@@ -43,8 +43,8 @@ public class GameEvent {
 		return rawJson.getDocument("result");
 	}
 
-	public GameEventType getType() {
-		return GameEventType.parse(getResultJson().getString("eventTypeId").getValue());
+	public EventType getType() {
+		return EventType.parse(getResultJson().getString("eventTypeId").getValue());
 	}
 
 	protected BsonDocument getAboutJson() {
@@ -63,10 +63,10 @@ public class GameEvent {
 		return DateUtils.parseNHLDate(getAboutJson().getString("dateTime").getValue());
 	}
 
-	public GamePeriod getPeriod() {
-		return new GamePeriod(
+	public Period getPeriod() {
+		return new Period(
 				getAboutJson().getInt32("period").getValue(), 
-				GamePeriod.Type.parse(getAboutJson().getString("periodType").getValue()),
+				Period.Type.parse(getAboutJson().getString("periodType").getValue()),
 				getAboutJson().getString("ordinalNum").getValue());
 	}
 

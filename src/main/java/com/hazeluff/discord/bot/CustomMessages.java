@@ -1,4 +1,4 @@
-package com.hazeluff.discord.nhl.custommessages;
+package com.hazeluff.discord.bot;
 
 import java.util.HashMap;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.Map;
 
 import com.hazeluff.nhl.Player;
 
-public class CanucksCustomMessages {
+public class CustomMessages {
 
 	// playerId, goalMessage
 	private static final Map<Integer, String> aliases = new HashMap<>();

@@ -1,22 +1,22 @@
-package com.hazeluff.nhl;
+package com.hazeluff.nhl.game;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public enum GameEventType {
+public enum EventType {
 	GOAL("GOAL"), PENALTY("PENALTY");
 
 	private final String typeId;
 
-	private static final Map<String, GameEventType> VALUES_MAP = new HashMap<>();
+	private static final Map<String, EventType> VALUES_MAP = new HashMap<>();
 
 	static {
-		for (GameEventType t : GameEventType.values()) {
+		for (EventType t : EventType.values()) {
 			VALUES_MAP.put(t.typeId, t);
 		}
 	}
 
-	private GameEventType(String typeId) {
+	private EventType(String typeId) {
 		this.typeId = typeId;
 	}
 
@@ -24,7 +24,7 @@ public enum GameEventType {
 		return typeId;
 	}
 
-	public static GameEventType parse(String typeId) {
+	public static EventType parse(String typeId) {
 		return VALUES_MAP.get(typeId);
 	}
 }

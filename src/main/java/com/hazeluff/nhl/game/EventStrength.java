@@ -1,24 +1,24 @@
-package com.hazeluff.nhl;
+package com.hazeluff.nhl.game;
 
 import java.util.HashMap;
 import java.util.Map;
 
 
-public enum GameEventStrength {
+public enum EventStrength {
 	EVEN("EVEN", "Even Strength"), PPG("PPG", "Power Play"), SHORTHANDED("SHG", "Short Handed");
 
 	private final String id;
 	private final String value;
 
-	private static final Map<String, GameEventStrength> VALUES_MAP = new HashMap<>();
+	private static final Map<String, EventStrength> VALUES_MAP = new HashMap<>();
 
 	static {
-		for (GameEventStrength s : GameEventStrength.values()) {
+		for (EventStrength s : EventStrength.values()) {
 			VALUES_MAP.put(s.id, s);
 		}
 	}
 
-	private GameEventStrength(String id, String value) {
+	private EventStrength(String id, String value) {
 		this.id = id;
 		this.value = value;
 	}
@@ -42,8 +42,8 @@ public enum GameEventStrength {
 	 * @param id
 	 * @return
 	 */
-	public static GameEventStrength parse(String id) {
-		GameEventStrength result = VALUES_MAP.get(id);
+	public static EventStrength parse(String id) {
+		EventStrength result = VALUES_MAP.get(id);
 		if (result == null) {
 			throw new IllegalArgumentException("No value exists for: " + id);
 		}

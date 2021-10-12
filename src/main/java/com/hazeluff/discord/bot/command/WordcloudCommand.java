@@ -17,7 +17,7 @@ import com.hazeluff.discord.bot.ResourceLoader;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
 import com.hazeluff.discord.utils.wordcloud.Normalizers;
-import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.game.Game;
 import com.kennycason.kumo.CollisionMode;
 import com.kennycason.kumo.WordCloud;
 import com.kennycason.kumo.WordFrequency;

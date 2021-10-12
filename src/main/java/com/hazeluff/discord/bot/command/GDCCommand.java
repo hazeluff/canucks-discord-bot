@@ -11,8 +11,9 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
-import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -30,7 +31,8 @@ public class GDCCommand extends Command {
 	private static Map<String, GDCSubCommand> SUB_COMMANDS = Arrays
 			.asList(
 					new GDCScoreCommand(),
-					new GDCGoalsCommand()
+					new GDCGoalsCommand(),
+					new GDCStatusCommand()
 			).stream()
 			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));
 
@@ -50,7 +52,7 @@ public class GDCCommand extends Command {
                         .name("subcommand")
 						.description("Subcommand to execute. Help: `/gdc subcommand: help`")
                         .type(ApplicationCommandOption.Type.STRING.getValue())
-                        .required(true)
+						.required(false)
                         .build())
 				.build();
 	}
@@ -82,13 +84,14 @@ public class GDCCommand extends Command {
 	 */
 	public static final Consumer<? super InteractionApplicationCommandCallbackSpec> HELP_MESSAGE = 
 			callbackSpec -> callbackSpec
-					.addEmbed(embedSpec -> embedSpec
+					.addEmbed(embedSpec -> { embedSpec
 							.setTitle("Game Day Channel - Commands")
 							.setDescription("Use `/gdc subcommand:` in to get live data about the current game."
-									+ " Must be used in a Game Day Channel.")
-							.addField("score", "Get the game's current score.", false)
-							.addField("goals", "Get the game's current score and goals.", false)
-					)
+									+ " Must be used in a Game Day Channel.");
+						// List the subcommands
+						SUB_COMMANDS.entrySet().forEach(subCmd -> embedSpec
+								.addField(subCmd.getKey(), subCmd.getValue().getDescription(), false));
+					})
 					.setEphemeral(true);
 	
 }

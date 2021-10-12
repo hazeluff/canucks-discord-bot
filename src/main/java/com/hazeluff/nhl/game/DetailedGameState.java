@@ -1,4 +1,4 @@
-package com.hazeluff.nhl;
+package com.hazeluff.nhl.game;
 
 import java.util.HashMap;
 import java.util.Map;

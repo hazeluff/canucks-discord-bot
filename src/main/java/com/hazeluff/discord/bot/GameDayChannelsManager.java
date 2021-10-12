@@ -13,8 +13,8 @@ import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Game;
 import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.Category;

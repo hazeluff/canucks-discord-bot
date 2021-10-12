@@ -81,14 +81,6 @@ public class NHLBot extends Thread {
 		gameDayChannelsManager = null;
 	}
 
-	NHLBot(DiscordManager discordManager, PersistentData preferencesManager,
-			GameScheduler gameScheduler, GameDayChannelsManager gameDayChannelsManager) {
-		this.discordManager.set(discordManager);
-		this.persistantData = preferencesManager;
-		this.gameScheduler = gameScheduler;
-		this.gameDayChannelsManager = gameDayChannelsManager;
-	}
-
 	public static NHLBot create(GameScheduler gameScheduler, String botToken) {
 		LOGGER.info("Running NHLBot v" + Config.VERSION);
 		Thread.currentThread().setName("NHLBot");

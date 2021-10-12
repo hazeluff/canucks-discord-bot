@@ -12,7 +12,7 @@ import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Game;
+import com.hazeluff.nhl.game.Game;
 
 /**
  * <p>
@@ -66,9 +66,8 @@ public class GameTracker extends Thread {
 
 	@Override
 	public void start() {
-		if (!started.get()) {
+		if (started.compareAndSet(false, true)) {
 			LOGGER.info("Started thread for [" + game + "]");
-			started.set(true);
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");
@@ -83,6 +82,7 @@ public class GameTracker extends Thread {
 	public void run() {
 		try {
 			setName(GameDayChannel.getChannelName(game));
+			game.updateLiveData();
 			if (!game.getStatus().isFinished()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");

@@ -33,8 +33,8 @@ import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.HttpUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Game;
 import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.game.Game;
 
 /**
  * This class is used to start GameTrackers for games and to maintain the channels in discord for those games.

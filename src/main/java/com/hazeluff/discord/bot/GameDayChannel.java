@@ -31,15 +31,14 @@ import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Pr
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
-import com.hazeluff.discord.nhl.custommessages.CanucksCustomMessages;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Game;
 import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
+import com.hazeluff.nhl.game.Game;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
@@ -500,7 +499,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			return null;
 		}
 
-		return CanucksCustomMessages.getMessage(event.getPlayers());
+		return CustomMessages.getMessage(event.getPlayers());
 	}
 
 	public static Consumer<EmbedCreateSpec> buildGoalMessageEmbed(GoalEvent event) {

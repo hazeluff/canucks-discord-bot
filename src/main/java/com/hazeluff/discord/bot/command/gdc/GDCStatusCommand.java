@@ -58,7 +58,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 			}
 			int numOvertime = game.getLineScore().getCurrentPeriod() - 3;
 			if (numOvertime <= 0) {
-				description += " Currently in regulation time.";
+				description += " Currently in " + game.getLineScore().getCurrentPeriod() + " period.";
 			} else if (numOvertime == 1) {
 				description += " Currently in overtime.";
 			} else {

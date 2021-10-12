@@ -16,7 +16,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 
 	@Override
 	public String getDescription() {
-		return "Game/Intermission status.";
+		return "Game/Intermission/Power Play statuses.";
 	}
 
 	@Override

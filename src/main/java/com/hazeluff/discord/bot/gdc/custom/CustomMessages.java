@@ -17,11 +17,18 @@ public class CustomMessages {
             .flatMap(Collection::stream)
             .collect(Collectors.toList());;
 
-	public static String getCustomMessage(GoalEvent goalEvent) {
-		List<CustomMessage> applicableMessages = customMessages.stream()
-				.filter(customMsg -> customMsg.getIsApplicable().test(goalEvent))
+	public static String getCustomMessage(List<GoalEvent> allGoalEvents, GoalEvent currentEvent) {
+		// Filter allGoalEvents down to events that are or were before currentEvent
+		List<GoalEvent> previousEvents = allGoalEvents.stream()
+				.filter(goalEvent -> goalEvent.getId() <= currentEvent.getId())
 				.collect(Collectors.toList());
-		int index = goalEvent.getId() % applicableMessages.size();
+		List<CustomMessage> applicableMessages = customMessages.stream()
+				.filter(customMsg -> customMsg.isApplicable(previousEvents, currentEvent))
+				.collect(Collectors.toList());
+		if (applicableMessages.isEmpty()) {
+			return null;
+		}
+		int index = currentEvent.getId() % applicableMessages.size();
 		return applicableMessages.get(index).getMessage();
 	}
 }

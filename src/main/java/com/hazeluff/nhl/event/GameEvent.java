@@ -51,7 +51,7 @@ public class GameEvent {
 		return rawJson.getDocument("about");
 	}
 
-	public Integer getId() {
+	public int getId() {
 		return getAboutJson().getInt32("eventId").getValue();
 	}
 

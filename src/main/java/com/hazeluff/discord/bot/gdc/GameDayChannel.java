@@ -246,6 +246,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		pollMessage = getPredictionMessage();
 
 		updateCachedData();
+		updateGoalMessages();
 
 		if (!game.getStatus().isFinished()) {
 
@@ -414,7 +415,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	public GoalEvent getCachedGoalEvent(int id) {
 		return cachedGoalEvents.stream()
-				.filter(cachedGoalEvent -> cachedGoalEvent.getId().intValue() == id)
+				.filter(cachedGoalEvent -> cachedGoalEvent.getId() == id)
 				.findAny().orElse(null);
 	}
 	
@@ -431,7 +432,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				return;
 			}
 
-			GoalEvent cachedEvent = getCachedGoalEvent(currentEvent.getId().intValue());
+			GoalEvent cachedEvent = getCachedGoalEvent(currentEvent.getId());
 			if(cachedEvent == null) {
 				return;
 			}
@@ -448,7 +449,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		goalEventMessages.entrySet().removeIf(entry -> {
 			int eventId = entry.getKey().intValue();
 			if (game.getScoringEvents().stream()
-					.noneMatch(currentEvent -> currentEvent.getId().intValue() == entry.getKey().intValue())) {
+					.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
 
 				GoalEvent cachedEvent = getCachedGoalEvent(eventId);
 				sendRescindedGoalMessage(cachedEvent);
@@ -460,7 +461,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	
 	void sendGoalMessage(GoalEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
-		String messageContent = CustomMessages.getCustomMessage(event);
+		String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
 		Message message = sendAndGetMessage(spec -> spec
 				.setContent(messageContent)
 				.addEmbed(buildGoalMessageEmbed(event)));
@@ -477,7 +478,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = goalEventMessages.get(event.getId());
-			String messageContent = CustomMessages.getCustomMessage(event);
+			String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
 			nhlBot.getDiscordManager().updateMessage(message, spec -> spec
 					.setContent(messageContent)
 					.addEmbed(buildGoalMessageEmbed(event)));
@@ -535,7 +536,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	
 	public PenaltyEvent getCachedPenaltyEvent(int id) {
 		return cachedPenaltyEvents.stream()
-				.filter(cachedPenaltyEvent -> cachedPenaltyEvent.getId().intValue() == id)
+				.filter(cachedPenaltyEvent -> cachedPenaltyEvent.getId() == id)
 				.findAny()
 				.orElse(null);
 	}
@@ -548,7 +549,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private void updatePenaltyMessages() {
 		// Update Messages
 		game.getPenaltyEvents().forEach(currentEvent -> {
-			PenaltyEvent cachedEvent = getCachedPenaltyEvent(currentEvent.getId().intValue());
+			PenaltyEvent cachedEvent = getCachedPenaltyEvent(currentEvent.getId());
 			if (cachedEvent == null) {
 				return;
 			}
@@ -565,7 +566,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		penaltyEventMessages.entrySet().removeIf(entry -> {
 			int eventId = entry.getKey().intValue();
 			if (game.getPenaltyEvents().stream()
-					.noneMatch(currentEvent -> currentEvent.getId().intValue() == entry.getKey().intValue())) {
+					.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
 
 				PenaltyEvent cachedEvent = getCachedPenaltyEvent(eventId);
 				sendRescindedPenaltyMessage(cachedEvent);

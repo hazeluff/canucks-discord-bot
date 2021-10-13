@@ -462,9 +462,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	void sendGoalMessage(GoalEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
 		String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
-		Message message = sendAndGetMessage(spec -> spec
-				.setContent(messageContent)
-				.addEmbed(buildGoalMessageEmbed(event)));
+		if (messageContent != null) {
+			sendMessage(messageContent);
+		}
+		Message message = sendAndGetMessage(spec -> spec.addEmbed(buildGoalMessageEmbed(event)));
 		if (message != null) {
 			goalEventMessages.put(event.getId(), message);
 			meta.setGoalMessageIds(goalEventMessages);
@@ -478,10 +479,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = goalEventMessages.get(event.getId());
-			String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
-			nhlBot.getDiscordManager().updateMessage(message, spec -> spec
-					.setContent(messageContent)
-					.addEmbed(buildGoalMessageEmbed(event)));
+			nhlBot.getDiscordManager().updateMessage(message, spec -> spec.addEmbed(buildGoalMessageEmbed(event)));
 		}
 	}
 
@@ -738,6 +736,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	protected void sendMessage(String message) {
 		if (channel != null) {
 			nhlBot.getDiscordManager().sendMessage(channel, message);
+		}
+	}
+
+	protected void sendMessage(Consumer<MessageCreateSpec> spec) {
+		if (channel != null) {
+			nhlBot.getDiscordManager().sendMessage(channel, spec);
 		}
 	}
 

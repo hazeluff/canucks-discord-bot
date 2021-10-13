@@ -22,7 +22,7 @@ public class LiveData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Game.class);
 
 	private final int gamePk;
-	private final BsonDocument rawJson;
+	private BsonDocument rawJson;
 
 	private LiveData(int gamePk, BsonDocument rawJson) {
 		this.gamePk = gamePk;
@@ -34,17 +34,20 @@ public class LiveData {
 	}
 
 	public void update() {
-		String strJsonDiffs = fetchDataJson(gamePk, getTimecode());
-		BsonArray jsonDiffs = BsonArray.parse(strJsonDiffs);
-		jsonDiffs.forEach(jsonDiff -> applyPatch(jsonDiff.asDocument().getArray("diff")));
-
+		if (getTimecode() != null) {
+			String strJsonDiffs = fetchDataJson(gamePk, getTimecode());
+			BsonArray jsonDiffs = BsonArray.parse(strJsonDiffs);
+			jsonDiffs.forEach(jsonDiff -> applyPatch(jsonDiff.asDocument().getArray("diff")));
+		} else {
+			rawJson = BsonDocument.parse(fetchDataJson(gamePk, null));
+		}
 	}
 
 	private void applyPatch(BsonArray patches) {
 		try {
 			BsonPatch.applyInPlace(patches, getJson());
 		} catch (BsonPatchApplicationException e) {
-			LOGGER.warn("Could not process update: " + patches);
+			LOGGER.warn("Could not apply patch: " + patches);
 			LOGGER.warn(getJson().toString());
 		}
 	}

@@ -8,8 +8,8 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 
-import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.DetailedGameState;

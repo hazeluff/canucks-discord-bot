@@ -9,8 +9,8 @@ import org.apache.commons.lang.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
 

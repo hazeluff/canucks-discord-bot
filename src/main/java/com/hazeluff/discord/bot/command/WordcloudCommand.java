@@ -11,9 +11,9 @@ import java.util.function.Consumer;
 
 import org.reactivestreams.Publisher;
 
-import com.hazeluff.discord.bot.GameDayChannel;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.ResourceLoader;
+import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
 import com.hazeluff.discord.utils.wordcloud.Normalizers;

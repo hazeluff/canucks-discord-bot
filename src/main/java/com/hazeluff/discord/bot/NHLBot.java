@@ -31,6 +31,7 @@ import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
 import com.hazeluff.discord.bot.listener.MessageListener;
 import com.hazeluff.discord.bot.listener.ReactionListener;
 import com.hazeluff.discord.nhl.GameScheduler;
@@ -43,7 +44,6 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.presence.Activity;
 import discord4j.core.object.presence.Presence;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -121,22 +121,7 @@ public class NHLBot extends Thread {
 		addCommands(nhlBot);
 		
 		// Manage WelcomeChannels (Only for my dev servers)
-		LOGGER.info("Posting update to Discord channel.");
-		nhlBot.getDiscordManager().getClient().getGuilds()
-			.filter(
-					guild -> Arrays.asList(
-							268247727400419329l, 276953120964083713l
-					)
-					.contains(guild.getId().asLong())
-			)
-			.map(Guild::getChannels)
-			.filter(TextChannel.class::isInstance)
-			.flatMap(channels -> channels.filter(channel -> 
-					channel.getName().equals("welcome")).take(1))
-			.cast(TextChannel.class)
-			.subscribe(
-					channel -> WelcomeChannel.create(nhlBot, channel),
-					t -> LOGGER.error("Error occurred when starting WelcomeChannel.", t));
+		nhlBot.updateWelcomeChannel();
 
 		while (!nhlBot.getGameScheduler().isInit()) {
 			LOGGER.info("Waiting for GameScheduler...");
@@ -200,8 +185,7 @@ public class NHLBot extends Thread {
 					LOGGER.debug("Registering command with guild: " + guildId);
 					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr)
 							.doOnError(t -> LOGGER.error("Unable to create guild command: " + acr.name(), t))
-							.onErrorResume(e -> Mono.empty()).block();
-
+							.onErrorResume(e -> Mono.empty()).subscribe();
 				}
 			} else {
 				LOGGER.debug("Command did not have ApplicationCommandRequest.");
@@ -236,6 +220,24 @@ public class NHLBot extends Thread {
 				.doOnError(logError)
 		        .onErrorResume(e -> Mono.empty())
 				.subscribe(event -> nhlBot.getReactionListener().execute(event));
+	}
+
+	private void updateWelcomeChannel() {
+		LOGGER.info("Updating 'Welcome' channels.");
+		/*
+		getDiscordManager().getClient().getGuilds()
+			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+			.map(Guild::getChannels)
+			.filter(TextChannel.class::isInstance)
+			.flatMap(channels -> channels.filter(channel -> channel.getName().equals("welcome")).take(1))
+			.cast(TextChannel.class)
+			.subscribe(
+					channel -> WelcomeChannel.create(this, channel),
+					t -> LOGGER.error("Error occurred when starting WelcomeChannel.", t));
+		*/
+		getDiscordManager().getClient().getGuilds()
+				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
 	}
 
 	@Override

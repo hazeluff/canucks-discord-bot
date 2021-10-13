@@ -65,6 +65,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 				description += " Currently in " + numOvertime + " overtimes";
 			}
 		} else {
+			// Might not display as main command will reply when games are not started.
 			description = "Game has not started.";
 		}
 

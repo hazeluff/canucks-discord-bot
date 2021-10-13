@@ -63,25 +63,20 @@ public class HelpCommand extends Command {
 	}
 
 	public static final String COMMAND_LIST = "Here are a list of commands:\n\n"
-			+ "You can use the commands by doing `/[command]`.\n\n"
+			+ "You can use the commands by doing slash commands integrated with Discord.\n"
+			+ "```\n" 
+			+ "Setup\n"
+			+ "  Creates/Removes game day channels for teams subscribed to. Team option should be provided with the three letter code of your team.\n\n"
+			+ "  `subscribe team:`   - Subscribes you to a team.\n"
+			+ "  `unsubscribe team:` - Unsubscribes you from a team.\n\n"
 
-			+ "`subscribe [team]` - Subscribes you to a team. "
-			+ "[team] is the three letter code of your team. **(+)**\n"
+			+ "Game Day Channel\n"
+			+ "  `gdc subcommand:`   - Game Day Channel commands. Must be used in Game Day Channels.`subcommand: score, goals, status`.\n\n"
 
-			+ "`unsubscribe [team]` - Unsubscribes you from a team. **(+)**\n"
-
-			+ "`schedule` - Displays information about the most recent and coming up games of your "
-			+ "subscribed teams. **(+)**\n"
-
-			+ "`gdc` - Game Day Channel commands. Must be used in Game Day Channels."
-			+ "`subcommand:` commands:.\n"
-			+ "```\n"
-			+ "score, goals"
-			+ "\n```"
-
-			+ "`about` - Displays information about me.\n\n"
-
-			+ "Commands with **(+)** have detailed help and can be accessed by using:\n" + "`/help [command]`";
+			+ "General\n"
+			+ "  `schedule`          - Displays information about the most recent and coming up games of your subscribed teams.\n"
+			+ "  `about`             - Displays information about me."
+			+ "```";
 
 	static final String TEAMS_MESSAGE = "Here are your teams:\n" + listOfTeams();
 

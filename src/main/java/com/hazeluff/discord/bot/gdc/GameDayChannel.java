@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot;
+package com.hazeluff.discord.bot.gdc;
 
 import static com.hazeluff.discord.utils.Utils.not;
 
@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
+import com.hazeluff.discord.bot.ExceptionHandler;
+import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
@@ -29,6 +31,7 @@ import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
 import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Prediction;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
+import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
@@ -457,7 +460,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	
 	void sendGoalMessage(GoalEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
-		String messageContent = buildCustomMessage(event);
+		String messageContent = CustomMessages.getCustomMessage(event);
 		Message message = sendAndGetMessage(spec -> spec
 				.setContent(messageContent)
 				.addEmbed(buildGoalMessageEmbed(event)));
@@ -474,7 +477,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = goalEventMessages.get(event.getId());
-			String messageContent = buildCustomMessage(event);
+			String messageContent = CustomMessages.getCustomMessage(event);
 			nhlBot.getDiscordManager().updateMessage(message, spec -> spec
 					.setContent(messageContent)
 					.addEmbed(buildGoalMessageEmbed(event)));
@@ -492,14 +495,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		return !oldEvent.getStrength().equals(newEvent.getStrength())
 				|| !oldEvent.getPlayers().equals(newEvent.getPlayers())
 				|| !oldEvent.getTeam().equals(newEvent.getTeam());
-	}
-
-	public static String buildCustomMessage(GoalEvent event) {
-		if (event.getId() == null || event.getId() % 4 != 0) {
-			return null;
-		}
-
-		return CustomMessages.getMessage(event.getPlayers());
 	}
 
 	public static Consumer<EmbedCreateSpec> buildGoalMessageEmbed(GoalEvent event) {

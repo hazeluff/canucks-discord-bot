@@ -10,11 +10,14 @@ import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 
 import discord4j.common.util.Snowflake;
+import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
 
 public class WelcomeChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WelcomeChannel.class);
+
+	private static final String CHANNEL_NAME = "welcome";
 
 	// Update every hour
 	private static final Consumer<MessageCreateSpec> UPDATED_MESSAGE = spec -> spec
@@ -28,14 +31,22 @@ public class WelcomeChannel extends Thread {
 		this.channel = channel;
 	}
 
-	public static WelcomeChannel create(NHLBot nhlBot, TextChannel channel) {
+	public static WelcomeChannel createChannel(NHLBot nhlBot, Guild guild) {
+		TextChannel channel;
 		try {
-			WelcomeChannel welcomeChannel = new WelcomeChannel(nhlBot, channel);
-			welcomeChannel.start();
-			return welcomeChannel;
+			channel = guild.getChannels()
+					.filter(TextChannel.class::isInstance)
+					.cast(TextChannel.class)
+					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
+					.take(1)
+					.onErrorReturn(null)
+					.blockFirst();
 		} catch (Exception e) {
-			return null;
+			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, CHANNEL_NAME);
 		}
+		WelcomeChannel welcomeChannel = new WelcomeChannel(nhlBot, channel);
+		welcomeChannel.start();
+		return welcomeChannel;
 	}
 
 	@Override

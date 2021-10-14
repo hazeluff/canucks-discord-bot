@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
@@ -84,13 +83,36 @@ public class GameTracker extends Thread {
 			setName(GameDayChannel.getChannelName(game));
 			game.updateLiveData();
 			if (!game.getStatus().isFinished()) {
+				
+				
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
-				idleUntilNearStart();
-
-				// Game is close to starting. Poll at higher rate than previously
+				boolean closeToStart;
+				long timeTillGameMs = Long.MAX_VALUE;
+				ZonedDateTime gameStart = game.getDate();
+				do {
+					timeTillGameMs = DateUtils.diffMs(ZonedDateTime.now(), gameStart);
+					closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;
+					game.updateLiveData();
+					if (!closeToStart) {
+						LOGGER.trace("Idling until near game start. Sleeping for [" + IDLE_POLL_RATE_MS + "]");
+						Utils.sleep(IDLE_POLL_RATE_MS);
+					}
+				} while (!closeToStart);
 				LOGGER.info("Game is about to start. Polling more actively.");
-				waitForStart();
+				// Game is close to starting. Poll at higher rate than previously
+
+				
+				// Wait for start of game
+				boolean started = false;
+				do {
+					game.updateLiveData();
+					if (!started) {
+						Utils.sleep(ACTIVE_POLL_RATE_MS);
+					}
+				} while (!game.getStatus().isStarted());
+				// - wait for start of game
+				
 
 				// Game has started
 				LOGGER.info("Game has started.");
@@ -99,8 +121,20 @@ public class GameTracker extends Thread {
 				ZonedDateTime lastFinal = null;
 				long timeAfterLast = 0l;
 				while (timeAfterLast < POST_GAME_UPDATE_DURATION) {
-					updateGame();
+					
+					
+					// Main update loop
+					while (!game.getStatus().isFinished()) {
+						game.updateLiveData();
 
+						if (!game.getStatus().isFinished()) {
+							Utils.sleep(ACTIVE_POLL_RATE_MS);
+						}
+					}
+					// - main update loop
+
+
+					// Send and update end of game message
 					if (game.getStatus().isFinal()) {
 						if (lastFinal == null) {
 							LOGGER.info("Game finished. Continuing polling...");
@@ -119,61 +153,10 @@ public class GameTracker extends Thread {
 			} else {
 				LOGGER.info("Game is already finished");
 			}
-		} catch (HttpException e) {
-			LOGGER.error("Error occured when updating the game.", e);
 		} finally {
 			gameTrackers.remove(game);
 			finished.set(true);
 			LOGGER.info("Thread Completed");
-		}
-	}
-
-	/**
-	 * Idles until we are close to the start of the game.
-	 */
-	void idleUntilNearStart() {
-		boolean closeToStart;
-		long timeTillGameMs = Long.MAX_VALUE;
-		do {
-			timeTillGameMs = DateUtils.diffMs(ZonedDateTime.now(), game.getDate());
-			closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;
-			if (!closeToStart) {
-				LOGGER.trace("Idling until near game start. Sleeping for [" + IDLE_POLL_RATE_MS + "]");
-				Utils.sleep(IDLE_POLL_RATE_MS);
-			}
-		} while (!closeToStart);
-	}
-
-	/**
-	 * Polls at higher polling rate before game starts.
-	 * 
-	 * @throws HttpException
-	 */
-	void waitForStart() throws HttpException {
-		boolean started = false;
-		do {
-			game.updateLiveData();
-			started = game.getStatus().isStarted();
-			if (!started) {
-				LOGGER.trace("Game almost started. Sleeping for [" + ACTIVE_POLL_RATE_MS + "]");
-				Utils.sleep(ACTIVE_POLL_RATE_MS);
-			}
-		} while (!started);
-	}
-
-	/**
-	 * Updates the game.
-	 * 
-	 * @throws HttpException
-	 */
-	void updateGame() throws HttpException {
-		while (!game.getStatus().isFinished()) {
-			game.updateLiveData();
-
-			if (!game.getStatus().isFinished()) {
-				LOGGER.trace("Game in Progress. Sleeping for [" + ACTIVE_POLL_RATE_MS + "]");
-				Utils.sleep(ACTIVE_POLL_RATE_MS);
-			}
 		}
 	}
 

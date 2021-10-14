@@ -281,9 +281,10 @@ public class GameScheduler extends Thread {
 		Game currentGame = getCurrentLiveGame(team);
 		if (currentGame != null) {
 			games.add(currentGame);
+		} else {
+			games.addAll(getFutureGames(team, 1));
 		}
 
-		games.addAll(getFutureGames(team, 2));
 		return games;
 	}
 

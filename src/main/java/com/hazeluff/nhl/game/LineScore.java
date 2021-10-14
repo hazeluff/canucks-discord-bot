@@ -14,9 +14,9 @@ public class LineScore {
 	private final int intermissionTimeRemaining;
 	// Power Play
 	private final String powerPlayStrength;
-	private final boolean inPowerPlay;
-	private final int penaltyTimeElapsed;
-	private final int penaltyTimeRemaining;
+	private final Boolean inPowerPlay;
+	private final Integer penaltyTimeElapsed;
+	private final Integer penaltyTimeRemaining;
 	// Score
 	private final int homeGoals;
 	private final Integer homeShotsOnGoal;
@@ -25,7 +25,7 @@ public class LineScore {
 
 	private LineScore(int currentPeriod, String currentPeriodOrdinal, String currentPeriodTimeRemaining,
 			boolean hasShootout, boolean inIntermission, int intermissionTimeElapsed, int intermissionTimeRemaining,
-			String powerPlayStrength, boolean inPowerPlay, int penaltyTimeElapsed, int penaltyTimeRemaining,
+			String powerPlayStrength, Boolean inPowerPlay, Integer penaltyTimeElapsed, Integer penaltyTimeRemaining,
 			int homeGoals, Integer homeShotsOnGoal, int awayGoals, Integer awayShotsOnGoal) {
 		this.currentPeriod = currentPeriod;
 		this.currentPeriodOrdinal = currentPeriodOrdinal;
@@ -57,10 +57,16 @@ public class LineScore {
 		int intermissionTimeRemaining = jsonIntermission.getInt32("intermissionTimeRemaining").getValue();
 		// Powerplay
 		String powerPlayStrength = json.getString("powerPlayStrength").getValue();
-		BsonDocument jsonPowerPlay = json.getDocument("powerPlayInfo");
-		boolean inPowerPlay = jsonPowerPlay.getBoolean("inSituation").getValue();
-		int penaltyTimeElapsed = jsonPowerPlay.getInt32("situationTimeElapsed").getValue();
-		int penaltyTimeRemaining = jsonPowerPlay.getInt32("situationTimeRemaining").getValue();
+		BsonDocument jsonPowerPlay = json.getDocument("powerPlayInfo", null);
+		Boolean inPowerPlay = jsonPowerPlay == null 
+				? null 
+				: jsonPowerPlay.getBoolean("inSituation").getValue();
+		Integer penaltyTimeElapsed = jsonPowerPlay == null 
+				? null 
+				: jsonPowerPlay.getInt32("situationTimeElapsed").getValue();
+		Integer penaltyTimeRemaining = jsonPowerPlay == null 
+				? null 
+				: jsonPowerPlay.getInt32("situationTimeRemaining").getValue();
 		// Score
 		BsonDocument jsonTeams = json.getDocument("teams");
 		BsonDocument jsonHomeTeam = jsonTeams.getDocument("home");
@@ -111,15 +117,15 @@ public class LineScore {
 		return powerPlayStrength;
 	}
 
-	public boolean isPowerPlay() {
+	public Boolean isPowerPlay() {
 		return inPowerPlay;
 	}
 
-	public int getPenaltyTimeElapsed() {
+	public Integer getPenaltyTimeElapsed() {
 		return penaltyTimeElapsed;
 	}
 
-	public int getPenaltyTimeRemaining() {
+	public Integer getPenaltyTimeRemaining() {
 		return penaltyTimeRemaining;
 	}
 

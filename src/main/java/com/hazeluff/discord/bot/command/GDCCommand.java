@@ -17,6 +17,7 @@ import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
+import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
@@ -70,6 +71,15 @@ public class GDCCommand extends Command {
 		if (strSubcommand == null) {
 			// No option specified
 			return event.reply(HELP_MESSAGE);
+		}
+
+		if (strSubcommand.equals("sync")) {
+			Member user = event.getInteraction().getMember().orElse(null);
+			if (user != null && !isDev(user.getId())) {
+				return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
+			}
+			game.fetchLiveData();
+			return event.replyEphemeral("Synced game data");
 		}
 		GDCSubCommand subCommand = SUB_COMMANDS.get(strSubcommand.toLowerCase());
 		if (subCommand != null) {

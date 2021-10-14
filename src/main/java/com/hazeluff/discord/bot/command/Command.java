@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.command;
 
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -25,6 +26,7 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
@@ -145,16 +147,15 @@ public abstract class Command extends ReactiveEventAdapter {
 				", ");
 	}
 
-	boolean hasPermissions(Guild guild, Member user, List<Permission> permissions) {
-		if (user == null) {
-			return false;
-		}
-		PermissionSet permissionsSet = getPermissions(user);
-		if (permissionsSet == null) {
-			return false;
-		}
-		return permissions.stream().allMatch(permissionsSet::contains);
+	protected boolean hasPrivilege(Guild guild, Member user) {
+		return isOwner(guild, user)
+				|| hasPermissions(guild, user, Arrays.asList(Permission.MANAGE_CHANNELS, Permission.ADMINISTRATOR));
 	}
+
+	static final Consumer<? super InteractionApplicationCommandCallbackSpec> MUST_HAVE_PERMISSIONS_MESSAGE = 
+			callbackSpec -> callbackSpec
+					.setContent("You must have _Admin_ or _Manage Channels_ roles to use this command.")
+					.setEphemeral(true);
 
 	Member getMessageAuthor(Message message) {
 		return nhlBot.getDiscordManager().block(message.getAuthorAsMember());
@@ -169,6 +170,17 @@ public abstract class Command extends ReactiveEventAdapter {
 			return false;
 		}
 		return guild.getOwner().block().getId().equals(user.getId());
+	}
+
+	boolean hasPermissions(Guild guild, Member user, List<Permission> permissions) {
+		if (user == null) {
+			return false;
+		}
+		PermissionSet permissionsSet = getPermissions(user);
+		if (permissionsSet == null) {
+			return false;
+		}
+		return permissions.stream().allMatch(permissionsSet::contains);
 	}
 
 	boolean isDev(Snowflake userId) {

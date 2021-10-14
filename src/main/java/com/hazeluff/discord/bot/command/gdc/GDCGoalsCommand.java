@@ -59,9 +59,9 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 			int fPeriod = period;
 			Predicate<GameEvent> isPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() == fPeriod;
 			if (goals.stream().anyMatch(isPeriod)) {
-				List<GameEvent> periodGoals = goals.stream().filter(isPeriod).collect(Collectors.toList());
+				List<GoalEvent> periodGoals = goals.stream().filter(isPeriod).collect(Collectors.toList());
 				StringBuilder sbGoals = new StringBuilder();
-				for (GameEvent gameEvent : periodGoals) {
+				for (GoalEvent gameEvent : periodGoals) {
 					if (sbGoals.length() != 0) {
 						sbGoals.append("\n");
 					}
@@ -76,11 +76,11 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 		// Overtime and Shootouts
 		Predicate<GameEvent> isExtraPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() > 3;
 		if (goals.stream().anyMatch(isExtraPeriod)) {
-			List<GameEvent> extraPeriodGoals = goals.stream().filter(isExtraPeriod).collect(Collectors.toList());
+			List<GoalEvent> extraPeriodGoals = goals.stream().filter(isExtraPeriod).collect(Collectors.toList());
 			String strPeriod = extraPeriodGoals.get(0).getPeriod().getDisplayValue();
 			StringBuilder sbGoals = new StringBuilder();
-			for (GameEvent goal : extraPeriodGoals) {
-				if (sbGoals.length() == 0) {
+			for (GoalEvent goal : extraPeriodGoals) {
+				if (sbGoals.length() != 0) {
 					sbGoals.append("\n");
 				}
 				sbGoals.append(buildGoalLine(goal));
@@ -98,11 +98,16 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 	 * 
 	 * @return details as formatted string
 	 */
-	private static String buildGoalLine(GameEvent gameEvent) {
+	private static String buildGoalLine(GoalEvent goalEvent) {
 		StringBuilder details = new StringBuilder();
-		List<Player> players = gameEvent.getPlayers();
-		details.append(String.format("**%s** @ %s - **%-18s**", gameEvent.getTeam().getCode(),
-				gameEvent.getPeriodTime(), players.get(0).getFullName()));
+		List<Player> players = goalEvent.getPlayers();
+		if (goalEvent.getPeriod().getPeriodNum() <= 3) {
+			details.append(String.format("**%s** @ %s - **%-18s**", 
+					goalEvent.getTeam().getCode(), goalEvent.getPeriodTime(), players.get(0).getFullName()));
+		} else {
+			details.append(String.format("**%s** - **%-18s**", 
+					goalEvent.getTeam().getCode(), players.get(0).getFullName()));
+		}
 		if (players.size() > 1) {
 			details.append("  Assists: ");
 			details.append(players.get(1).getFullName());

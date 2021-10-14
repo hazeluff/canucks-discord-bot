@@ -2,10 +2,12 @@ package com.hazeluff.nhl.game;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
+import org.bson.BsonInvalidOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,24 +24,24 @@ public class LiveData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Game.class);
 
 	private final int gamePk;
-	private BsonDocument rawJson;
+	private AtomicReference<BsonDocument> rawJson = new AtomicReference<BsonDocument>(null);
 
-	private LiveData(int gamePk, BsonDocument rawJson) {
+	private LiveData(int gamePk) {
 		this.gamePk = gamePk;
-		this.rawJson = rawJson;
 	}
 
 	public static LiveData create(int gamePk) {
-		return new LiveData(gamePk, BsonDocument.parse(fetchDataJson(gamePk, null)));
+		LiveData liveData = new LiveData(gamePk);
+		liveData.fetchLiveData();
+		return liveData;
 	}
 
 	public void update() {
 		if (getTimecode() != null) {
-			String strJsonDiffs = fetchDataJson(gamePk, getTimecode());
-			BsonArray jsonDiffs = BsonArray.parse(strJsonDiffs);
+			BsonArray jsonDiffs = fetchPatch(gamePk, getTimecode());
 			jsonDiffs.forEach(jsonDiff -> applyPatch(jsonDiff.asDocument().getArray("diff")));
 		} else {
-			rawJson = BsonDocument.parse(fetchDataJson(gamePk, null));
+			fetchLiveData();
 		}
 	}
 
@@ -48,8 +50,20 @@ public class LiveData {
 			BsonPatch.applyInPlace(patches, getJson());
 		} catch (BsonPatchApplicationException e) {
 			LOGGER.warn("Could not apply patch: " + patches);
-			LOGGER.warn(getJson().toString());
+			fetchLiveData();
 		}
+	}
+
+	public void fetchLiveData() {
+		rawJson.set(fetchLiveData(gamePk));
+	}
+
+	private static BsonDocument fetchLiveData(int gamePk) {
+		return BsonDocument.parse(fetchDataJson(gamePk, null));
+	}
+
+	private static BsonArray fetchPatch(int gamePk, String timeCode) {
+		return BsonArray.parse(fetchDataJson(gamePk, timeCode));
 	}
 
 	private static String fetchDataJson(int gamePk, String timeCode) {
@@ -81,7 +95,7 @@ public class LiveData {
 	}
 
 	protected BsonDocument getJson() {
-		return rawJson;
+		return rawJson.get();
 	}
 
 	protected BsonDocument getGameData() {
@@ -101,6 +115,11 @@ public class LiveData {
 	}
 
 	public String getTimecode() {
-		return getJson().getDocument("metaData").getString("timeStamp").getValue();
+		try {
+			return getJson().getDocument("metaData").getString("timeStamp").getValue();
+		} catch (BsonInvalidOperationException e) {
+			return null;
+		}
+
 	}
 }

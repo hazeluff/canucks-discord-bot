@@ -1,6 +1,5 @@
 package com.hazeluff.discord.bot.command;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +15,6 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import discord4j.rest.util.Permission;
 
 /**
  * Subscribes guilds to a team.
@@ -50,9 +48,8 @@ public class SubscribeCommand extends Command {
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		Guild guild = getGuild(event);
 		Member user = event.getInteraction().getMember().orElse(null);
-		if (!isOwner(guild, user)
-				&& !hasPermissions(guild, user, Arrays.asList(Permission.MANAGE_CHANNELS, Permission.ADMINISTRATOR))) {
-			return event.replyEphemeral(MUST_HAVE_PERMISSIONS_MESSAGE);
+		if (!hasPrivilege(guild, user)) {
+			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
 		}
 
 		String strTeam = getOptionAsString(event, "team");
@@ -75,9 +72,6 @@ public class SubscribeCommand extends Command {
 			+ "[team] is the 3 letter code of the teams following:\n"
 			+ HelpCommand.listOfTeams()
 			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
-
-	static final String MUST_HAVE_PERMISSIONS_MESSAGE = 
-			"You must have _Admin_ or _Manage Channels_ roles to subscribe the guild to a team.";
 
 	String buildSubscribedMessage(Team team, long guildId) {
 		List<Team> subscribedTeams = nhlBot.getPersistentData().getPreferencesData()

@@ -37,9 +37,6 @@ public class CanucksCollection extends CustomMessageCollection {
 		// Connor Garland
 		add(new CustomMessage("JAWS! 🦈", 
 				scorer(8480012)));
-		// Zack MacEwen
-		add(new CustomMessage("Big MAC 🍔", 
-				scorer(8479772)));
 		// Quinne Huges
 		add(new CustomMessage("Huggy Bear! 🧸", 
 				scorer(8480800)));

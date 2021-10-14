@@ -68,6 +68,12 @@ public class Game {
 		}
 	}
 
+	public void fetchLiveData() {
+		if (liveData != null) {
+			liveData.fetchLiveData();
+		}
+	}
+
 	public BsonDocument getScheduledData() {
 		return rawScheduleData;
 	}

@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GoalEvent;
 
 public class CustomMessage {
@@ -57,5 +58,9 @@ public class CustomMessage {
 	public static Predicate<GoalEvent> involved(Integer... playerIds) {
 		List<Integer> playerIdList = Arrays.asList(playerIds);
 		return goalEvent -> goalEvent.getPlayers().stream().allMatch(player -> playerIdList.contains(player.getId()));
+	}
+
+	public static Predicate<GoalEvent> team(Team team) {
+		return goalEvent -> goalEvent.getTeam().equals(team);
 	}
 }

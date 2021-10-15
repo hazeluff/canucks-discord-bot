@@ -67,20 +67,39 @@ public class GDCCommand extends Command {
 			return event.reply(HELP_MESSAGE);
 		}
 
+		/*
+		 * Sub commands
+		 */
 		String strSubcommand = getOptionAsString(event, "subcommand");
 		if (strSubcommand == null) {
 			// No option specified
 			return event.reply(HELP_MESSAGE);
 		}
 
+		/*
+		 * Dev only sub commands
+		 */
 		if (strSubcommand.equals("sync")) {
 			Member user = event.getInteraction().getMember().orElse(null);
 			if (user != null && !isDev(user.getId())) {
 				return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
 			}
 			game.fetchLiveData();
-			return event.replyEphemeral("Synced game data");
+			return event.replyEphemeral("Synced game data.");
 		}
+
+		if (strSubcommand.equals("update")) {
+			Member user = event.getInteraction().getMember().orElse(null);
+			if (user != null && !isDev(user.getId())) {
+				return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
+			}
+			// TODO: Update game day channel
+			return event.replyEphemeral("Updated channel.");
+		}
+
+		/*
+		 * Public sub commands
+		 */
 		GDCSubCommand subCommand = SUB_COMMANDS.get(strSubcommand.toLowerCase());
 		if (subCommand != null) {
 			return subCommand.reply(event, game);

@@ -233,17 +233,6 @@ public class NHLBot extends Thread {
 
 	private void updateWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
-		/*
-		getDiscordManager().getClient().getGuilds()
-			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-			.map(Guild::getChannels)
-			.filter(TextChannel.class::isInstance)
-			.flatMap(channels -> channels.filter(channel -> channel.getName().equals("welcome")).take(1))
-			.cast(TextChannel.class)
-			.subscribe(
-					channel -> WelcomeChannel.create(this, channel),
-					t -> LOGGER.error("Error occurred when starting WelcomeChannel.", t));
-		*/
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));

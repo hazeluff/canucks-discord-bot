@@ -11,7 +11,7 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
  * Displays information about NHLBot and the author
  */
 public class TestCommand extends Command {
-	static final String NAME = "test";
+	static final String NAME = "testme";
 
 	public TestCommand(NHLBot nhlBot) {
 		super(nhlBot);
@@ -24,17 +24,17 @@ public class TestCommand extends Command {
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 				.name(getName())
-				.description("foo bar")
+				.description("hazeluff is mad")
                 .build();
 	}
 
 	@Override
 	public boolean isDevOnly() {
-		return true;
+		return false;
 	}
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		return event.reply(spec -> spec.setContent("test"));
+		return event.reply(spec -> spec.setContent("actually don't"));
 	}
 }

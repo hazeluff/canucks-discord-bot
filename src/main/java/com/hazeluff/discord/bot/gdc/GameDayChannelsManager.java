@@ -167,11 +167,9 @@ public class GameDayChannelsManager extends Thread {
 		if (gameDayChannel == null) {
 			GameTracker gameTracker = nhlBot.getGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
-				gameDayChannel = getGameDayChannel(nhlBot, gameTracker, guild);
-				addGameDayChannel(guildId, game.getGamePk(), gameDayChannel);
+				gameDayChannel = createGameDayChannel(nhlBot, gameTracker, guild);
 			} else {
 				LOGGER.error("Could not find GameTracker for game [{}]", game);
-				gameDayChannel = null;
 			}
 		} else {
 			LOGGER.debug("Game Day Channel already exists for game [{}] in guild [{}]", gamePk, guildId);
@@ -180,8 +178,10 @@ public class GameDayChannelsManager extends Thread {
 		return gameDayChannel;
 	}
 
-	GameDayChannel getGameDayChannel(NHLBot nhlBot2, GameTracker gameTracker, Guild guild) {
-		return GameDayChannel.get(nhlBot, gameTracker, guild);
+	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
+		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
+		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGamePk(), channel);
+		return channel;
 	}
 
 	/**

@@ -61,9 +61,8 @@ public class SubscribeCommand extends Command {
 		Team team = Team.parse(strTeam);
 		// Subscribe guild
 		long guildId = guild.getId().asLong();
-		nhlBot.getGameDayChannelsManager().deleteInactiveGuildChannels(guild);
 		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
-		nhlBot.getGameDayChannelsManager().initChannels(guild);
+		nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		return event.reply(buildSubscribedMessage(team, guildId));
 	}
 

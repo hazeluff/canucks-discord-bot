@@ -1,13 +1,13 @@
 package com.hazeluff.discord.bot;
 
-import static com.hazeluff.discord.Config.DEV_GUILD_LIST;
-import static com.hazeluff.discord.Config.PRIVILEGED_GUILD_LIST;
+import static com.hazeluff.discord.utils.Utils.not;
 
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -170,23 +170,75 @@ public class NHLBot extends Thread {
 		
 		DiscordManager discordManager = nhlBot.getDiscordManager();
 		
-		List<Command> commands = getCommands(nhlBot);
 		
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
+
+		List<Command> commands = getCommands(nhlBot).stream()
+				.filter(cmd -> cmd.getACR() != null)
+				.collect(Collectors.toList());
+		
+		// Register Global Commands
+		List<ApplicationCommandRequest> globalCommandRequests = commands.stream()
+				.filter(not(Command::isDevOnly))
+				.map(Command::getACR)
+				.collect(Collectors.toList());
+		
+		globalCommandRequests.forEach(cmdACR -> nhlBot.getDiscordManager()
+				.subscribe(restClient.getApplicationService().createGlobalApplicationCommand(applicationId, cmdACR)));
+		/*
+		nhlBot.getDiscordManager().subscribe(
+				restClient.getApplicationService()
+						.bulkOverwriteGlobalApplicationCommand(applicationId, globalCommandRequests));
+		*/
+		
+		// Register Dev Only Commands
+		List<ApplicationCommandRequest> devOnlyCommandRequests = commands.stream()
+				.filter(Command::isDevOnly)
+				.map(Command::getACR)
+				.collect(Collectors.toList());
+		
+		for (Long guildId : Config.DEV_GUILD_LIST) {
+			
+			devOnlyCommandRequests.forEach(cmdACR -> nhlBot.getDiscordManager().subscribe(
+					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, cmdACR)));
+			/*
+			nhlBot.getDiscordManager().subscribe(
+					restClient.getApplicationService()
+							.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devOnlyCommandRequests));
+			*/
+		}
+		
+		
+		// Register Listener
+		for (Command command : commands) {
+			LOGGER.debug("Registering Command listeners with client: " + command.getName());
+			discordManager.getClient()
+				.on(command)
+				.doOnError(t -> LOGGER.error("Unable to respond to command: " + command.getName(), t))
+				.onErrorResume(e -> Mono.empty())
+				.subscribe();
+		}
+		/*
 		for (Command command : commands) {
 			LOGGER.debug("Adding Command: " + command.getName());
 
 			ApplicationCommandRequest acr = command.getACR();
+			
 			// Only register commands with ACR
 			if (acr != null) {
-				List<Long> guilds = command.isDevOnly() ? DEV_GUILD_LIST : PRIVILEGED_GUILD_LIST;
+				List<Long> guilds = command.isDevOnly() 
+						? DEV_GUILD_LIST 
+						: nhlBot.getDiscordManager().getGuilds().stream()
+								.map(guild -> guild.getId().asLong())
+								.collect(Collectors.toList());
 				for (Long guildId : guilds) {
 					LOGGER.debug("Registering command with guild: " + guildId);
 					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr)
 							.doOnError(t -> LOGGER.error("Unable to create guild command: " + acr.name(), t))
 							.onErrorResume(e -> Mono.empty()).subscribe();
 				}
+				restClient.getApplicationService().bulkOverwriteGlobalApplicationCommand(applicationId, requests)
 			} else {
 				LOGGER.debug("Command did not have ApplicationCommandRequest.");
 			}
@@ -198,8 +250,10 @@ public class NHLBot extends Thread {
 				.onErrorResume(e -> Mono.empty())
 				.subscribe();
 		}
+		*/
 	}
 	
+
 	private static void attachListeners(NHLBot nhlBot) {
 		LOGGER.info("Attaching Listeners.");
 		

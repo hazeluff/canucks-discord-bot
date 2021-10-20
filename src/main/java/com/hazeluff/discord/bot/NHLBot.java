@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -24,6 +25,7 @@ import com.hazeluff.discord.bot.command.PredictionsCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
 import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
+import com.hazeluff.discord.bot.command.TestCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
@@ -166,38 +168,75 @@ public class NHLBot extends Thread {
 		
 		DiscordManager discordManager = nhlBot.getDiscordManager();
 		
-		
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
 
-		List<Command> commands = getCommands(nhlBot).stream()
+		List<Command> commands = getCommands(nhlBot);
+		
+		List<ApplicationCommandRequest> devCommands = commands.stream()
 				.filter(cmd -> cmd.getACR() != null)
-				.collect(Collectors.toList());
-		
-		// Register Global Commands
-		List<ApplicationCommandRequest> globalCommandRequests = commands.stream()
-				.filter(not(Command::isDevOnly))
-				.map(Command::getACR)
-				.collect(Collectors.toList());
-
-		globalCommandRequests.stream().parallel().forEach(acr -> {
-			ApplicationCommandData data = nhlBot.getDiscordManager()
-					.block(restClient.getApplicationService().createGlobalApplicationCommand(applicationId, acr));
-			LOGGER.info("Registered Global Command: " + data.name());
-		});
-		
-		// Register Dev Only Commands
-		List<ApplicationCommandRequest> devOnlyCommandRequests = commands.stream()
 				.filter(Command::isDevOnly)
 				.map(Command::getACR)
 				.collect(Collectors.toList());
+
+		List<ApplicationCommandRequest> globalCommands = commands.stream()
+				.filter(cmd -> cmd.getACR() != null)
+				.filter(not(Command::isDevOnly))
+				.map(Command::getACR)
+				.collect(Collectors.toList());
 		
+		Supplier<List<ApplicationCommandData>> serverCommandsSupplier = () -> nhlBot.getDiscordManager()
+				.block(restClient.getApplicationService().getGlobalApplicationCommands(applicationId).collectList());
+
+		List<ApplicationCommandData> serverCommands = serverCommandsSupplier.get();
 		
+		/*
+		 *  Register Global Commands
+		 */
+
+		// Update existing Commands
+		List<ApplicationCommandRequest> updateCommands = globalCommands.stream()
+				.filter(acr -> serverCommands.stream().anyMatch(svrCmd -> svrCmd.name().equals(acr.name())))
+				.collect(Collectors.toList());
+		
+		LOGGER.info("Bulk update commands: "
+				+ updateCommands.stream().map(ApplicationCommandRequest::name).collect(Collectors.toList()));
+
+		nhlBot.getDiscordManager().block(
+				restClient.getApplicationService().bulkOverwriteGlobalApplicationCommand(applicationId, updateCommands)
+		);
+		
+		// Remove old commands
+		serverCommands.stream()
+				.filter(serverCommand -> globalCommands.stream()
+								.noneMatch(acr -> acr.name().equals(serverCommand.name())))
+				.parallel()
+				.forEach(acd -> {
+						nhlBot.getDiscordManager().subscribe(
+								restClient.getApplicationService().deleteGlobalApplicationCommand(
+										applicationId,
+										Long.parseLong(acd.id())));
+						LOGGER.info("Removed Global Command: " + acd.name());
+				});
+		
+		// Add New Commands
+		globalCommands.stream()
+				.filter(acr -> serverCommands.stream().noneMatch(acd -> acr.name().equals(acd.name())))
+				.parallel()
+				.forEach(acr -> {
+						nhlBot.getDiscordManager().block(
+								restClient.getApplicationService().createGlobalApplicationCommand(
+										applicationId, 
+										acr));
+						LOGGER.info("Registered Global Command: " + acr.name());
+				});
+		
+		// Dev only Commands
 		for (Long guildId : Config.DEV_GUILD_LIST) {
-			devOnlyCommandRequests.stream().parallel().forEach(acr -> {
-				ApplicationCommandData data = nhlBot.getDiscordManager()
-						.block(restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr));
-				LOGGER.info("Registered Guild Command: " + data.name());
+			devCommands.stream().parallel().forEach(acr -> {
+				nhlBot.getDiscordManager().block(
+						restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr));
+				LOGGER.info("Registered Dev Command: " + acr.name());
 			});
 		}
 		
@@ -210,6 +249,8 @@ public class NHLBot extends Thread {
 				.onErrorResume(e -> Mono.empty())
 				.subscribe();
 		}
+		LOGGER.info("Application is set up with Global Commands: "
+				+ serverCommandsSupplier.get().stream().map(acd -> acd.name()).collect(Collectors.toList()));
 	}
 	
 
@@ -328,6 +369,7 @@ public class NHLBot extends Thread {
 	private static List<Command> getCommands(NHLBot nhlBot) {
 		return Arrays.asList(
 				new AboutCommand(nhlBot),
+				new TestCommand(nhlBot),
 				new FuckCommand(nhlBot),
 				new GDCCommand(nhlBot),
 				new HelpCommand(nhlBot),

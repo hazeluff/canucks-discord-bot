@@ -66,7 +66,7 @@ public class GameTracker extends Thread {
 	@Override
 	public void start() {
 		if (started.compareAndSet(false, true)) {
-			LOGGER.info("Started thread for [" + game + "]");
+			LOGGER.info("Started thread for [" + game.getGamePk() + "]");
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");

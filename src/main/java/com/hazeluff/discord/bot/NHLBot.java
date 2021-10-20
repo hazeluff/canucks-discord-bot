@@ -227,11 +227,9 @@ public class NHLBot extends Thread {
 			
 			// Only register commands with ACR
 			if (acr != null) {
-				List<Long> guilds = command.isDevOnly() 
-						? DEV_GUILD_LIST 
-						: nhlBot.getDiscordManager().getGuilds().stream()
-								.map(guild -> guild.getId().asLong())
-								.collect(Collectors.toList());
+				List<Long> guilds = nhlBot.getDiscordManager().getGuilds().stream()
+						.map(guild -> guild.getId().asLong())
+						.collect(Collectors.toList());
 				for (Long guildId : guilds) {
 					LOGGER.debug("Registering command with guild: " + guildId);
 					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr)

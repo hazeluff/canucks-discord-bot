@@ -1,7 +1,5 @@
 package com.hazeluff.discord.bot.gdc;
 
-import static com.hazeluff.discord.utils.Utils.not;
-
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,17 +19,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.ExceptionHandler;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
-import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Prediction;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
-import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
@@ -43,16 +36,12 @@ import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
 
-import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
-import discord4j.core.event.domain.message.ReactionAddEvent;
-import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.core.object.reaction.Reaction;
 import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.object.reaction.ReactionEmoji.Unicode;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -109,7 +98,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final Map<Integer, Message> penaltyEventMessages = new HashMap<>();
 
 	private Message summaryMessage;
-	private Message pollMessage;
 	private Message endOfGameMessage;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
@@ -243,7 +231,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Post Predictions poll
 		summaryMessage = getSummaryMessage();
-		pollMessage = getPredictionMessage();
 
 		updateCachedData();
 
@@ -261,7 +248,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			if (!alreadyStarted) {
 				LOGGER.info("Game is about to start!");
 				sendStartOfGameMessage();
-				savePredictions();
 			} else {
 				LOGGER.info("Game has already started.");
 			}
@@ -280,14 +266,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				}
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
 			}
-
-			sendWordcloud();
 		} else {
 			LOGGER.info("Game is already finished");
 		}
 
-		// Deregister processing on ReactionListener
-		unregisterFromListener();
 		LOGGER.info("Thread Completed");
 	}
 
@@ -460,10 +442,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	
 	void sendGoalMessage(GoalEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
-		String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
-		if (messageContent != null) {
-			sendMessage(messageContent);
-		}
 		Message message = sendAndGetMessage(spec -> spec.addEmbed(buildGoalMessageEmbed(event)));
 		if (message != null) {
 			goalEventMessages.put(event.getId(), message);
@@ -761,164 +739,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	/*
 	 * Predictions
 	 */
-	private void registerToListener() {
-		nhlBot.getReactionListener().addProccessor(this, ReactionAddEvent.class);
-		nhlBot.getReactionListener().addProccessor(this, ReactionRemoveEvent.class);
-	}
-
-	private void unregisterFromListener() {
-		nhlBot.getReactionListener().removeProccessor(this);
-	}
 
 	@Override
 	public void process(Event event) {
-		if (channel == null || pollMessage == null) {
-			return;
-		}
 		
-		// Only allow if reaction is done before the start of the game
-		if (ZonedDateTime.now().isBefore(game.getDate()) ) {
-			return;
-		}
-		
-		if (event instanceof ReactionAddEvent) {
-			ReactionAddEvent addEvent = (ReactionAddEvent) event;
-
-			if (!addEvent.getChannelId().equals(channel.getId())) {
-				// Not the same channel/game
-				return;
-			}
-			
-			Unicode addedUnicodeEmoji = addEvent.getEmoji().asUnicodeEmoji().orElse(null);
-			if (addedUnicodeEmoji == null) {
-				return;
-			}
-
-			String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
-			long userId = addEvent.getUserId().asLong();
-
-			if (addedUnicodeEmoji.equals(HOME_EMOJI)) {
-				SeasonCampaign.savePrediction(nhlBot,
-						new Prediction(campaignId, userId, game.getGamePk(), game.getHomeTeam().getId()));
-				removeReactions(pollMessage, addedUnicodeEmoji, addEvent.getUserId());
-			} else if (addedUnicodeEmoji.equals(AWAY_EMOJI)) {
-				SeasonCampaign.savePrediction(nhlBot,
-						new Prediction(campaignId, userId, game.getGamePk(), game.getAwayTeam().getId()));
-				removeReactions(pollMessage, addedUnicodeEmoji, addEvent.getUserId());
-			} else {
-				LOGGER.warn("Unknown emoji: " + addedUnicodeEmoji);
-			}
-		} else if (event instanceof ReactionRemoveEvent) {
-			ReactionRemoveEvent removeEvent = (ReactionRemoveEvent) event;
-
-			if (!removeEvent.getChannelId().equals(channel.getId())) {
-				// Not the same channel/game
-				return;
-			}
-
-			Unicode removedUnicodeEmoji = removeEvent.getEmoji().asUnicodeEmoji().orElse(null);
-			if (removedUnicodeEmoji == null) {
-				return;
-			}
-
-			String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
-			long userId = removeEvent.getUserId().asLong();
-			
-			// Do not interact with persistent data if removed emoji was not of the stored prediction.
-			// Prevents removing the prediction when NHLBot removes the reaction.
-			SeasonCampaign.Prediction prediction = SeasonCampaign.loadPrediction(
-					nhlBot, campaignId, game.getGamePk(), userId);
-
-			if (prediction != null) {
-				if (removedUnicodeEmoji.equals(HOME_EMOJI)) {
-					if (!Integer.valueOf(game.getHomeTeam().getId()).equals(prediction.getPrediction())) {
-						return;
-					}
-				} else if (removedUnicodeEmoji.equals(AWAY_EMOJI)) {
-					if (!Integer.valueOf(game.getAwayTeam().getId()).equals(prediction.getPrediction())) {
-						return;
-					}
-				} else {
-					LOGGER.warn("Unknown emoji: " + removedUnicodeEmoji);
-				}
-			}
-
-			// Remove the prediction from the persistent data
-			SeasonCampaign.savePrediction(nhlBot, new Prediction(campaignId, userId, game.getGamePk(), null));
-		} else {
-			LOGGER.warn("Event provided is of unknown type: " + event.getClass().getSimpleName());
-		}
-	}
-
-	/**
-	 * 
-	 * @param excludedReaction
-	 * @param userId
-	 */
-	private void removeReactions(Message message, Unicode excludedReaction, Snowflake userId) {
-		for (Reaction messageReaction : message.getReactions()) {
-			Unicode messageReactionUnicode = messageReaction.getEmoji().asUnicodeEmoji().orElse(null);
-			if (messageReactionUnicode != null && !messageReactionUnicode.equals(excludedReaction)) {
-				subscribe(message.removeReaction(messageReactionUnicode, userId));
-			}
-		}
-	}
-
-	private Message getPredictionMessage() {
-		Message message;
-		Long messageId = meta.getPollMessageId();
-		if (messageId == null) {
-			message = sendPredictionMessage();
-		} else {
-			message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
-			if (message == null) {
-				message = sendPredictionMessage();
-			}
-		}
-
-		if (message != null) {
-			nhlBot.getDiscordManager().pinMessage(message);
-			meta.setPollMessageId(message.getId().asLong());
-			saveMetadata();
-		}
-
-		registerToListener();
-
-		return message;
-	}
-
-	private void savePredictions() {
-		LOGGER.info("Saving Predictions: channel={}, pollMessage={}", channel, pollMessage);
-		if (channel != null && pollMessage != null) {
-			String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
-			// Save Home Predictors
-			block(pollMessage.getReactors(HOME_EMOJI)).stream().filter(not(this::isBotSelf))
-					.forEach(user -> SeasonCampaign.savePrediction(nhlBot, new Prediction(campaignId,
-							user.getId().asLong(), game.getGamePk(), game.getHomeTeam().getId())));
-			// Save Away Predictors
-			block(pollMessage.getReactors(AWAY_EMOJI)).stream().filter(not(this::isBotSelf))
-					.forEach(user -> SeasonCampaign.savePrediction(nhlBot, new Prediction(campaignId,
-							user.getId().asLong(), game.getGamePk(), game.getAwayTeam().getId())));
-
-		}
-	}
-
-	private Message sendPredictionMessage() {
-		String pollMessage = String.format("Predict the outcome of this game!\n🏠 %s\n✈️  %s",
-				game.getHomeTeam().getFullName(), game.getAwayTeam().getFullName());
-
-		Message message = sendAndGetMessage(pollMessage);
-		if (message != null) {
-			subscribe(message.addReaction(HOME_EMOJI));
-			subscribe(message.addReaction(AWAY_EMOJI));
-			subscribe(message.pin());
-		}
-
-		return message;
-	}
-
-	private void sendWordcloud() {
-		new WordcloudCommand(nhlBot).sendWordcloud(channel, game, preferences.getTimeZone());
 	}
 
 	boolean isBotSelf(User user) {
@@ -1098,7 +922,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	@Override
 	public void interrupt() {
-		unregisterFromListener();
 		super.interrupt();
 	}
 

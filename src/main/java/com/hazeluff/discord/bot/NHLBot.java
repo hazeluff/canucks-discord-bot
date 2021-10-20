@@ -25,7 +25,6 @@ import com.hazeluff.discord.bot.command.PredictionsCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
 import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
-import com.hazeluff.discord.bot.command.TestCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
@@ -45,6 +44,7 @@ import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.presence.Activity;
 import discord4j.core.object.presence.Presence;
+import discord4j.discordjson.json.ApplicationCommandData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.discordjson.json.gateway.StatusUpdate;
 import discord4j.rest.RestClient;
@@ -183,9 +183,11 @@ public class NHLBot extends Thread {
 				.map(Command::getACR)
 				.collect(Collectors.toList());
 
-		nhlBot.getDiscordManager().subscribe(
-				restClient.getApplicationService()
-						.bulkOverwriteGlobalApplicationCommand(applicationId, globalCommandRequests));
+		globalCommandRequests.stream().parallel().forEach(acr -> {
+			ApplicationCommandData data = nhlBot.getDiscordManager()
+					.block(restClient.getApplicationService().createGlobalApplicationCommand(applicationId, acr));
+			LOGGER.info("Registered Global Command: " + data.name());
+		});
 		
 		// Register Dev Only Commands
 		List<ApplicationCommandRequest> devOnlyCommandRequests = commands.stream()
@@ -193,11 +195,15 @@ public class NHLBot extends Thread {
 				.map(Command::getACR)
 				.collect(Collectors.toList());
 		
+		
 		for (Long guildId : Config.DEV_GUILD_LIST) {
-			nhlBot.getDiscordManager().subscribe(
-					restClient.getApplicationService()
-							.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devOnlyCommandRequests));
+			devOnlyCommandRequests.stream().parallel().forEach(acr -> {
+				ApplicationCommandData data = nhlBot.getDiscordManager()
+						.block(restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr));
+				LOGGER.info("Registered Guild Command: " + data.name());
+			});
 		}
+		
 		
 		
 		// Register Listener
@@ -339,7 +345,6 @@ public class NHLBot extends Thread {
 				new SubscribeCommand(nhlBot),
 				new ScheduleCommand(nhlBot),
 				new StatsCommand(nhlBot),
-				new TestCommand(nhlBot),
 				new ThreadsCommand(nhlBot),
 				new UnsubscribeCommand(nhlBot)
 		);

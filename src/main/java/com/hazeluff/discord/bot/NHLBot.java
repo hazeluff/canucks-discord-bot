@@ -204,8 +204,6 @@ public class NHLBot extends Thread {
 			});
 		}
 		
-		
-		
 		// Register Listener
 		for (Command command : commands) {
 			LOGGER.debug("Registering Command listeners with client: " + command.getName());

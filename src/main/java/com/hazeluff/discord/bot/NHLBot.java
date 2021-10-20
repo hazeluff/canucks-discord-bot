@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
-import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.command.FuckCommand;
@@ -28,7 +27,6 @@ import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.TestCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
-import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
@@ -73,7 +71,6 @@ public class NHLBot extends Thread {
 	private final ReactionListener reactionListener = new ReactionListener(this);
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
-	private final WordcloudChannelManager wcChannelManager = new WordcloudChannelManager(this, gdcCategoryManager);
 
 	private NHLBot() {
 		persistantData = null;
@@ -115,7 +112,6 @@ public class NHLBot extends Thread {
 
 		// Init Static Entities (They must be init in order!!!)
 		nhlBot.gdcCategoryManager.init(guilds);
-		nhlBot.wcChannelManager.init(guilds);
 
 		// Add Bot Commands
 		addCommands(nhlBot);
@@ -183,14 +179,10 @@ public class NHLBot extends Thread {
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-		
-		globalCommandRequests.forEach(cmdACR -> nhlBot.getDiscordManager()
-				.subscribe(restClient.getApplicationService().createGlobalApplicationCommand(applicationId, cmdACR)));
-		/*
+
 		nhlBot.getDiscordManager().subscribe(
 				restClient.getApplicationService()
 						.bulkOverwriteGlobalApplicationCommand(applicationId, globalCommandRequests));
-		*/
 		
 		// Register Dev Only Commands
 		List<ApplicationCommandRequest> devOnlyCommandRequests = commands.stream()
@@ -199,14 +191,9 @@ public class NHLBot extends Thread {
 				.collect(Collectors.toList());
 		
 		for (Long guildId : Config.DEV_GUILD_LIST) {
-			
-			devOnlyCommandRequests.forEach(cmdACR -> nhlBot.getDiscordManager().subscribe(
-					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, cmdACR)));
-			/*
 			nhlBot.getDiscordManager().subscribe(
 					restClient.getApplicationService()
 							.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devOnlyCommandRequests));
-			*/
 		}
 		
 		
@@ -219,36 +206,6 @@ public class NHLBot extends Thread {
 				.onErrorResume(e -> Mono.empty())
 				.subscribe();
 		}
-		/*
-		for (Command command : commands) {
-			LOGGER.debug("Adding Command: " + command.getName());
-
-			ApplicationCommandRequest acr = command.getACR();
-			
-			// Only register commands with ACR
-			if (acr != null) {
-				List<Long> guilds = nhlBot.getDiscordManager().getGuilds().stream()
-						.map(guild -> guild.getId().asLong())
-						.collect(Collectors.toList());
-				for (Long guildId : guilds) {
-					LOGGER.debug("Registering command with guild: " + guildId);
-					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr)
-							.doOnError(t -> LOGGER.error("Unable to create guild command: " + acr.name(), t))
-							.onErrorResume(e -> Mono.empty()).subscribe();
-				}
-				restClient.getApplicationService().bulkOverwriteGlobalApplicationCommand(applicationId, requests)
-			} else {
-				LOGGER.debug("Command did not have ApplicationCommandRequest.");
-			}
-
-			LOGGER.debug("Registering Command listeners with client: " + command.getName());
-			discordManager.getClient()
-				.on(command)
-				.doOnError(t -> LOGGER.error("Unable to respond to command: " + command.getName(), t))
-				.onErrorResume(e -> Mono.empty())
-				.subscribe();
-		}
-		*/
 	}
 	
 
@@ -343,10 +300,6 @@ public class NHLBot extends Thread {
 		return gdcCategoryManager;
 	}
 
-	public WordcloudChannelManager getWordcloudChannelManager() {
-		return wcChannelManager;
-	}
-
 	/**
 	 * Gets the mention for the bot. It is how the raw message displays a mention of
 	 * the bot's user.
@@ -392,8 +345,7 @@ public class NHLBot extends Thread {
 				new StatsCommand(nhlBot),
 				new TestCommand(nhlBot),
 				new ThreadsCommand(nhlBot),
-				new UnsubscribeCommand(nhlBot),
-				new WordcloudCommand(nhlBot)					
+				new UnsubscribeCommand(nhlBot)
 		);
 	}
 

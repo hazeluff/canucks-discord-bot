@@ -28,7 +28,6 @@ import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.TestCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
-import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
@@ -183,14 +182,10 @@ public class NHLBot extends Thread {
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-		
-		globalCommandRequests.forEach(cmdACR -> nhlBot.getDiscordManager()
-				.subscribe(restClient.getApplicationService().createGlobalApplicationCommand(applicationId, cmdACR)));
-		/*
+
 		nhlBot.getDiscordManager().subscribe(
 				restClient.getApplicationService()
 						.bulkOverwriteGlobalApplicationCommand(applicationId, globalCommandRequests));
-		*/
 		
 		// Register Dev Only Commands
 		List<ApplicationCommandRequest> devOnlyCommandRequests = commands.stream()
@@ -199,14 +194,9 @@ public class NHLBot extends Thread {
 				.collect(Collectors.toList());
 		
 		for (Long guildId : Config.DEV_GUILD_LIST) {
-			
-			devOnlyCommandRequests.forEach(cmdACR -> nhlBot.getDiscordManager().subscribe(
-					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, cmdACR)));
-			/*
 			nhlBot.getDiscordManager().subscribe(
 					restClient.getApplicationService()
 							.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devOnlyCommandRequests));
-			*/
 		}
 		
 		
@@ -219,38 +209,6 @@ public class NHLBot extends Thread {
 				.onErrorResume(e -> Mono.empty())
 				.subscribe();
 		}
-		/*
-		for (Command command : commands) {
-			LOGGER.debug("Adding Command: " + command.getName());
-
-			ApplicationCommandRequest acr = command.getACR();
-			
-			// Only register commands with ACR
-			if (acr != null) {
-				List<Long> guilds = command.isDevOnly() 
-						? DEV_GUILD_LIST 
-						: nhlBot.getDiscordManager().getGuilds().stream()
-								.map(guild -> guild.getId().asLong())
-								.collect(Collectors.toList());
-				for (Long guildId : guilds) {
-					LOGGER.debug("Registering command with guild: " + guildId);
-					restClient.getApplicationService().createGuildApplicationCommand(applicationId, guildId, acr)
-							.doOnError(t -> LOGGER.error("Unable to create guild command: " + acr.name(), t))
-							.onErrorResume(e -> Mono.empty()).subscribe();
-				}
-				restClient.getApplicationService().bulkOverwriteGlobalApplicationCommand(applicationId, requests)
-			} else {
-				LOGGER.debug("Command did not have ApplicationCommandRequest.");
-			}
-
-			LOGGER.debug("Registering Command listeners with client: " + command.getName());
-			discordManager.getClient()
-				.on(command)
-				.doOnError(t -> LOGGER.error("Unable to respond to command: " + command.getName(), t))
-				.onErrorResume(e -> Mono.empty())
-				.subscribe();
-		}
-		*/
 	}
 	
 
@@ -278,17 +236,6 @@ public class NHLBot extends Thread {
 
 	private void updateWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
-		/*
-		getDiscordManager().getClient().getGuilds()
-			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-			.map(Guild::getChannels)
-			.filter(TextChannel.class::isInstance)
-			.flatMap(channels -> channels.filter(channel -> channel.getName().equals("welcome")).take(1))
-			.cast(TextChannel.class)
-			.subscribe(
-					channel -> WelcomeChannel.create(this, channel),
-					t -> LOGGER.error("Error occurred when starting WelcomeChannel.", t));
-		*/
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
@@ -394,8 +341,7 @@ public class NHLBot extends Thread {
 				new StatsCommand(nhlBot),
 				new TestCommand(nhlBot),
 				new ThreadsCommand(nhlBot),
-				new UnsubscribeCommand(nhlBot),
-				new WordcloudCommand(nhlBot)					
+				new UnsubscribeCommand(nhlBot)
 		);
 	}
 

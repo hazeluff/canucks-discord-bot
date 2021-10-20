@@ -597,7 +597,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	void sendRescindedPenaltyMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending rescinded message for penalty event [" + event + "].");
-		sendMessage(String.format("Penalty on %s has been rescinded.", event.getPlayers().get(0).getFullName()));
+		sendMessage(String.format("Penalty has been rescinded. event=", event.toString()));
 	}
 
 	boolean isPenaltyEventUpdated(PenaltyEvent oldEvent, PenaltyEvent newEvent) {

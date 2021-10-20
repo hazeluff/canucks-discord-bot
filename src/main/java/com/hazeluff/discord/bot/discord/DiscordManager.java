@@ -72,6 +72,7 @@ public class DiscordManager {
 
 	public <T> T block(Mono<T> mono) {
 		return mono.doOnError(DiscordManager::logError)
+				.retry(2)
 				.onErrorResume(error -> Mono.empty())
 				.blockOptional()
 				.orElseGet(() -> null);
@@ -79,12 +80,14 @@ public class DiscordManager {
 
 	public <T> void subscribe(Mono<T> mono) {
 		mono.doOnError(DiscordManager::logError)
+				.retry(2)
 				.subscribe();
 	}
 
 	public <T> List<T> block(Flux<T> flux) {
 		return flux.doOnError(DiscordManager::logError)
 				.collectList()
+				.retry(2)
 				.onErrorResume(error -> Mono.empty())
 				.blockOptional()
 				.orElseGet(() -> null);
@@ -92,6 +95,7 @@ public class DiscordManager {
 
 	public <T> void subscribe(Flux<T> flux) {
 		flux.doOnError(DiscordManager::logError)
+				.retry(2)
 				.subscribe();
 	}
 
@@ -104,7 +108,7 @@ public class DiscordManager {
 	}
 
 	public Message getMessage(long channelId, long messageId) {
-		return block(getClient().getMessageById(Snowflake.of(channelId), Snowflake.of(messageId)).onErrorReturn(null));
+		return block(getClient().getMessageById(Snowflake.of(channelId), Snowflake.of(messageId)));
 	}
 
 	public Message sendAndGetMessage(TextChannel channel, Consumer<MessageCreateSpec> messageSpec) {
@@ -117,7 +121,7 @@ public class DiscordManager {
 			logNullArgumentsStackTrace("`messageSpec` was null.");
 			return null;
 		}
-		return block(channel.createMessage(messageSpec).onErrorReturn(null));
+		return block(channel.createMessage(messageSpec));
 	}
 
 	public Message sendAndGetMessage(TextChannel channel, String message) {

@@ -13,6 +13,7 @@ public enum DetailedGameState {
 	PRE_GAME("Pre-Game"), 
 	IN_PROGRESS("In Progress"), 
 	IN_PROGRESS_CRITICAL("In Progress - Critical"),
+	GAME_OVER("Game Over"),
 	FINAL("Final");
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DetailedGameState.class);

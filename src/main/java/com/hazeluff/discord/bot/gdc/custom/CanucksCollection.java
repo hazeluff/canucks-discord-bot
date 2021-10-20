@@ -156,10 +156,19 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(new CustomMessage( // :pod:
 				"https://discord.com/channels/276953120964083713/688151995491549222/898431590873595934",
 				scorer(8481617)));
+		add(new CustomMessage( 
+				"Vasily Puts-Goals-zin",
+				scorer(8481617)));
+		add(new CustomMessage( 
+				"Vasily Pod-Goat-zin",
+				scorer(8481617)));
 
 		// Connor Garland
 		add(new CustomMessage(
 				"JAWS! 🦈",
+				scorer(8480012)));
+		add(new CustomMessage(
+				"Top Shelf, Angry Elf",
 				scorer(8480012)));
 
 		// Quinne Huges
@@ -182,11 +191,26 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(new CustomMessage(
 				"Oliver Lawsom Tossum*! https://www.youtube.com/watch?v=AtNj8CKaOAk&t=116s",
 				scorer(8475171)));
-
-		// Tyler Myers
-		add(new CustomMessage("🦒",
-				scorer(8474574)));
 		
+		// Tyler Myers
+		add(new CustomMessage(
+				"🦒",
+				scorer(8474574)));
+		add(new CustomMessage(
+				"https://cdn.discordapp.com/emojis/685700452826087457.png",
+				scorer(8474574)));
+		add(new CustomMessage( // ToysRUs Geofrey
+				"https://tenor.com/view/toys-r-us-geoffrey-the-giraffe-dancing-dance-dance-off-gif-16386148",
+				scorer(8474574)));
+
+		// Alex Chiasson
+		add(new CustomMessage(
+				"Chia Seed!",
+				scorer(8475163)));
+		add(new CustomMessage( // Canucks Official - Goal Graphic
+				"https://discord.com/channels/238870084003561472/898832084041367582/899004554505506847",
+				scorer(8475163)));
+
 		/*
 		 *  Combos
 		 */
@@ -232,7 +256,7 @@ public class CanucksCollection extends CustomMessageCollection {
 				"https://tenor.com/view/vancouver-canucks-gif-18155387",
 				team(Team.VANCOUVER_CANUCKS)));
 		add(new CustomMessage( // The clapper
-				"https://discord.com/channels/238870084003561472/351171150975467520/898428891306274846",
+				"https://tenor.com/view/vancouver-canucks-nhl-hockey-canucks-win-dancing-gif-16364902",
 				team(Team.VANCOUVER_CANUCKS)));
 		add(new CustomMessage( // Generic
 				"https://tenor.com/view/vancouver-canucks-canucks-goal-canucks-win-goal-score-gif-16300297",
@@ -253,9 +277,6 @@ public class CanucksCollection extends CustomMessageCollection {
 				"https://www.youtube.com/watch?v=Jv7wN9a3u4M", team(Team.VANCOUVER_CANUCKS)));
 		add(new CustomMessage( // 2021 horn - Ain't talking bout love
 				"https://www.youtube.com/watch?v=hzZAyoi7sTQ",
-				team(Team.VANCOUVER_CANUCKS)));
-		add(new CustomMessage( // Lets go to the mall
-				"https://gifer.com/en/N7cD",
 				team(Team.VANCOUVER_CANUCKS)));
 		add(new CustomMessage( // Green men
 				"https://gfycat.com/memorablehollowamericancicada-green-dance-man",

@@ -52,7 +52,7 @@ public class GDCCommand extends Command {
                 .addOption(ApplicationCommandOptionData.builder()
                         .name("subcommand")
 						.description("Subcommand to execute. Help: `/gdc subcommand: help`")
-                        .type(ApplicationCommandOption.Type.STRING.getValue())
+						.type(ApplicationCommandOption.Type.STRING.getValue())
 						.required(false)
                         .build())
 				.build();

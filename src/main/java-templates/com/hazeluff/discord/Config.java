@@ -36,9 +36,7 @@ public class Config {
 	);
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> PRIVILEGED_GUILD_LIST = Arrays.asList(
-			268247727400419329l, 
-			276953120964083713l, 
+	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList( 
 			238870084003561472l // /r/canucks
 	);
 	

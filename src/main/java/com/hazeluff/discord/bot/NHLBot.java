@@ -34,6 +34,7 @@ import com.hazeluff.discord.bot.listener.ReactionListener;
 import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.discord.utils.Utils;
 
+import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
@@ -180,18 +181,29 @@ public class NHLBot extends Thread {
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-		// Dev Guilds
-		for (Long guildId : Config.DEV_GUILD_LIST) {
-			nhlBot.getDiscordManager().block(
-					restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(
-							applicationId, guildId, allCommands)
-			);
-		}
-		// Canucks Guild
-		for (Long guildId : Config.SERVICED_GUILD_LIST) {
-			nhlBot.getDiscordManager().block(
+
+		List<Long> guilds = nhlBot.getDiscordManager().getGuilds().stream()
+					.map(Guild::getId)
+					.map(Snowflake::asLong)
+					.collect(Collectors.toList());
+		
+		guilds.removeAll(Config.DEV_GUILD_LIST);
+
+		// All Guilds
+		for (Long guildId : guilds) {
+			LOGGER.info("Registering Commands with guild: " + guildId);
+			nhlBot.getDiscordManager().subscribe(
 					restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(
 							applicationId, guildId, commonCommands)
+			);
+		}
+
+		// Dev Guilds
+		for (Long guildId : Config.DEV_GUILD_LIST) {
+			LOGGER.info("Registering Commands (incl. dev) with guild: " + guildId);
+			nhlBot.getDiscordManager().subscribe(
+					restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(
+							applicationId, guildId, allCommands)
 			);
 		}
 		

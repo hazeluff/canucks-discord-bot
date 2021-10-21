@@ -248,9 +248,17 @@ public abstract class Command extends ReactiveEventAdapter {
 				.orElse(null);
 	}
 
+	protected static String getOptionAsString2(ChatInputInteractionEvent event, String option) {
+		return event.getInteraction().getCommandInteraction().get().getOption(option)
+				.flatMap(ApplicationCommandInteractionOption::getValue)
+				.map(ApplicationCommandInteractionOptionValue::getRaw)
+				.orElse(null);
+	}
+
 	protected static Long getOptionAsLong(ChatInputInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
 				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asLong).orElse(null);
+				.map(ApplicationCommandInteractionOptionValue::asLong)
+				.orElse(null);
 	}
 }

@@ -27,6 +27,7 @@ import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
+import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
@@ -338,7 +339,8 @@ public class NHLBot extends Thread {
 				new ScheduleCommand(nhlBot),
 				new StatsCommand(nhlBot),
 				new ThreadsCommand(nhlBot),
-				new UnsubscribeCommand(nhlBot)
+				new UnsubscribeCommand(nhlBot),
+				new WordcloudCommand(nhlBot)
 		);
 	}
 

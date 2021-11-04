@@ -292,6 +292,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private boolean isGameUpdated() {
+		// TODO: Actually implement this
 		return true;
 	}
 

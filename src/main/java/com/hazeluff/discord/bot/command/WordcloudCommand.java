@@ -170,6 +170,9 @@ public class WordcloudCommand extends Command {
 		String fileName = "wordcloud.png";
 		InputStream fileStream = new ByteArrayInputStream(wordcloudStream.toByteArray());
 		String message = title + String.format(". Total Messages: %s", messages.size());
-		return spec -> spec.addFile(fileName, fileStream).setContent(message);
+		
+		return messageCreateSpec -> messageCreateSpec
+				.addFile(fileName, fileStream)
+				.setContent(message);
 	}
 }

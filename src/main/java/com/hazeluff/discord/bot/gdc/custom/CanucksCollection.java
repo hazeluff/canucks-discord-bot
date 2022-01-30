@@ -18,7 +18,7 @@ public class CanucksCollection extends CustomMessageCollection {
 
 		// Bo Horvat
 		add(scorer("Hotdog Horvat 🌭", 8477500));
-		add(scorer("Oh Captain, My Captain!", 8477500));
+		add(scorer("Bo Captain, My Captain!", 8477500));
 		add(scorer("https://giphy.com/gifs/nhl-ice-hockey-horvat-bo-5bkzQdTbr0sLYQQAS7", 8477500)); // Super Sayan
 		add(scorer("https://giphy.com/gifs/NHLonNBCSports-hockey-nhl-bo-horvat-1fm96ddXPckJ8IV3nv",8477500)); // Thumbs up
 		add(scorer("https://giphy.com/gifs/NHLonNBCSports-hockey-nhl-bo-horvat-47DKMQoNEiQAaMRQVb",8477500)); // Blow kiss
@@ -73,6 +73,8 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://giphy.com/gifs/nhl-nhl-prospect-2019-scouting-combine-nils-hoglander-H1HFy3uN2FNSb7jRiv", 8481535)); // Draft; Sign camera
 		add(scorer("https://giphy.com/gifs/nhl-sports-hockey-ice-1tNHEPNQwnUbNjfIJz", 8481535)); // Wooo
 		add(scorer("https://giphy.com/gifs/canucks-nils-hoglander-goal-2021-PPUGEWg40luejKqx8Z", 8481535)); // Canucks Graphic 2021
+		add(scorer("https://media.tenor.co/videos/07d387f34b87b40f7380ceb06deba795/mp4", 8481535)); // Cute Pig
+
 		// Vasily Podkolzin
 		add(scorer("https://giphy.com/gifs/nhl-canucks-vancouver-vasily-podkolzin-kfoBVfXLNnyTLUsiiP", 8481617)); // Pointing to numbers on back
 		add(scorer("https://giphy.com/gifs/nhl-canucks-vancouver-vasily-podkolzin-j3b6IgLByJtcYtYHeY", 8481617)); // Grab cap; Zoom
@@ -84,13 +86,8 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://tenor.com/view/canucks-goal-vancouver-canucks-goal-vasily-podkolzin-gif-23456396", 8481617)); // Canucks Graphic 2021
 
 		// Connor Garland
-		add(scorer("**JAWS!** 🦈", 8480012));
-		add(scorer("**Top Shelf, Angry Elf**", 8480012));
-		add(scorer("**おまえは　もう　死んでいる。 (Omaeha mou shindeiru.)**"
-						+ "\nhttps://i.redd.it/b6x0grvcxbv71.png", 8480012)); // Death Stare
-		add(scorer("**Where's the Munchkin? - Brock**"
-				+ "\nhttps://i.redd.it/b6x0grvcxbv71.png", 8480012)); // https://twitter.com/sportsnetmurph/status/1452136672271867916?s=20
-		add(scorer("https://giphy.com/gifs/canucks-conor-garland-goal-2021-ZBOuVtS3f3WoZNFEJu", 8480012)); // Canucks Graphic 2021
+		add(scorer("https://i.redd.it/b6x0grvcxbv71.png", 8478856)); // Death Stare
+		add(scorer("https://giphy.com/gifs/canucks-conor-garland-goal-2021-ZBOuVtS3f3WoZNFEJu", 8478856)); // Canucks Graphic 2021
 
 		// Quinne Huges
 		add(scorer("**Huggy Bear!** 🧸", 8480800));

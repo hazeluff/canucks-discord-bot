@@ -46,12 +46,6 @@ public class CustomMessage {
 	/*
 	 * Convenient Instance Creators
 	 */
-	public static CustomMessage scorer(String message, int playerId) {
-		return new CustomMessage(
-				message, 
-				goalEvent -> goalEvent.getPlayers().get(0).getId() == playerId, 
-				2);
-	}
 
 	public static CustomMessage hatTrick(String message, int playerId) {
 		return new CustomMessage(
@@ -62,6 +56,13 @@ public class CustomMessage {
 					return numGoals == 3;
 				}, 
 				3);
+	}
+	
+	public static CustomMessage scorer(String message, int playerId) {
+		return new CustomMessage(
+				message, 
+				goalEvent -> goalEvent.getPlayers().get(0).getId() == playerId, 
+				2);
 	}
 
 	public static CustomMessage involved(String message, int playerId) {

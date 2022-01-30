@@ -3,7 +3,6 @@ package com.hazeluff.discord.bot.command;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -26,7 +25,8 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
@@ -77,15 +77,16 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	protected void sendMessage(MessageCreateEvent event, String message) {
-		sendMessage(event, spec -> spec.setContent(message));
+		MessageCreateSpec messageCreateSpec = MessageCreateSpec.builder().content(message).build();
+		sendMessage(event, messageCreateSpec);
 	}
 
-	protected void sendMessage(MessageCreateEvent event, Consumer<MessageCreateSpec> spec) {
+	protected void sendMessage(MessageCreateEvent event, MessageCreateSpec spec) {
 		TextChannel channel = (TextChannel) nhlBot.getDiscordManager().block(event.getMessage().getChannel());
 		sendMessage(channel, spec);
 	}
 
-	protected void sendMessage(TextChannel channel, Consumer<MessageCreateSpec> spec) {
+	protected void sendMessage(TextChannel channel, MessageCreateSpec spec) {
 		nhlBot.getDiscordManager().sendMessage(channel, spec);
 	}
 
@@ -152,11 +153,9 @@ public abstract class Command extends ReactiveEventAdapter {
 				|| hasPermissions(guild, user, Arrays.asList(Permission.MANAGE_CHANNELS, Permission.ADMINISTRATOR));
 	}
 
-	static final Consumer<? super InteractionApplicationCommandCallbackSpec> MUST_HAVE_PERMISSIONS_MESSAGE = 
-			callbackSpec -> callbackSpec
-					.setContent("You must have _Admin_ or _Manage Channels_ roles to use this command.")
-					.setEphemeral(true);
-
+	static final String MUST_HAVE_PERMISSIONS_MESSAGE = 
+			"You must have _Admin_ or _Manage Channels_ roles to use this command.";
+	
 	Member getMessageAuthor(Message message) {
 		return nhlBot.getDiscordManager().block(message.getAuthorAsMember());
 	}
@@ -260,5 +259,31 @@ public abstract class Command extends ReactiveEventAdapter {
 				.flatMap(ApplicationCommandInteractionOption::getValue)
 				.map(ApplicationCommandInteractionOptionValue::asLong)
 				.orElse(null);
+	}
+
+	public static Mono<Message> deferReply(ChatInputInteractionEvent event, String message) {
+		return deferReply(event, message, false);
+	}
+
+	public static Mono<Message> deferReply(ChatInputInteractionEvent event, String message, boolean ephermeral) {
+		InteractionFollowupCreateSpec spec = InteractionFollowupCreateSpec.builder()
+				.content(message)
+				.ephemeral(ephermeral)
+				.build();
+		return event.deferReply().withEphemeral(ephermeral).then(event.createFollowup(spec));
+	}
+
+	public static Mono<Message> deferReply(ChatInputInteractionEvent event, EmbedCreateSpec embedCreateSpec) {
+		return deferReply(event, embedCreateSpec, false);
+	}
+
+	public static Mono<Message> deferReply(ChatInputInteractionEvent event,
+			EmbedCreateSpec embedCreateSpec,
+			boolean ephermeral) {
+		InteractionFollowupCreateSpec spec = InteractionFollowupCreateSpec.builder()
+				.addEmbed(embedCreateSpec)
+				.ephemeral(ephermeral)
+				.build();
+		return event.deferReply().withEphemeral(ephermeral).then(event.createFollowup(spec));
 	}
 }

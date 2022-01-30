@@ -1,8 +1,6 @@
 package com.hazeluff.discord.bot;
 
 
-import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +17,7 @@ public class WelcomeChannel extends Thread {
 
 	private static final String CHANNEL_NAME = "welcome";
 
-	// Update every hour
-	private static final Consumer<MessageCreateSpec> UPDATED_MESSAGE = spec -> spec
-			.setContent("I was just deployed/restarted.");
+	private static final String UPDATED_MESSAGE = "I was just deployed/restarted.";
 
 	private final NHLBot nhlBot;
 	private final TextChannel channel;
@@ -65,10 +61,11 @@ public class WelcomeChannel extends Thread {
 					nhlBot.getDiscordManager().block(channel.getLastMessage()));
 		}
 		nhlBot.getDiscordManager().sendMessage(channel, UPDATED_MESSAGE);
-		nhlBot.getDiscordManager().sendMessage(channel, spec -> {
-			spec.setContent("About the bot:");
-			spec.addEmbed(AboutCommand.EMBED_SPEC);
-		});
+		nhlBot.getDiscordManager().sendMessage(channel, MessageCreateSpec.builder()
+			.content("About the bot:")
+			.addEmbed(AboutCommand.EMBED_SPEC)
+			.build()
+		);
 		nhlBot.getDiscordManager().sendMessage(channel, HelpCommand.COMMAND_LIST);
 	}
 }

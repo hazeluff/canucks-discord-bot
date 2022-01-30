@@ -46,24 +46,24 @@ public class NextGameCommand extends Command {
 		List<Team> preferredTeams = preferences.getTeams();
 
 		if (preferredTeams.isEmpty()) {
-			return event.replyEphemeral(SUBSCRIBE_FIRST_MESSAGE);
+			return event.reply(SUBSCRIBE_FIRST_MESSAGE).withEphemeral(true);
 		}
 
 		if (preferredTeams.size() == 1) {
 			Game nextGame = nhlBot.getGameScheduler().getNextGame(preferredTeams.get(0));
 			if (nextGame == null) {
-				return event.replyEphemeral(NO_NEXT_GAME_MESSAGE);
+				return event.reply(NO_NEXT_GAME_MESSAGE).withEphemeral(true);
 			}
-			return event.replyEphemeral(getNextGameDetailsMessage(nextGame, preferences));
+			return event.reply(getNextGameDetailsMessage(nextGame, preferences)).withEphemeral(true);
 		}
 
 		Set<Game> games = preferredTeams.stream().map(team -> nhlBot.getGameScheduler().getNextGame(team))
 				.filter(Objects::nonNull).collect(Collectors.toSet());
 		if (games.isEmpty()) {
-			return event.replyEphemeral(NO_NEXT_GAMES_MESSAGE);
+			return event.reply(NO_NEXT_GAMES_MESSAGE).withEphemeral(true);
 		}
 
-		return event.replyEphemeral(getNextGameDetailsMessage(games, preferences));
+		return event.reply(getNextGameDetailsMessage(games, preferences)).withEphemeral(true);
 	}
 
 	static final String NO_NEXT_GAME_MESSAGE = "There may not be a next game.";

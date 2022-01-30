@@ -53,7 +53,7 @@ public class PredictionsCommand extends Command {
 			String message = String.format("You placed %s.\n"
 					+ "You predicted %s games correctly out of %s. There are/were a total of %s games to predict on.",
 					place, score.getNumCorrect(), score.getTotalPredictions(), score.getTotalGames());
-			return event.replyEphemeral(message);
+			return event.reply(message).withEphemeral(true);
 		}
 		
 		// Server Ranking/Scores

@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -57,6 +56,7 @@ import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.object.reaction.ReactionEmoji.Unicode;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -147,14 +147,13 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong());
 		Category category = nhlBot.getGdcCategoryManager().get(guild);
 		if (!nhlBot.getDiscordManager().getTextChannels(guild).stream().anyMatch(channelMatcher)) {
-			Consumer<TextChannelCreateSpec> channelSpec = spec -> {
-				spec.setName(channelName);
-				spec.setTopic(preferences.getCheer());
-				if (category != null) {
-					spec.setParentId(category.getId());
-				}
-			};
-			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, channelSpec);
+			TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
+			channelSpecBuilder.name(channelName);
+			channelSpecBuilder.topic(preferences.getCheer());
+			if (category != null) {
+				channelSpecBuilder.parentId(category.getId());
+			}
+			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, channelSpecBuilder.build());
 			if (channel != null) {
 				preferences.getTimeZone();
 				Message message = sendAndGetMessage(getDetailsMessage(preferences.getTimeZone()));
@@ -465,7 +464,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		if (messageContent != null) {
 			sendMessage(messageContent);
 		}
-		Message message = sendAndGetMessage(spec -> spec.addEmbed(buildGoalMessageEmbed(event)));
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
+				.addEmbed(buildGoalMessageEmbed(event))
+				.build();
+		Message message = sendAndGetMessage(messageSpec);
 		if (message != null) {
 			goalEventMessages.put(event.getId(), message);
 			meta.setGoalMessageIds(goalEventMessages);
@@ -479,7 +481,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = goalEventMessages.get(event.getId());
-			nhlBot.getDiscordManager().updateMessage(message, spec -> spec.addEmbed(buildGoalMessageEmbed(event)));
+			MessageEditSpec messageSpec = MessageEditSpec.builder()
+					.addEmbed(buildGoalMessageEmbed(event))
+					.build();
+			nhlBot.getDiscordManager().updateMessage(message, messageSpec);
 		}
 	}
 
@@ -496,17 +501,20 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				|| !oldEvent.getTeam().equals(newEvent.getTeam());
 	}
 
-	public static Consumer<EmbedCreateSpec> buildGoalMessageEmbed(GoalEvent event) {
+	public static EmbedCreateSpec buildGoalMessageEmbed(GoalEvent event) {
+		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
+
 		List<Player> players = event.getPlayers();
 
 		String scorer = players.get(0).getFullName();
 
 		switch (event.getPeriod().getType()) {
 		case SHOOTOUT:
-			return spec -> spec
-					.setColor(event.getTeam().getColor())
+			return builder
+					.color(event.getTeam().getColor())
 					.addField(scorer, "Shootout goal", false)
-					.setFooter("Shootout", null);
+					.footer("Shootout", null)
+					.build();
 		default:
 			String description = event.getTeam().getFullName() + " "
 					+ event.getStrength().getValue().toLowerCase()
@@ -520,11 +528,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 			String fAssists = assists;
 			String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
-			return spec -> spec
-					.setDescription(description)
-					.setColor(event.getTeam().getColor())
+			return builder
+					.description(description)
+					.color(event.getTeam().getColor())
 					.addField(scorer, fAssists, false)
-					.setFooter(time, null);
+					.footer(time, null)
+					.build();
 		}
 	}
 
@@ -576,8 +585,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	
 	void sendPenaltyMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
-		Message message = sendAndGetMessage(spec -> spec
-				.addEmbed(buildPenaltyMessageEmbed(event)));
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
+				.addEmbed(buildPenaltyMessageEmbed(event))
+				.build();
+		Message message = sendAndGetMessage(messageSpec);
 		if (message != null) {
 			penaltyEventMessages.put(event.getId(), message);
 			meta.setPenaltyMessageIds(penaltyEventMessages);
@@ -591,8 +602,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = penaltyEventMessages.get(event.getId());
-			nhlBot.getDiscordManager().updateMessage(message, spec -> spec
-					.addEmbed(buildPenaltyMessageEmbed(event)));
+
+			MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(buildPenaltyMessageEmbed(event)).build();
+			nhlBot.getDiscordManager().updateMessage(message, messageSpec);
 		}
 	}
 
@@ -609,7 +621,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				|| oldEvent.getMinutes() != newEvent.getMinutes();
 	}
 
-	public static Consumer<EmbedCreateSpec> buildPenaltyMessageEmbed(PenaltyEvent event) {
+	public static EmbedCreateSpec buildPenaltyMessageEmbed(PenaltyEvent event) {
 		String header = String.format("%s - %s Penalty", event.getTeam().getLocation(), event.getSeverity());
 		StringBuilder description = new StringBuilder();
 		if (event.getPlayers().size() > 0) {
@@ -625,10 +637,11 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				event.getSecondaryType(), event.getMinutes()));
 		
 		String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
-		return spec -> spec
-				.setColor(event.getTeam().getColor())
+		return EmbedCreateSpec.builder()
+				.color(event.getTeam().getColor())
 				.addField(header, description.toString(), false)
-				.setFooter(time, null);
+				.footer(time, null)
+				.build();
 	}
 
 	/*
@@ -655,19 +668,21 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private Message sendSummaryMessage() {
-		return nhlBot.getDiscordManager().sendAndGetMessage(channel, 
-				messageSpec -> messageSpec
-						.addEmbed(embedSpec -> GDCScoreCommand.buildEmbed(embedSpec, game))
-						.addEmbed(embedSpec -> GDCGoalsCommand.buildEmbed(embedSpec, game))
-		);
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(getSummaryEmbedSpec()).build();
+		
+		return nhlBot.getDiscordManager().sendAndGetMessage(channel, messageSpec);
 	}
 
 	private void updateSummaryMessage() {
-		nhlBot.getDiscordManager().updateMessage(summaryMessage, 
-				messageSpec -> messageSpec
-						.addEmbed(embedSpec -> GDCScoreCommand.buildEmbed(embedSpec, game))
-						.addEmbed(embedSpec -> GDCGoalsCommand.buildEmbed(embedSpec, game))
-		);
+		MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(getSummaryEmbedSpec()).build();
+		nhlBot.getDiscordManager().updateMessage(summaryMessage, messageSpec);
+	}
+	
+	private EmbedCreateSpec getSummaryEmbedSpec() {
+		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+		GDCScoreCommand.buildEmbed(embedBuilder, game);
+		GDCGoalsCommand.buildEmbed(embedBuilder, game);
+		return embedBuilder.build();
 	}
 
 	/*
@@ -739,7 +754,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	protected void sendMessage(Consumer<MessageCreateSpec> spec) {
+	protected void sendMessage(MessageCreateSpec spec) {
 		if (channel != null) {
 			nhlBot.getDiscordManager().sendMessage(channel, spec);
 		}
@@ -750,7 +765,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				: nhlBot.getDiscordManager().sendAndGetMessage(channel, message);
 	}
 
-	protected Message sendAndGetMessage(Consumer<MessageCreateSpec> spec) {
+	protected Message sendAndGetMessage(MessageCreateSpec spec) {
 		return channel == null ? null
 				: nhlBot.getDiscordManager().sendAndGetMessage(channel, spec);
 	}
@@ -1051,8 +1066,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
 	public static String getDetailsMessage(Game game, ZoneId timeZone) {
-		String message = String.format("**%s** vs **%s** at **%s** on **%s**", game.getHomeTeam().getFullName(),
-				game.getAwayTeam().getFullName(), getTime(game, timeZone), getNiceDate(game, timeZone));
+		String message = String.format("**%s** vs **%s** at <t:%s>", 
+				game.getHomeTeam().getFullName(),
+				game.getAwayTeam().getFullName(), 
+				game.getDate().toEpochSecond());
 		return message;
 	}
 

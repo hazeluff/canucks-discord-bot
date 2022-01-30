@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.utils.Utils;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -70,24 +69,16 @@ public class FuckCommand extends Command {
 
 		// Is a mention
 		if (who.startsWith("<@") && who.endsWith(">")) {
-			return event.reply(buildDontAtReply(event.getInteraction().getUser()));
-		}
-
-		Map<String, List<String>> responses = loadResponsesFromCollection();
-		if (responses.containsKey(who)) {
-			return event.reply(Utils.getRandom(responses.get(who)));
+			User user = event.getInteraction().getUser();
+			return event.reply(user.getMention() + ". Don't @ people, you dingus.");
 		}
 		
-		return event.replyEphemeral(DONT_BE_RUDE);
+		return event.reply(DONT_BE_RUDE_REPLY).withEphemeral(true);
 	}
 
 	static final String NO_YOU_REPLY = "No U.";
 	static final String HAZELUFF_REPLY = "Hazeluff doesn't give a fuck.";
-	static final String DONT_BE_RUDE = "Don't be rude, please.";
-
-	static String buildDontAtReply(User user) {
-		return user.getMention() + ". Don't @ people, you dingus.";
-	}
+	static final String DONT_BE_RUDE_REPLY = "Don't be rude, please.";
 
 	void add(String subject, String response) {
 		subject = subject.toLowerCase();

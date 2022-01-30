@@ -41,7 +41,7 @@ public abstract class Topic {
 
 	protected void sendMessage(MessageCreateEvent event, String message) {
 		TextChannel channel = (TextChannel) nhlBot.getDiscordManager().block(event.getMessage().getChannel());
-		nhlBot.getDiscordManager().sendMessage(channel, spec -> spec.setContent(message));
+		nhlBot.getDiscordManager().sendMessage(channel, message);
 	}
 
 	/**

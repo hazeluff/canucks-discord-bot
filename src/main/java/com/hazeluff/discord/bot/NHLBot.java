@@ -21,7 +21,6 @@ import com.hazeluff.discord.bot.command.FuckCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
-import com.hazeluff.discord.bot.command.PredictionsCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
 import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
@@ -43,10 +42,9 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.presence.Activity;
-import discord4j.core.object.presence.Presence;
+import discord4j.core.object.presence.ClientActivity;
+import discord4j.core.object.presence.ClientPresence;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import discord4j.discordjson.json.gateway.StatusUpdate;
 import discord4j.rest.RestClient;
 import discord4j.rest.http.client.ClientException;
 import discord4j.rest.request.RouteMatcher;
@@ -58,9 +56,10 @@ import reactor.retry.Retry;
 public class NHLBot extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLBot.class);
 
-	private static final StatusUpdate STARTING_UP_STATUS = Presence.doNotDisturb(Activity.watching("itself start up"));
-	private static final StatusUpdate ONLINE_PRESENCE = Presence.online(Activity.playing(Config.STATUS_MESSAGE));
-
+	private static final ClientPresence STARTING_UP_PRESENCE = ClientPresence.doNotDisturb(
+			ClientActivity.watching("itself starting up..."));
+	private static final ClientPresence ONLINE_PRESENCE = ClientPresence.online(
+			ClientActivity.streaming(Config.STATUS_MESSAGE, Config.GIT_URL));
 	private static long UPDATE_PLAY_STATUS_INTERVAL = 3600000l;
 
 	private AtomicReference<DiscordManager> discordManager = new AtomicReference<>();
@@ -98,7 +97,7 @@ public class NHLBot extends Thread {
 		}
 
 		// Set starting up status
-		nhlBot.getDiscordManager().changePresence(STARTING_UP_STATUS);
+		nhlBot.getDiscordManager().changePresence(STARTING_UP_PRESENCE);
 
 		// Attach Listeners
 		attachListeners(nhlBot);
@@ -334,7 +333,6 @@ public class NHLBot extends Thread {
 				new GDCCommand(nhlBot),
 				new HelpCommand(nhlBot),
 				new NextGameCommand(nhlBot),
-				new PredictionsCommand(nhlBot),
 				new SubscribeCommand(nhlBot),
 				new ScheduleCommand(nhlBot),
 				new StatsCommand(nhlBot),

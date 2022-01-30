@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.reactivestreams.Publisher;
 
@@ -83,7 +82,7 @@ public class WordcloudCommand extends Command {
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!isOwner(guild, user)
 				&& !hasPermissions(guild, user, Arrays.asList(Permission.ADMINISTRATOR))) {
-			return event.replyEphemeral(MUST_HAVE_PERMISSIONS_MESSAGE);
+			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE).withEphemeral(true);
 		}
 
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
@@ -103,7 +102,7 @@ public class WordcloudCommand extends Command {
 		} else {
 			sendWordcloud(channel, game, timeZone, new LinearFontScalar(minFont.intValue(), maxFont.intValue()));
 		}
-		return event.replyEphemeral(ACKNOWLEDGED);
+		return event.reply(ACKNOWLEDGED).withEphemeral(true);
 	}
 
 	static final String MUST_HAVE_PERMISSIONS_MESSAGE = 
@@ -139,7 +138,7 @@ public class WordcloudCommand extends Command {
 		}).start();
 	}
 	
-	private Consumer<MessageCreateSpec> getReply(String title, List<String> messages, FontScalar fontScaler) {
+	private MessageCreateSpec getReply(String title, List<String> messages, FontScalar fontScaler) {
 		
 		// Create WordCloud
 		final FrequencyAnalyzer frequencyAnalyzer = new FrequencyAnalyzer();
@@ -171,8 +170,9 @@ public class WordcloudCommand extends Command {
 		InputStream fileStream = new ByteArrayInputStream(wordcloudStream.toByteArray());
 		String message = title + String.format(". Total Messages: %s", messages.size());
 		
-		return messageCreateSpec -> messageCreateSpec
+		return MessageCreateSpec.builder()
 				.addFile(fileName, fileStream)
-				.setContent(message);
+				.content(message)
+				.build();
 	}
 }

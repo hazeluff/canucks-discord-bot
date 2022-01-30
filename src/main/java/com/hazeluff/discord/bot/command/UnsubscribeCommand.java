@@ -1,7 +1,6 @@
 package com.hazeluff.discord.bot.command;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.reactivestreams.Publisher;
 
@@ -12,9 +11,10 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
-import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.object.entity.Message;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import reactor.core.publisher.Mono;
 
 /**
  * Unsubscribes guilds from a team.
@@ -49,7 +49,7 @@ public class UnsubscribeCommand extends Command {
 		Guild guild = getGuild(event);
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!hasPrivilege(guild, user)) {
-			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
+			return deferReply(event, MUST_HAVE_PERMISSIONS_MESSAGE);
 		}
 
 		String strTeam = getOptionAsString(event, "team");
@@ -58,18 +58,15 @@ public class UnsubscribeCommand extends Command {
 			// Unsubscribe from all teams
 			nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), null);
 			nhlBot.getGameDayChannelsManager().updateChannels(guild);
-			return event.reply(UNSUBSCRIBED_FROM_ALL_MESSAGE);
+			return deferReply(event, UNSUBSCRIBED_FROM_ALL_MESSAGE);
 		}
 
 		if (!Team.isValid(strTeam)) {
-			return event.replyEphemeral(getInvalidTeamCodeMessage(strTeam));
+			return deferReply(event, getInvalidTeamCodeMessage(strTeam), true);
 		}
 
 		Team team = Team.parse(strTeam);
-		// Subscribe guild
-		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), team);
-		nhlBot.getGameDayChannelsManager().updateChannels(guild);
-		return event.reply(buildUnsubscribeMessage(team));
+		return event.deferReply().then(unsubscribeGuildAndFollowup(event, guild, team));
 	}
 
 	static final String HELP_MESSAGE = "Unsubscribe from Game Day Channels of the specified team."
@@ -78,10 +75,10 @@ public class UnsubscribeCommand extends Command {
 			+ HelpCommand.listOfTeams()
 			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
 	
-	static final Consumer<MessageCreateSpec> SPECIFY_TEAM_MESSAGE = spec -> spec
-			.setContent("You must specify a parameter for what team you want to unsubscribe from. "
+	static final String SPECIFY_TEAM_MESSAGE = 
+			"You must specify a parameter for what team you want to unsubscribe from. "
 					+ "`?subscribe [team]`\n"
-					+ "You may also use `?unsubscrube all` to unsubscribe from **all** teams.");
+					+ "You may also use `?unsubscrube all` to unsubscribe from **all** teams.";
 
 	String buildHelpMessage(Guild guild) {
 		StringBuilder response = new StringBuilder(
@@ -98,6 +95,16 @@ public class UnsubscribeCommand extends Command {
 		response.append("all - all teams");
 		response.append("```\n");
 		return response.toString();
+	}
+
+	private void unsubscribeGuild(Guild guild, Team team) {
+		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), team);
+		nhlBot.getGameDayChannelsManager().updateChannels(guild);
+	}
+
+	private Mono<Message> unsubscribeGuildAndFollowup(ChatInputInteractionEvent event, Guild guild, Team team) {
+		unsubscribeGuild(guild, team);
+		return event.createFollowup(buildUnsubscribeMessage(team));
 	}
 
 	static String buildUnsubscribeMessage(Team team) {

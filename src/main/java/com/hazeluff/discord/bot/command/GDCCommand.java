@@ -2,7 +2,6 @@ package com.hazeluff.discord.bot.command;
 
 import java.util.Arrays;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -18,10 +17,13 @@ import com.hazeluff.nhl.game.Game;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import reactor.core.publisher.Mono;
 
 /**
  * Displays the score of a game in a Game Day Channel.
@@ -64,7 +66,11 @@ public class GDCCommand extends Command {
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			// Not in game day channel
-			return event.reply(HELP_MESSAGE);
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.addEmbed(HELP_MESSAGE_EMBED)
+					.ephemeral(true)
+					.build();
+			return event.reply(spec);
 		}
 
 		/*
@@ -73,7 +79,11 @@ public class GDCCommand extends Command {
 		String strSubcommand = getOptionAsString(event, "subcommand");
 		if (strSubcommand == null) {
 			// No option specified
-			return event.reply(HELP_MESSAGE);
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.addEmbed(HELP_MESSAGE_EMBED)
+					.ephemeral(true)
+					.build();
+			return event.reply(spec);
 		}
 
 		/*
@@ -82,19 +92,17 @@ public class GDCCommand extends Command {
 		if (strSubcommand.equals("sync")) {
 			Member user = event.getInteraction().getMember().orElse(null);
 			if (user != null && !isDev(user.getId())) {
-				return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
+				return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE).withEphemeral(true);
 			}
-			game.fetchLiveData();
-			return event.replyEphemeral("Synced game data.");
+			return event.deferReply().then(syncGameAndFollowup(event, game));
 		}
 
 		if (strSubcommand.equals("update")) {
 			Member user = event.getInteraction().getMember().orElse(null);
 			if (user != null && !isDev(user.getId())) {
-				return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
+				return deferReply(event, MUST_HAVE_PERMISSIONS_MESSAGE);
 			}
-			// TODO: Update game day channel
-			return event.replyEphemeral("Updated channel.");
+			return event.deferReply().then(updateChannelAndFollowup(event, game));
 		}
 
 		/*
@@ -104,23 +112,41 @@ public class GDCCommand extends Command {
 		if (subCommand != null) {
 			return subCommand.reply(event, game);
 		}
+		InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+				.addEmbed(HELP_MESSAGE_EMBED)
+				.ephemeral(true)
+				.build();
+		return event.reply(spec);
+	}
 
-		return event.reply(HELP_MESSAGE);
+	private Mono<Message> syncGameAndFollowup(ChatInputInteractionEvent event, Game game) {
+		game.fetchLiveData();
+		return event.createFollowup("Synced game data.");
+	}
+
+	private Mono<Message> updateChannelAndFollowup(ChatInputInteractionEvent event, Game game) {
+		return event.createFollowup("Channel Updated.");
 	}
 
 	/*
 	 * General
 	 */
-	public static final Consumer<? super InteractionApplicationCommandCallbackSpec> HELP_MESSAGE = 
-			callbackSpec -> callbackSpec
-					.addEmbed(embedSpec -> { embedSpec
-							.setTitle("Game Day Channel - Commands")
-							.setDescription("Use `/gdc subcommand:` in to get live data about the current game."
-									+ " Must be used in a Game Day Channel.");
-						// List the subcommands
-						SUB_COMMANDS.entrySet().forEach(subCmd -> embedSpec
-								.addField(subCmd.getKey(), subCmd.getValue().getDescription(), false));
-					})
-					.setEphemeral(true);
+	public static final EmbedCreateSpec HELP_MESSAGE_EMBED = buildHelpMessageEmbed();
+
+	private static EmbedCreateSpec buildHelpMessageEmbed() {
+		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
+		builder.title("Game Day Channel - Commands");
+		builder.description("Use `/gdc subcommand:` in to get live data about the current game."
+						+ " Must be used in a Game Day Channel.");
+
+		// List the subcommands
+		SUB_COMMANDS.entrySet()
+				.forEach(subCmd -> builder.addField(
+					subCmd.getKey(), 
+					subCmd.getValue().getDescription(), 
+					false)
+				);
+		return builder.build();
+	}
 	
 }

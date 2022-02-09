@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -138,9 +139,11 @@ public class GameScheduler extends Thread {
 		// Retrieve schedule/game information from NHL API
 		games = getRawGames().entrySet()
 		        .stream()
+		        .map(e -> Game.parse(e.getValue()))
+		        .filter(Objects::nonNull)
 				.collect(Collectors.toConcurrentMap(
-						e -> e.getKey(),
-						e -> Game.parse(e.getValue())));
+						game -> game.getGamePk(),
+						game -> game));
 		LOGGER.info("Retrieved all games: [" + games.size() + "]");
 		LOGGER.info("Finished Initialization.");
 	}

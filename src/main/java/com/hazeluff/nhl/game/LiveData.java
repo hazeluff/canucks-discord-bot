@@ -8,6 +8,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonInvalidOperationException;
+import org.bson.BsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,22 +37,26 @@ public class LiveData {
 		return liveData;
 	}
 
+
 	public void update() {
 		if (getTimecode() != null) {
-			BsonArray jsonDiffs = fetchPatch(gamePk, getTimecode());
-			jsonDiffs.forEach(jsonDiff -> applyPatch(jsonDiff.asDocument().getArray("diff")));
+			try {
+				patchLiveData();
+			} catch (BsonPatchApplicationException e) {
+				LOGGER.warn("Could not apply diffs. Fetching full data...");
+				fetchLiveData();
+			}
 		} else {
 			fetchLiveData();
 		}
 	}
 
-	private void applyPatch(BsonArray patches) {
-		try {
-			BsonPatch.applyInPlace(patches, getJson());
-		} catch (BsonPatchApplicationException e) {
-			LOGGER.warn("Could not apply patch: " + patches);
-			fetchLiveData();
+	private void patchLiveData() {
+		BsonArray jsonDiffs = fetchDiffs(gamePk, getTimecode());
+		for (BsonValue jsonDiff : jsonDiffs) {
+			BsonPatch.applyInPlace(jsonDiff.asDocument().getArray("diff"), getJson());
 		}
+
 	}
 
 	public void fetchLiveData() {
@@ -62,7 +67,7 @@ public class LiveData {
 		return BsonDocument.parse(fetchDataJson(gamePk, null));
 	}
 
-	private static BsonArray fetchPatch(int gamePk, String timeCode) {
+	private static BsonArray fetchDiffs(int gamePk, String timeCode) {
 		return BsonArray.parse(fetchDataJson(gamePk, timeCode));
 	}
 

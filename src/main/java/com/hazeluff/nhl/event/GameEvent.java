@@ -85,5 +85,28 @@ public class GameEvent {
 				.collect(Collectors.toList());
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((rawJson == null) ? 0 : rawJson.hashCode());
+		return result;
+	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GameEvent other = (GameEvent) obj;
+		if (rawJson == null) {
+			if (other.rawJson != null)
+				return false;
+		} else if (!rawJson.equals(other.rawJson))
+			return false;
+		return true;
+	}
 }

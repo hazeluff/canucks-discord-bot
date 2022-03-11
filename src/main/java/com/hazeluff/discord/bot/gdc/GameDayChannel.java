@@ -291,8 +291,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private boolean isGameUpdated() {
-		// TODO: Actually implement this
-		return true;
+		boolean scoringUpdated = !cachedGoalEvents.equals(game.getScoringEvents());
+		boolean penaltyUpdated = !cachedPenaltyEvents.equals(game.getPenaltyEvents());
+		return scoringUpdated || penaltyUpdated;
 	}
 
 	private void updateCachedData() {

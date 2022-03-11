@@ -18,7 +18,7 @@ public class RudeTopic extends Topic {
 	public void execute(MessageCreateEvent event) {
 		String reply = Utils.getRandom(Arrays.asList(
 				"Nah, you should fuck off.", 
-				"Go kill yourself.", 
+				"Go ahead and leave the server.", 
 				"You can suck my dick.",
 				"Go take it, and shove it up your butt.", 
 				"Please, eat shit and die.", 

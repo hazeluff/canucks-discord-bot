@@ -16,6 +16,8 @@ import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
+import com.hazeluff.nhl.game.data.LiveData;
+import com.hazeluff.nhl.game.data.LiveDataException;
 
 
 public class Game {
@@ -68,9 +70,9 @@ public class Game {
 		}
 	}
 
-	public void fetchLiveData() {
+	public void resetLiveData() throws LiveDataException {
 		if (liveData != null) {
-			liveData.fetchLiveData();
+			liveData.resetLiveData();
 		}
 	}
 
@@ -157,7 +159,7 @@ public class Game {
 		if (liveData == null) {
 			return Collections.emptyList();
 		}
-		return liveData.getLiveData().getDocument("plays").getArray("allPlays")
+		return liveData.getPlays().getArray("allPlays")
 				.getValues()
 				.stream()
 				.map(BsonValue::asDocument)

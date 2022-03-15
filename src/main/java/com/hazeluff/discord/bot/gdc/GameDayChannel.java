@@ -244,7 +244,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		summaryMessage = getSummaryMessage();
 		pollMessage = getPredictionMessage();
 
-		updateCachedData();
+		// updateCachedData();
 
 		if (!game.getStatus().isFinished()) {
 
@@ -266,13 +266,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 
 			while (!gameTracker.isFinished()) {
-				if (isGameUpdated()) {
-					updateGoalMessages();
-					updatePenaltyMessages();
-					updateSummaryMessage();
-
-					updateCachedData();
-				}
+				refreshMessages();
 
 				if (game.getStatus().isFinished()) {
 					updateEndOfGameMessage();
@@ -288,6 +282,19 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Deregister processing on ReactionListener
 		unregisterFromListener();
 		LOGGER.info("Thread Completed");
+	}
+
+	/**
+	 * Used to update all messages.
+	 */
+	public void refreshMessages() {
+		if (isGameUpdated()) {
+			updateGoalMessages();
+			updatePenaltyMessages();
+			updateSummaryMessage();
+
+			updateCachedData();
+		}
 	}
 
 	private boolean isGameUpdated() {

@@ -41,7 +41,7 @@ public class GameDayChannelsManager extends Thread {
 		return new ConcurrentHashMap<>(gameDayChannels);
 	}
 
-	GameDayChannel getGameDayChannel(long guildId, int gamePk) {
+	public GameDayChannel getGameDayChannel(long guildId, int gamePk) {
 		if (!gameDayChannels.containsKey(guildId)) {
 			return null;
 		}

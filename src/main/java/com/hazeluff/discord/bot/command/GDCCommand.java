@@ -12,7 +12,9 @@ import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
+import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.data.LiveDataException;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -97,12 +99,12 @@ public class GDCCommand extends Command {
 			return event.deferReply().then(syncGameAndFollowup(event, game));
 		}
 
-		if (strSubcommand.equals("update")) {
+		if (strSubcommand.equals("refresh")) {
 			Member user = event.getInteraction().getMember().orElse(null);
 			if (user != null && !isDev(user.getId())) {
 				return deferReply(event, MUST_HAVE_PERMISSIONS_MESSAGE);
 			}
-			return event.deferReply().then(updateChannelAndFollowup(event, game));
+			return event.deferReply().then(refreshChannelAndFollowup(event, game));
 		}
 
 		/*
@@ -120,12 +122,28 @@ public class GDCCommand extends Command {
 	}
 
 	private Mono<Message> syncGameAndFollowup(ChatInputInteractionEvent event, Game game) {
-		game.fetchLiveData();
+		try {
+			game.resetLiveData();
+		} catch (LiveDataException e) {
+			return event.createFollowup("Failed to sync game data.");
+		}
 		return event.createFollowup("Synced game data.");
 	}
 
-	private Mono<Message> updateChannelAndFollowup(ChatInputInteractionEvent event, Game game) {
-		return event.createFollowup("Channel Updated.");
+	private Mono<Message> refreshChannelAndFollowup(ChatInputInteractionEvent event, Game game) {
+		long guildId = event.getInteraction().getGuildId().get().asLong();
+		GameDayChannel gameDayChannel = nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGamePk());
+		if (gameDayChannel != null) {
+			try {
+				game.resetLiveData();
+			} catch (LiveDataException e) {
+				return event.createFollowup("Failed to sync game data.");
+			}
+			gameDayChannel.refreshMessages();
+			return event.createFollowup("Channel refreshed.");
+		} else {
+			return event.createFollowup("Could not recognize GameDayChannel.");
+		}
 	}
 
 	/*

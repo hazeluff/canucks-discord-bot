@@ -83,8 +83,6 @@ public class GameTracker extends Thread {
 			setName(GameDayChannel.getChannelName(game));
 			game.updateLiveData();
 			if (!game.getStatus().isFinished()) {
-				
-				
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
 				boolean closeToStart;

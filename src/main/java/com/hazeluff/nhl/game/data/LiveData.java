@@ -1,7 +1,6 @@
-package com.hazeluff.nhl.game;
+package com.hazeluff.nhl.game.data;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -15,8 +14,10 @@ import org.slf4j.LoggerFactory;
 import com.ebay.bsonpatch.BsonPatch;
 import com.ebay.bsonpatch.BsonPatchApplicationException;
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.HttpUtils;
+import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.LineScore;
+import com.hazeluff.nhl.game.Status;
 
 /**
  * Class that has methods to patch the underlying JSON of a Game's Live data.
@@ -33,45 +34,59 @@ public class LiveData {
 
 	public static LiveData create(int gamePk) {
 		LiveData liveData = new LiveData(gamePk);
-		liveData.fetchLiveData();
+		try {
+			liveData.resetLiveData();
+		} catch (LiveDataException e) {
+			LOGGER.warn("Could not create LiveData. gamePk=" + gamePk);
+			return null;
+		}
 		return liveData;
 	}
 
 
 	public void update() {
-		if (getTimecode() != null) {
-			try {
-				patchLiveData();
-			} catch (BsonPatchApplicationException e) {
-				LOGGER.warn("Could not apply diffs. Fetching full data...");
-				fetchLiveData();
+		try {
+			if (getTimecode() != null) {
+				try {
+					patchLiveData();
+				} catch (BsonPatchApplicationException e) {
+					LOGGER.warn("Could not apply diffs. Fetching full data...");
+					resetLiveData();
+				}
+			} else {
+				resetLiveData();
 			}
-		} else {
-			fetchLiveData();
+		} catch (LiveDataException e) {
+			LOGGER.warn("Failed to fetch data. gamePk=" + gamePk);
+		} catch (Exception e) {
+			LOGGER.warn("Failed to update. gamePk=" + gamePk);
 		}
+
 	}
 
-	private void patchLiveData() {
+	private void patchLiveData() throws LiveDataException {
+		BsonDocument tempLiveData = getJson();
 		BsonArray jsonDiffs = fetchDiffs(gamePk, getTimecode());
 		for (BsonValue jsonDiff : jsonDiffs) {
-			BsonPatch.applyInPlace(jsonDiff.asDocument().getArray("diff"), getJson());
+			BsonPatch.applyInPlace(jsonDiff.asDocument().getArray("diff"), tempLiveData);
 		}
-
+		rawJson.set(tempLiveData);
 	}
 
-	public void fetchLiveData() {
-		rawJson.set(fetchLiveData(gamePk));
+	public void resetLiveData() throws LiveDataException {
+		BsonDocument jsonLiveData = fetchLiveData(gamePk);
+		rawJson.set(jsonLiveData);
 	}
 
-	private static BsonDocument fetchLiveData(int gamePk) {
+	private static BsonDocument fetchLiveData(int gamePk) throws LiveDataException {
 		return BsonDocument.parse(fetchDataJson(gamePk, null));
 	}
 
-	private static BsonArray fetchDiffs(int gamePk, String timeCode) {
+	private static BsonArray fetchDiffs(int gamePk, String timeCode) throws LiveDataException {
 		return BsonArray.parse(fetchDataJson(gamePk, timeCode));
 	}
 
-	private static String fetchDataJson(int gamePk, String timeCode) {
+	private static String fetchDataJson(int gamePk, String timeCode) throws LiveDataException {
 		String url = Config.NHL_API_URL + "/game/" + gamePk + "/feed/live";
 		if (timeCode != null) {
 			url += "/diffPatch";
@@ -90,13 +105,10 @@ public class LiveData {
 			return HttpUtils.getAndRetry(uri, 
 					3, // retries
 					5000l, //
-					"Update the game.");
-		} catch (URISyntaxException e) {
-			LOGGER.error("Exception building URI.", e);
-		} catch (HttpException e) {
-			LOGGER.error("Exception getting response.", e);
+					"Fetch game data. gamePk=" + gamePk);
+		} catch (Exception e) {
+			throw new LiveDataException("Failed to fetch json.", e);
 		}
-		throw new RuntimeException("Could not fetch live data. gamePk=" + gamePk);
 	}
 
 	protected BsonDocument getJson() {
@@ -115,6 +127,10 @@ public class LiveData {
 		return getJson().getDocument("liveData");
 	}
 
+	public BsonDocument getPlays() {
+		return getLiveData().getDocument("plays");
+	}
+
 	public LineScore getLinescore() {
 		return LineScore.parse(getLiveData().getDocument("linescore"));
 	}
@@ -125,6 +141,5 @@ public class LiveData {
 		} catch (BsonInvalidOperationException e) {
 			return null;
 		}
-
 	}
 }

@@ -244,7 +244,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		summaryMessage = getSummaryMessage();
 		pollMessage = getPredictionMessage();
 
-		// updateCachedData();
+		updateCachedData();
 
 		if (!game.getStatus().isFinished()) {
 

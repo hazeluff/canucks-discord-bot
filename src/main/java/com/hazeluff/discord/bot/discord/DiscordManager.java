@@ -71,35 +71,6 @@ public class DiscordManager {
 		return message.getAuthor().map(User::getId).map(getId()::equals).orElse(false);
 	}
 
-	public <T> T block(Mono<T> mono) {
-		return mono.doOnError(DiscordManager::logError)
-				.retry(2)
-				.onErrorResume(error -> Mono.empty())
-				.blockOptional()
-				.orElseGet(() -> null);
-	}
-
-	public <T> void subscribe(Mono<T> mono) {
-		mono.doOnError(DiscordManager::logError)
-				.retry(2)
-				.subscribe();
-	}
-
-	public <T> List<T> block(Flux<T> flux) {
-		return flux.doOnError(DiscordManager::logError)
-				.collectList()
-				.retry(2)
-				.onErrorResume(error -> Mono.empty())
-				.blockOptional()
-				.orElseGet(() -> null);
-	}
-
-	public <T> void subscribe(Flux<T> flux) {
-		flux.doOnError(DiscordManager::logError)
-				.retry(2)
-				.subscribe();
-	}
-
 	public void changePresence(ClientPresence presence) {
 		subscribe(getClient().updatePresence(presence));
 	}
@@ -492,7 +463,6 @@ public class DiscordManager {
 
 	public User getUser(long userId) {
 		return getClient().getUserById(Snowflake.of(userId))
-				.doOnError(DiscordManager::logError)
 				.retry(0)
 				.timeout(Duration.ofMillis(500))
 				.onErrorResume(error -> Mono.empty())
@@ -507,7 +477,22 @@ public class DiscordManager {
 		LOGGER.warn(message, new NullPointerException());
 	}
 
-	public static void logError(Throwable t) {
-		LOGGER.error("Error occured.", t);
+	public <T> T block(Mono<T> mono) {
+		return mono.retry(1).blockOptional().orElseGet(() -> null);
+	}
+
+	public <T> void subscribe(Mono<T> mono) {
+		mono.retry(1).subscribe();
+	}
+
+	public <T> List<T> block(Flux<T> flux) {
+		return flux.collectList()
+				.retry(1)
+				.blockOptional()
+				.orElseGet(() -> null);
+	}
+
+	public <T> void subscribe(Flux<T> flux) {
+		flux.retry(1).subscribe();
 	}
 }

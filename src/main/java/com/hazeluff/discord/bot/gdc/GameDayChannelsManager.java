@@ -116,19 +116,23 @@ public class GameDayChannelsManager extends Thread {
 		LOGGER.info("GameDayChannelsManager Thread started.");
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
-			LocalDate schedulerUpdate = nhlBot.getGameScheduler().getLastUpdate();
-			if (schedulerUpdate == null) {
-				LOGGER.info("Waiting for GameScheduler to initialize...");
-				Utils.sleep(INIT_UPDATE_RATE);
-			} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
-				LOGGER.info("Updating Channels...");
-				removeFinishedGameDayChannels();
-				deleteInactiveChannels();
-				updateChannels();
-				lastUpdate = schedulerUpdate;
-			} else {
-				LOGGER.trace("Waiting for GameScheduler to update...");
-				Utils.sleep(UPDATE_RATE);
+			try {
+				LocalDate schedulerUpdate = nhlBot.getGameScheduler().getLastUpdate();
+				if (schedulerUpdate == null) {
+					LOGGER.info("Waiting for GameScheduler to initialize...");
+					Utils.sleep(INIT_UPDATE_RATE);
+				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
+					LOGGER.info("Updating Channels...");
+					removeFinishedGameDayChannels();
+					deleteInactiveChannels();
+					updateChannels();
+					lastUpdate = schedulerUpdate;
+				} else {
+					LOGGER.info("Waiting for GameScheduler to update...");
+					Utils.sleep(UPDATE_RATE);
+				}
+			} catch (Exception e) {
+				LOGGER.error("Error occured when updating channels.", e);
 			}
 		}
 	}

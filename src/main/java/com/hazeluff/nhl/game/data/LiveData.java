@@ -49,7 +49,7 @@ public class LiveData {
 			if (getTimecode() != null) {
 				try {
 					patchLiveData();
-				} catch (BsonPatchApplicationException e) {
+				} catch (BsonPatchApplicationException | BsonInvalidOperationException e) {
 					LOGGER.warn("Could not apply diffs. Fetching full data...");
 					resetLiveData();
 				}
@@ -59,7 +59,7 @@ public class LiveData {
 		} catch (LiveDataException e) {
 			LOGGER.warn("Failed to fetch data. gamePk=" + gamePk);
 		} catch (Exception e) {
-			LOGGER.warn("Failed to update. gamePk=" + gamePk);
+			LOGGER.warn("Failed to update. gamePk=" + gamePk, e);
 		}
 
 	}

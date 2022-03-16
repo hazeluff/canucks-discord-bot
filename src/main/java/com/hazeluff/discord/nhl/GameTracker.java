@@ -115,12 +115,11 @@ public class GameTracker extends Thread {
 				// Game has started
 				LOGGER.info("Game has started.");
 
+				// TODO Refactor (possibly avoid premature endings)
 				// The thread terminates when the GameStatus is Final and 10 minutes has elapsed
 				ZonedDateTime lastFinal = null;
-				long timeAfterLast = 0l;
-				while (timeAfterLast < POST_GAME_UPDATE_DURATION) {
-					
-					
+				long timeAfterFinal = 0l;
+				while (timeAfterFinal < POST_GAME_UPDATE_DURATION) {
 					// Main update loop
 					while (!game.getStatus().isFinished()) {
 						game.updateLiveData();
@@ -138,9 +137,7 @@ public class GameTracker extends Thread {
 							LOGGER.info("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();
 						}
-						timeAfterLast = DateUtils.diffMs(ZonedDateTime.now(), lastFinal);
-						LOGGER.debug("Time till thread finishes (ms): "
-								+ String.valueOf(POST_GAME_UPDATE_DURATION - timeAfterLast));
+						timeAfterFinal = DateUtils.diffMs(ZonedDateTime.now(), lastFinal);
 					} else {
 						lastFinal = null;
 						LOGGER.info("Game not finished.");

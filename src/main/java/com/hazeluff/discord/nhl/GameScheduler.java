@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -69,7 +70,7 @@ public class GameScheduler extends Thread {
 
 	private final Map<Game, GameTracker> activeGameTrackers;
 
-	LocalDate lastUpdate;
+	AtomicReference<LocalDate> lastUpdate = new AtomicReference<>();
 
 	/**
 	 * Constructor for injecting private members (Use only for testing).
@@ -110,18 +111,17 @@ public class GameScheduler extends Thread {
 
 		init.set(true);
 
-		lastUpdate = Utils.getCurrentDate(Config.DATE_START_TIME_ZONE);
+		lastUpdate.set(Utils.getCurrentDate(Config.DATE_START_TIME_ZONE));
 		while (!isStop()) {
 			LocalDate today = Utils.getCurrentDate(Config.DATE_START_TIME_ZONE);
-			if (today.compareTo(lastUpdate) > 0) {
+			if (today.compareTo(getLastUpdate()) > 0) {
 				try {
 					updateGameSchedule();
 					updateTrackers();
-					lastUpdate = today;
-
-				} catch (HttpException e) {
+					lastUpdate.set(today);
+					LOGGER.info("Successfully updated games! today=" + today.toString());
+				} catch (Exception e) {
 					LOGGER.error("Error occured when updating games.", e);
-					throw new RuntimeException(e);
 				}
 			}
 			Utils.sleep(UPDATE_RATE);
@@ -472,7 +472,7 @@ public class GameScheduler extends Thread {
 	}
 
 	public LocalDate getLastUpdate() {
-		return lastUpdate;
+		return lastUpdate.get();
 	}
 
 	public Set<Game> getGames() {

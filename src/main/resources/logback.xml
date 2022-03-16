@@ -80,11 +80,6 @@
       <appender-ref ref="GameScheduler"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.nhl.GameTracker" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="GameScheduler"/>
-    </logger>
-    
     <logger name="com.hazeluff.discord" level="info" additivity="false">
       <appender-ref ref="Console"/>
       <appender-ref ref="NHLBot"/>

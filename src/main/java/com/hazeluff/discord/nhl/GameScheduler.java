@@ -110,16 +110,19 @@ public class GameScheduler extends Thread {
 		}
 
 		init.set(true);
+		LOGGER.info("Finished Initializing.");
 
 		lastUpdate.set(Utils.getCurrentDate(Config.DATE_START_TIME_ZONE));
 		while (!isStop()) {
+			LOGGER.info("Checking for update [lastUpdate={}]", getLastUpdate().toString());
 			LocalDate today = Utils.getCurrentDate(Config.DATE_START_TIME_ZONE);
 			if (today.compareTo(getLastUpdate()) > 0) {
+				LOGGER.info("New day detected [today={}]. Updating schedule and trackers...", today.toString());
 				try {
 					updateGameSchedule();
 					updateTrackers();
 					lastUpdate.set(today);
-					LOGGER.info("Successfully updated games! today=" + today.toString());
+					LOGGER.info("Successfully updated games.");
 				} catch (Exception e) {
 					LOGGER.error("Error occured when updating games.", e);
 				}

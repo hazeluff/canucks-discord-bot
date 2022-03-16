@@ -36,6 +36,9 @@ public class DiscordManager {
 		this.client = client;
 	}
 
+	/*
+	 * Non Static Methods
+	 */
 	public GatewayDiscordClient getClient() {
 		return client;
 	}
@@ -71,19 +74,27 @@ public class DiscordManager {
 		return message.getAuthor().map(User::getId).map(getId()::equals).orElse(false);
 	}
 
+	public User getUser(long userId) {
+		return getClient().getUserById(Snowflake.of(userId)).retry(0).timeout(Duration.ofMillis(500))
+				.onErrorResume(DiscordManager::handleError).blockOptional().orElseGet(() -> null);
+	}
+
 	public void changePresence(ClientPresence presence) {
 		subscribe(getClient().updatePresence(presence));
 	}
 
 	public List<Guild> getGuilds() {
-		return block(getClient().getGuilds().collectList());
+		return block(getClient().getGuilds());
 	}
 
 	public Message getMessage(long channelId, long messageId) {
 		return block(getClient().getMessageById(Snowflake.of(channelId), Snowflake.of(messageId)));
 	}
 
-	public Message sendAndGetMessage(TextChannel channel, MessageCreateSpec messageSpec) {
+	/*
+	 * Static Methods
+	 */
+	public static Message sendAndGetMessage(TextChannel channel, MessageCreateSpec messageSpec) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return null;
@@ -96,7 +107,7 @@ public class DiscordManager {
 		return block(channel.createMessage(messageSpec));
 	}
 
-	public Message sendAndGetMessage(TextChannel channel, String message) {
+	public static Message sendAndGetMessage(TextChannel channel, String message) {
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return null;
@@ -106,7 +117,7 @@ public class DiscordManager {
 		return sendAndGetMessage(channel, messageCreateSpec);
 	}
 
-	public void sendMessage(TextChannel channel, MessageCreateSpec messageSpec) {
+	public static void sendMessage(TextChannel channel, MessageCreateSpec messageSpec) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return;
@@ -119,7 +130,7 @@ public class DiscordManager {
 		subscribe(channel.createMessage(messageSpec));
 	}
 
-	public void sendMessage(TextChannel channel, String message) {
+	public static void sendMessage(TextChannel channel, String message) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return;
@@ -144,7 +155,7 @@ public class DiscordManager {
 	 *            new message
 	 * @return
 	 */
-	public Message updateAndGetMessage(Message message, String newMessage) {
+	public static Message updateAndGetMessage(Message message, String newMessage) {
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return null;
@@ -169,7 +180,7 @@ public class DiscordManager {
 	 *            new message
 	 * @return
 	 */
-	public void updateMessage(Message message, String newMessage) {
+	public static void updateMessage(Message message, String newMessage) {
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return;
@@ -194,7 +205,7 @@ public class DiscordManager {
 	 *            new message
 	 * @return
 	 */
-	public void updateMessage(Message message, MessageEditSpec newMessageSpec) {
+	public static void updateMessage(Message message, MessageEditSpec newMessageSpec) {
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return;
@@ -214,7 +225,7 @@ public class DiscordManager {
 	 * @param message
 	 *            message to delete in Discord
 	 */
-	public void deleteMessage(Message message) {
+	public static void deleteMessage(Message message) {
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return;
@@ -230,13 +241,13 @@ public class DiscordManager {
 	 *            channel to get messages from
 	 * @return List<Message> of messages in the channel
 	 */
-	public List<Message> getPinnedMessages(TextChannel channel) {
+	public static List<Message> getPinnedMessages(TextChannel channel) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return null;
 		}
 
-		return block(channel.getPinnedMessages().collectList().onErrorReturn(null));
+		return block(channel.getPinnedMessages());
 	}
 
 	/**
@@ -245,7 +256,7 @@ public class DiscordManager {
 	 * @param channel
 	 *            channel to delete
 	 */
-	public void deleteChannel(TextChannel channel) {
+	public static void deleteChannel(TextChannel channel) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return;
@@ -263,7 +274,7 @@ public class DiscordManager {
 	 *            name of channel to create
 	 * @return TextChannel that was created
 	 */
-	public TextChannel createAndGetChannel(Guild guild, String channelName) {
+	public static TextChannel createAndGetChannel(Guild guild, String channelName) {
 		TextChannelCreateSpec textChannelCreateSpec = TextChannelCreateSpec.builder().name(channelName).build();
 		return createAndGetChannel(guild, textChannelCreateSpec);
 	}
@@ -277,7 +288,7 @@ public class DiscordManager {
 	 *            name of channel to create
 	 * @return TextChannel that was created
 	 */
-	public TextChannel createAndGetChannel(Guild guild, TextChannelCreateSpec channelSpec) {
+	public static TextChannel createAndGetChannel(Guild guild, TextChannelCreateSpec channelSpec) {
 		if (guild == null) {
 			logNullArgumentsStackTrace("`guild` was null.");
 			return null;
@@ -300,7 +311,7 @@ public class DiscordManager {
 	 *            name of channel to create
 	 * @return TextChannel that was created
 	 */
-	public void createChannel(Guild guild, String channelName) {
+	public static void createChannel(Guild guild, String channelName) {
 		if (guild == null) {
 			logNullArgumentsStackTrace("`guild` was null.");
 			return;
@@ -315,7 +326,7 @@ public class DiscordManager {
 		subscribe(guild.createTextChannel(textChannelCreateSpec));
 	}
 	
-	public TextChannel getTextChannel(Guild guild, String channelName) {
+	public static TextChannel getTextChannel(Guild guild, String channelName) {
 
 		if (guild == null) {
 			logNullArgumentsStackTrace("`guild` was null.");
@@ -337,7 +348,7 @@ public class DiscordManager {
 		);
 	}
 
-	public TextChannel getOrCreateTextChannel(Guild guild, String channelName) {
+	public static TextChannel getOrCreateTextChannel(Guild guild, String channelName) {
 		TextChannel channel = getTextChannel(guild, channelName);
 		return channel != null ? channel : createAndGetChannel(guild, channelName);
 	}
@@ -348,7 +359,7 @@ public class DiscordManager {
 	 * @param message
 	 *            existing message in Discord
 	 */
-	public void pinMessage(Message message) {
+	public static void pinMessage(Message message) {
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return;
@@ -365,7 +376,7 @@ public class DiscordManager {
 	 * @param categoryName
 	 *            name of the category
 	 */
-	public Category createCategory(Guild guild, String categoryName) {
+	public static Category createCategory(Guild guild, String categoryName) {
 		if (guild == null) {
 			logNullArgumentsStackTrace("`guild` was null.");
 			return null;
@@ -389,7 +400,7 @@ public class DiscordManager {
 	 *            name of the category
 	 * 
 	 */
-	public Category getCategory(Guild guild, String categoryName) {
+	public static Category getCategory(Guild guild, String categoryName) {
 		if (guild == null) {
 			logNullArgumentsStackTrace("`guild` was null.");
 			return null;
@@ -410,7 +421,7 @@ public class DiscordManager {
 		);
 	}
 
-	public Category getOrCreateCategory(Guild guild, String categoryName) {
+	public static Category getOrCreateCategory(Guild guild, String categoryName) {
 		Category category = getCategory(guild, categoryName);
 		return category != null ? category : createCategory(guild, categoryName);
 	}
@@ -423,7 +434,7 @@ public class DiscordManager {
 	 * @param channel
 	 *            channel to move
 	 */
-	public void moveChannel(Category category, TextChannel channel) {
+	public static void moveChannel(Category category, TextChannel channel) {
 		if (category == null) {
 			logNullArgumentsStackTrace("`category` was null.");
 			return;
@@ -440,7 +451,7 @@ public class DiscordManager {
 		subscribe(channel.edit(textChannelEditSpec));
 	}
 
-	public Category getCategory(TextChannel channel) {
+	public static Category getCategory(TextChannel channel) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return null;
@@ -449,7 +460,7 @@ public class DiscordManager {
 		return block(channel.getCategory().onErrorReturn(null));
 	}
 
-	public List<TextChannel> getTextChannels(Guild guild) {
+	public static List<TextChannel> getTextChannels(Guild guild) {
 		if (guild == null) {
 			logNullArgumentsStackTrace("`guild` was null.");
 			return null;
@@ -457,17 +468,7 @@ public class DiscordManager {
 
 		return block(guild.getChannels()				
 				.filter(channel -> (channel instanceof TextChannel))
-				.cast(TextChannel.class)
-				.collectList());
-	}
-
-	public User getUser(long userId) {
-		return getClient().getUserById(Snowflake.of(userId))
-				.retry(0)
-				.timeout(Duration.ofMillis(500))
-				.onErrorResume(error -> Mono.empty())
-				.blockOptional()
-				.orElseGet(() -> null);
+				.cast(TextChannel.class));
 	}
 
 	private static void logNullArgumentsStackTrace(String message) {
@@ -477,22 +478,35 @@ public class DiscordManager {
 		LOGGER.warn(message, new NullPointerException());
 	}
 
-	public <T> T block(Mono<T> mono) {
-		return mono.retry(1).blockOptional().orElseGet(() -> null);
-	}
-
-	public <T> void subscribe(Mono<T> mono) {
-		mono.retry(1).subscribe();
-	}
-
-	public <T> List<T> block(Flux<T> flux) {
-		return flux.collectList()
+	public static <T> T block(Mono<T> mono) {
+		return mono.onErrorResume(DiscordManager::handleError)
 				.retry(1)
 				.blockOptional()
 				.orElseGet(() -> null);
 	}
 
-	public <T> void subscribe(Flux<T> flux) {
-		flux.retry(1).subscribe();
+	public static <T> void subscribe(Mono<T> mono) {
+		mono.onErrorResume(DiscordManager::handleError)
+			.retry(1)
+			.subscribe();
+	}
+
+	public static <T> List<T> block(Flux<T> flux) {
+		return flux.onErrorResume(DiscordManager::handleError)
+				.retry(1)
+				.collectList()
+				.blockOptional()
+				.orElseGet(() -> null);
+	}
+
+	public static <T> void subscribe(Flux<T> flux) {
+		flux.onErrorResume(DiscordManager::handleError)
+			.retry(1)
+			.subscribe();
+	}
+
+	private static <T> Mono<T> handleError(Throwable t) {
+		LOGGER.error("Error occurred.", t);
+		return Mono.empty();
 	}
 }

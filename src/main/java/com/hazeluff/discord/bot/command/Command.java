@@ -10,6 +10,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
@@ -82,12 +83,12 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	protected void sendMessage(MessageCreateEvent event, MessageCreateSpec spec) {
-		TextChannel channel = (TextChannel) nhlBot.getDiscordManager().block(event.getMessage().getChannel());
+		TextChannel channel = (TextChannel) DiscordManager.block(event.getMessage().getChannel());
 		sendMessage(channel, spec);
 	}
 
 	protected void sendMessage(TextChannel channel, MessageCreateSpec spec) {
-		nhlBot.getDiscordManager().sendMessage(channel, spec);
+		DiscordManager.sendMessage(channel, spec);
 	}
 
 	/**
@@ -107,7 +108,7 @@ public abstract class Command extends ReactiveEventAdapter {
 		}
 		String channelName = GameDayChannel.getChannelName(game).toLowerCase();
 
-		List<TextChannel> channels = nhlBot.getDiscordManager().getTextChannels(guild);
+		List<TextChannel> channels = DiscordManager.getTextChannels(guild);
 		if(channels != null && !channels.isEmpty()) {
 			TextChannel channel = channels.stream()
 					.filter(chnl -> chnl.getName().equalsIgnoreCase(channelName))
@@ -157,11 +158,11 @@ public abstract class Command extends ReactiveEventAdapter {
 			"You must have _Admin_ or _Manage Channels_ roles to use this command.";
 	
 	Member getMessageAuthor(Message message) {
-		return nhlBot.getDiscordManager().block(message.getAuthorAsMember());
+		return DiscordManager.block(message.getAuthorAsMember());
 	}
 
 	PermissionSet getPermissions(Member user) {
-		return nhlBot.getDiscordManager().block(user.getBasePermissions());
+		return DiscordManager.block(user.getBasePermissions());
 	}
 
 	boolean isOwner(Guild guild, User user) {
@@ -233,11 +234,11 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	protected Guild getGuild(ChatInputInteractionEvent event) {
-		return nhlBot.getDiscordManager().block(event.getInteraction().getGuild());
+		return DiscordManager.block(event.getInteraction().getGuild());
 	}
 
 	protected TextChannel getChannel(ChatInputInteractionEvent event) {
-		return nhlBot.getDiscordManager().block(event.getInteraction().getChannel().cast(TextChannel.class));
+		return DiscordManager.block(event.getInteraction().getChannel().cast(TextChannel.class));
 	}
 
 	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {

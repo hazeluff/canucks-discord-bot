@@ -13,6 +13,7 @@ import com.hazeluff.discord.bot.ExceptionHandler;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.Team;
@@ -163,12 +164,15 @@ public class GameDayChannelsManager extends Thread {
 	 * @param guild
 	 */
 	public GameDayChannel createChannel(Game game, Guild guild) {
-		LOGGER.info("Creating channel. channelName={}, guild={}", GameDayChannel.getChannelName(game), guild.getName());
+		LOGGER.debug("Initializing channel. channelName={}, guild={}", 
+				GameDayChannel.getChannelName(game), guild.getName());
 		int gamePk = game.getGamePk();
 		long guildId = guild.getId().asLong();
 
 		GameDayChannel gameDayChannel = getGameDayChannel(guildId, gamePk);
 		if (gameDayChannel == null) {
+			LOGGER.info("Creating channel. channelName={}, guild={}", 
+					GameDayChannel.getChannelName(game), guild.getName());
 			GameTracker gameTracker = nhlBot.getGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				gameDayChannel = createGameDayChannel(nhlBot, gameTracker, guild);
@@ -209,7 +213,7 @@ public class GameDayChannelsManager extends Thread {
 		GuildPreferences preferences = nhlBot.getPersistentData()
 				.getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
-		for (TextChannel channel : nhlBot.getDiscordManager().getTextChannels(guild)) {
+		for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
 			deleteInactiveTextChannel(channel, preferences);
 		}
 	}
@@ -250,7 +254,7 @@ public class GameDayChannelsManager extends Thread {
 		}
 
 		if (!removedChannel) {
-			nhlBot.getDiscordManager().deleteChannel(channel);
+			DiscordManager.deleteChannel(channel);
 		}
 	}
 
@@ -335,7 +339,7 @@ public class GameDayChannelsManager extends Thread {
 	}
 
 	public boolean isInGameDayCategory(TextChannel channel) {
-		Category category = nhlBot.getDiscordManager().getCategory(channel);
+		Category category = DiscordManager.getCategory(channel);
 		return category == null ? false : category.getName().equalsIgnoreCase(GDCCategoryManager.CATEGORY_NAME);
 	}
 

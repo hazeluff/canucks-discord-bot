@@ -12,6 +12,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.ResourceLoader;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
@@ -127,13 +128,12 @@ public class WordcloudCommand extends Command {
 	public void sendWordcloud(TextChannel channel, Game game, ZoneId timeZone, FontScalar fontScaler) {
 		String title = GameDayChannel.getDetailsMessage(game, timeZone);
 		new Thread(() -> {
-			Message generatingMessage = nhlBot.getDiscordManager()
-					.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
+			Message generatingMessage = DiscordManager.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
 
-			List<String> messages = nhlBot.getDiscordManager()
-					.block(channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
+			List<String> messages = DiscordManager.block(
+					channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
 
-			Guild guild = nhlBot.getDiscordManager().block(channel.getGuild());
+			Guild guild = DiscordManager.block(channel.getGuild());
 			sendMessage(nhlBot.getWordcloudChannelManager().get(guild), getReply(title, messages, fontScaler));
 		}).start();
 	}

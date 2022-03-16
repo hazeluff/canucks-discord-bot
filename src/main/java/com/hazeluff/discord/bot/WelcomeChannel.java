@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
@@ -38,7 +39,7 @@ public class WelcomeChannel extends Thread {
 					.onErrorReturn(null)
 					.blockFirst();
 		} catch (Exception e) {
-			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, CHANNEL_NAME);
+			channel = DiscordManager.createAndGetChannel(guild, CHANNEL_NAME);
 		}
 		WelcomeChannel welcomeChannel = new WelcomeChannel(nhlBot, channel);
 		welcomeChannel.start();
@@ -54,18 +55,18 @@ public class WelcomeChannel extends Thread {
 
 		Snowflake lastMessageId = channel.getLastMessageId().orElse(null);
 		if (lastMessageId != null) {
-			channel.getMessagesBefore(lastMessageId).collectList().block().stream()
+			DiscordManager.block(channel.getMessagesBefore(lastMessageId)).stream()
 					.filter(message -> nhlBot.getDiscordManager().isAuthorOfMessage(message))
-					.forEach(message -> nhlBot.getDiscordManager().deleteMessage(message));
-			nhlBot.getDiscordManager().deleteMessage(
-					nhlBot.getDiscordManager().block(channel.getLastMessage()));
+					.forEach(message -> DiscordManager.deleteMessage(message));
+			DiscordManager.deleteMessage(DiscordManager.block(channel.getLastMessage()));
 		}
-		nhlBot.getDiscordManager().sendMessage(channel, UPDATED_MESSAGE);
-		nhlBot.getDiscordManager().sendMessage(channel, MessageCreateSpec.builder()
+		DiscordManager.sendMessage(channel, UPDATED_MESSAGE);
+		DiscordManager.sendMessage(channel, MessageCreateSpec
+				.builder()
 			.content("About the bot:")
 			.addEmbed(AboutCommand.EMBED_SPEC)
 			.build()
 		);
-		nhlBot.getDiscordManager().sendMessage(channel, HelpCommand.COMMAND_LIST);
+		DiscordManager.sendMessage(channel, HelpCommand.COMMAND_LIST);
 	}
 }

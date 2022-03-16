@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.channel;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.utils.DiscordGuildEnitityManager;
 
 import discord4j.core.object.entity.Guild;
@@ -16,6 +17,6 @@ public class GDCCategoryManager extends DiscordGuildEnitityManager<Category> {
 
 	@Override
 	public Category fetch(Guild guild) {
-		return nhlBot.getDiscordManager().getOrCreateCategory(guild, CATEGORY_NAME);
+		return DiscordManager.getOrCreateCategory(guild, CATEGORY_NAME);
 	}
 }

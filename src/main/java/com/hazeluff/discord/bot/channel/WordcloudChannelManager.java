@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.channel;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.utils.DiscordGuildEnitityManager;
 
 import discord4j.core.object.entity.Guild;
@@ -20,11 +21,11 @@ public class WordcloudChannelManager extends DiscordGuildEnitityManager<TextChan
 
 	@Override
 	public TextChannel fetch(Guild guild) {
-		TextChannel channel = nhlBot.getDiscordManager().getOrCreateTextChannel(guild, CHANNEL_NAME);
+		TextChannel channel = DiscordManager.getOrCreateTextChannel(guild, CHANNEL_NAME);
 		if (channel != null) {
 			Category gdcCategory = gdcCategoryManager.get(guild);
 			if (gdcCategory != null && !channel.getCategoryId().isPresent()) {
-				nhlBot.getDiscordManager().moveChannel(gdcCategory, channel);
+				DiscordManager.moveChannel(gdcCategory, channel);
 			}
 		}
 		return channel;

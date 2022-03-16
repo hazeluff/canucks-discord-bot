@@ -185,14 +185,14 @@ public class NHLBot extends Thread {
 				.collect(Collectors.toList());
 		// Dev Guilds
 		for (Long guildId : Config.DEV_GUILD_LIST) {
-			nhlBot.getDiscordManager().block(
+			DiscordManager.block(
 					restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(
 							applicationId, guildId, allCommands)
 			);
 		}
 		// Canucks Guild
 		for (Long guildId : Config.SERVICED_GUILD_LIST) {
-			nhlBot.getDiscordManager().block(
+			DiscordManager.block(
 					restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(
 							applicationId, guildId, commonCommands)
 			);

@@ -164,15 +164,13 @@ public class GameDayChannelsManager extends Thread {
 	 * @param guild
 	 */
 	public GameDayChannel createChannel(Game game, Guild guild) {
-		LOGGER.debug("Initializing channel. channelName={}, guild={}", 
+		LOGGER.debug("Initializing channel. channelName={}, guild={}",
 				GameDayChannel.getChannelName(game), guild.getName());
 		int gamePk = game.getGamePk();
 		long guildId = guild.getId().asLong();
 
 		GameDayChannel gameDayChannel = getGameDayChannel(guildId, gamePk);
 		if (gameDayChannel == null) {
-			LOGGER.info("Creating channel. channelName={}, guild={}", 
-					GameDayChannel.getChannelName(game), guild.getName());
 			GameTracker gameTracker = nhlBot.getGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				gameDayChannel = createGameDayChannel(nhlBot, gameTracker, guild);
@@ -187,6 +185,8 @@ public class GameDayChannelsManager extends Thread {
 	}
 
 	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
+		LOGGER.info("Creating channel. channelName={}, guild={}", 
+				GameDayChannel.getChannelName(gameTracker.getGame()), guild.getName());
 		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
 		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGamePk(), channel);
 		return channel;

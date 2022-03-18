@@ -176,20 +176,25 @@ public class GameScheduler extends Thread {
 	void updateGameSchedule() throws HttpException {
 		LOGGER.info("Updating game schedule.");
 
-		Map<Integer, BsonDocument> fetchedGames = getRawGames();
-		fetchedGames.entrySet().stream().forEach(fetchedGame -> {
-			int gamePk = fetchedGame.getKey();
+		Map<Integer, BsonDocument> jsonFetchedGames = getRawGames();
+		jsonFetchedGames.entrySet().stream().forEach(jsonFetchedGame -> {
+			int gamePk = jsonFetchedGame.getKey();
 			Game existingGame = games.get(gamePk);
 			if (existingGame == null) {
 				// Create a new game object and put it in our map
-				games.put(gamePk, Game.parse(fetchedGame.getValue()));
+				Game newGame = Game.parse(jsonFetchedGame.getValue());
+				if (newGame != null) {
+					// Games can be null if they fail to parse.
+					// Only put non-null values (map throws error otherwise).
+					games.put(gamePk, newGame);
+				}
 			} else {
-				existingGame.updateGameData(fetchedGame.getValue());
+				existingGame.updateGameData(jsonFetchedGame.getValue());
 			}
 		});
 
 		// Remove the game if it isn't in the list of games fetched
-		games.entrySet().removeIf(entry -> !fetchedGames.containsKey(entry.getKey()));
+		games.entrySet().removeIf(entry -> !jsonFetchedGames.containsKey(entry.getKey()));
 	}
 
 	/**

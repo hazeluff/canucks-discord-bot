@@ -193,7 +193,7 @@ public class SeasonCampaign extends Campaign {
 		String campaignId = buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
 		Set<Game> games = nhlBot.getGameScheduler().getGames();
 		Map<Integer, Team> gamesResults = games.stream()
-				.filter(game -> game.getStatus().isFinished())
+				.filter(game -> game.getStatus().isFinal())
 				.filter(game -> game.getWinningTeam() != null)
 				.collect(Collectors.toMap(Game::getGamePk, Game::getWinningTeam));
 		return new SeasonCampaignResults(campaignId, gamesResults, games.size());

@@ -129,7 +129,7 @@ public class GameDayChannelsManager extends Thread {
 					updateChannels();
 					lastUpdate = schedulerUpdate;
 				} else {
-					LOGGER.info("Waiting for GameScheduler to update...");
+					LOGGER.debug("Waiting for GameScheduler to update...");
 					Utils.sleep(UPDATE_RATE);
 				}
 			} catch (Exception e) {

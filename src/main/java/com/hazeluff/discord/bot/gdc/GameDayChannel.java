@@ -38,7 +38,6 @@ import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.Team;
-import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
@@ -59,6 +58,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
+import discord4j.rest.util.Color;
 
 public class GameDayChannel extends Thread implements IEventProcessor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannel.class);
@@ -97,39 +97,41 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private GuildPreferences preferences;
 
+	private GDCMeta meta;
+
 	private List<GoalEvent> cachedGoalEvents = new ArrayList<>();
 	private List<PenaltyEvent> cachedPenaltyEvents = new ArrayList<>();
-	
-	private int eventsRetries = 0;
 
-	private GDCMeta meta;
+	// Events that happened before the bot started.
+	private List<GoalEvent> skippableGoalEvents = new ArrayList<>();
+	private List<PenaltyEvent> skippablePenaltyEvents = new ArrayList<>();
 
 	private final Map<Integer, Message> goalEventMessages = new HashMap<>();
 	private final Map<Integer, Message> penaltyEventMessages = new HashMap<>();
 
 	private Message summaryMessage;
+	private EmbedCreateSpec summaryMessageEmbed; // Used to determine if message needs updating.
 	private Message pollMessage;
 	private Message endOfGameMessage;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 
-	private GameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Game game, List<GoalEvent> goalEvents, Guild guild,
-			TextChannel channel) {
+	private GameDayChannel(NHLBot nhlBot, GameTracker gameTracker,
+			Game game, Guild guild, TextChannel channel) {
 		setUncaughtExceptionHandler(new ExceptionHandler(GameDayChannelsManager.class));
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
 		this.game = game;
-		this.cachedGoalEvents = goalEvents;
 		this.guild = guild;
 		this.channel = channel;
 	}
 
 	GameDayChannel(NHLBot nhlBot, Game game, Guild guild) {
-		this(nhlBot, null, game, game.getScoringEvents(), guild, null);
+		this(nhlBot, null, game, guild, null);
 	}
 
 	GameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
-		this(nhlBot, gameTracker, gameTracker.getGame(), gameTracker.getGame().getScoringEvents(), guild, null);
+		this(nhlBot, gameTracker, gameTracker.getGame(), guild, null);
 	}
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
@@ -239,13 +241,17 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		setName(threadName);
 		LOGGER.info("Started thread for channel [{}] in guild [{}]", channelName, guild.getName());
 
+		this.skippableGoalEvents = game.getScoringEvents();
+		this.skippablePenaltyEvents = game.getPenaltyEvents();
+
+		this.cachedGoalEvents = game.getScoringEvents();
+		this.cachedPenaltyEvents = game.getPenaltyEvents();
+
 		// Post Predictions poll
 		summaryMessage = getSummaryMessage();
 		pollMessage = getPredictionMessage();
 
-		updateCachedData();
-
-		if (!game.getStatus().isFinished()) {
+		if (!game.getStatus().isFinal()) {
 
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
@@ -267,7 +273,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			while (!gameTracker.isFinished()) {
 				refreshMessages();
 
-				if (game.getStatus().isFinished()) {
+				if (game.getStatus().isFinal()) {
 					updateEndOfGameMessage();
 				}
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
@@ -287,24 +293,15 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * Used to update all messages.
 	 */
 	public void refreshMessages() {
-		if (isGameUpdated()) {
-			updateGoalMessages();
-			updatePenaltyMessages();
-			updateSummaryMessage();
+		List<GoalEvent> goalEvents = game.getScoringEvents();
+		List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
+		updateGoalMessages(goalEvents);
+		updatePenaltyMessages(penaltyEvents);
 
-			updateCachedData();
-		}
-	}
+		updateSummaryMessage();
 
-	private boolean isGameUpdated() {
-		boolean scoringUpdated = !cachedGoalEvents.equals(game.getScoringEvents());
-		boolean penaltyUpdated = !cachedPenaltyEvents.equals(game.getPenaltyEvents());
-		return scoringUpdated || penaltyUpdated;
-	}
-
-	private void updateCachedData() {
-		this.cachedGoalEvents = game.getScoringEvents();
-		this.cachedPenaltyEvents = game.getPenaltyEvents();
+		this.cachedGoalEvents = goalEvents;
+		this.cachedPenaltyEvents = penaltyEvents;
 	}
 
 	/**
@@ -380,72 +377,49 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		sendMessage("Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe");
 	}
 
-	/**
-	 * <p>
-	 * Determines if game events should be fetched again before updating the
-	 * messages.
-	 * </p>
-	 * 
-	 * <p>
-	 * A retry should happen if the existing events is more than 1 and the api
-	 * returned 0 events. Otherwise, if there is 1 existing event and none is
-	 * fetched, retry {@link #NHL_EVENTS_RETRIES} times until accepting the changes.
-	 * </p>
-	 * 
-	 * @param fetchedGameEvents
-	 *            the fetched game events
-	 * @return true - if events should be fetched again<br>
-	 *         false - otherwise
-	 */
-	public boolean isRetryEventFetch(List<GameEvent> fetchedGameEvents) {
-		if (fetchedGameEvents.isEmpty()) {
-			if (cachedGoalEvents.size() > 1) {
-				LOGGER.warn("NHL api returned no events, but we have stored more than one event.");
-				return true;
-			} else if (cachedGoalEvents.size() == 1) {
-				LOGGER.warn("NHL api returned no events, but we have stored one event.");
-				if (eventsRetries++ < NHL_EVENTS_RETRIES) {
-					LOGGER.warn(String.format(
-							"Could be a rescinded goal or NHL api issue. " + "Retrying %s time(s) out of %s",
-							eventsRetries, NHL_EVENTS_RETRIES));
-					return true;
-				}
-			}
-		}
-		eventsRetries = 0;
-		return false;
-	}
-
 	/*
 	 * Goals
 	 */
+	public GoalEvent getSkippableGoalEvent(int id) {
+		return skippableGoalEvents.stream()
+				.filter(skippableGoalEvent -> skippableGoalEvent.getId() == id)
+				.findAny()
+				.orElse(null);
+	}
+
 	public GoalEvent getCachedGoalEvent(int id) {
 		return cachedGoalEvents.stream()
 				.filter(cachedGoalEvent -> cachedGoalEvent.getId() == id)
-				.findAny().orElse(null);
+				.findAny()
+				.orElse(null);
 	}
 	
 	/**
-	 * Updates messages for Events
+	 * <p>
+	 * Sends/Updates messages for GoalEvents. If message has not been sent, it will
+	 * be created. Otherwise, the existing message will be updated.
+	 * </p>
 	 * 
-	 * @param currentEvents
+	 * <p>
+	 * Does not update for events occurring before this thread (/the bot) was
+	 * started.
+	 * </p>
 	 */
-	private void updateGoalMessages() {
-
+	private void updateGoalMessages(List<GoalEvent> goals) {
 		// Update Messages
-		game.getScoringEvents().forEach(currentEvent -> {
+		goals.forEach(currentEvent -> {
 			if (currentEvent.getPlayers().isEmpty()) {
 				return;
 			}
 
-			GoalEvent cachedEvent = getCachedGoalEvent(currentEvent.getId());
-			if(cachedEvent == null) {
+			GoalEvent skippableEvent = getSkippableGoalEvent(currentEvent.getId());
+			if (skippableEvent != null) {
 				return;
 			}
 			if (!goalEventMessages.containsKey(currentEvent.getId())) {
 				// New event
 				sendGoalMessage(currentEvent);
-			} else if (isGoalEventUpdated(cachedEvent, currentEvent)) {
+			} else if (isGoalEventUpdated(currentEvent)) {
 				// Updated event
 				updateGoalMessage(currentEvent);
 			}
@@ -454,9 +428,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Remove Messages that do not have a corresponding event in the game's data.
 		goalEventMessages.entrySet().removeIf(entry -> {
 			int eventId = entry.getKey().intValue();
-			if (game.getScoringEvents().stream()
-					.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-
+			if (goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
 				GoalEvent cachedEvent = getCachedGoalEvent(eventId);
 				sendRescindedGoalMessage(cachedEvent);
 				return true;
@@ -483,7 +455,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	
 	void updateGoalMessage(GoalEvent event) {
-		LOGGER.debug("Updating message for event [" + event + "].");
+		LOGGER.info("Updating message for event [" + event + "].");
 		if (!goalEventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
@@ -502,10 +474,16 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	boolean isGoalEventUpdated(GoalEvent oldEvent, GoalEvent newEvent) {
-		return !oldEvent.getStrength().equals(newEvent.getStrength())
-				|| !oldEvent.getPlayers().equals(newEvent.getPlayers())
-				|| !oldEvent.getTeam().equals(newEvent.getTeam());
+	private boolean isGoalEventUpdated(GoalEvent event) {
+		GoalEvent cachedEvent = getCachedGoalEvent(event.getId());
+		
+		if(cachedEvent == null) {
+			return false;
+		}
+		
+		return !cachedEvent.getStrength().equals(event.getStrength())
+				|| !cachedEvent.getPlayers().equals(event.getPlayers())
+				|| !cachedEvent.getTeam().equals(event.getTeam());
 	}
 
 	public static EmbedCreateSpec buildGoalMessageEmbed(GoalEvent event) {
@@ -547,30 +525,42 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	/*
 	 * Penalty Messages
 	 */
+	private PenaltyEvent getSkippablePenaltyEvent(int id) {
+		return skippablePenaltyEvents.stream()
+				.filter(skippableGoalEvent -> skippableGoalEvent.getId() == id)
+				.findAny()
+				.orElse(null);
+	}
 	
-	public PenaltyEvent getCachedPenaltyEvent(int id) {
+	private PenaltyEvent getCachedPenaltyEvent(int id) {
 		return cachedPenaltyEvents.stream()
 				.filter(cachedPenaltyEvent -> cachedPenaltyEvent.getId() == id)
 				.findAny()
 				.orElse(null);
 	}
-	
+
 	/**
-	 * Updates messages for Events
+	 * <p>
+	 * Sends/Updates messages for PenaltyEvents. If message has not been sent, it
+	 * will be created. Otherwise, the existing message will be updated.
+	 * </p>
 	 * 
-	 * @param currentEvents
+	 * <p>
+	 * Does not update for events occurring before this thread (/the bot) was
+	 * started.
+	 * </p>
 	 */
-	private void updatePenaltyMessages() {
+	private void updatePenaltyMessages(List<PenaltyEvent> penalties) {
 		// Update Messages
-		game.getPenaltyEvents().forEach(currentEvent -> {
-			PenaltyEvent cachedEvent = getCachedPenaltyEvent(currentEvent.getId());
-			if (cachedEvent == null) {
+		penalties.forEach(currentEvent -> {
+			PenaltyEvent skippableEvent = getSkippablePenaltyEvent(currentEvent.getId());
+			if (skippableEvent != null) {
 				return;
 			}
 			if (!penaltyEventMessages.containsKey(currentEvent.getId())) {
 				// New event
 				sendPenaltyMessage(currentEvent);
-			} else if (isPenaltyEventUpdated(cachedEvent, currentEvent)) {
+			} else if (isPenaltyEventUpdated(currentEvent)) {
 				// Updated event
 				updatePenaltyMessage(currentEvent);
 			}
@@ -579,9 +569,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Remove Messages that do not have a corresponding event in the game's data.
 		penaltyEventMessages.entrySet().removeIf(entry -> {
 			int eventId = entry.getKey().intValue();
-			if (game.getPenaltyEvents().stream()
-					.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-
+			if (penalties.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
 				PenaltyEvent cachedEvent = getCachedPenaltyEvent(eventId);
 				sendRescindedPenaltyMessage(cachedEvent);
 				return true;
@@ -590,7 +578,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		});
 	}
 	
-	void sendPenaltyMessage(PenaltyEvent event) {
+	private void sendPenaltyMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
 				.addEmbed(buildPenaltyMessageEmbed(event))
@@ -603,8 +591,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 	
-	void updatePenaltyMessage(PenaltyEvent event) {
-		LOGGER.debug("Updating message for event [" + event + "].");
+	private void updatePenaltyMessage(PenaltyEvent event) {
+		LOGGER.info("Updating message for event [" + event + "].");
 		if (!penaltyEventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
@@ -615,17 +603,23 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	void sendRescindedPenaltyMessage(PenaltyEvent event) {
+	private void sendRescindedPenaltyMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending rescinded message for penalty event [" + event + "].");
 		sendMessage(String.format("Penalty has been rescinded. event=", event.toString()));
 	}
 
-	boolean isPenaltyEventUpdated(PenaltyEvent oldEvent, PenaltyEvent newEvent) {
-		return !oldEvent.getPlayers().equals(newEvent.getPlayers())
-				|| !oldEvent.getTeam().equals(newEvent.getTeam())
-				|| !oldEvent.getSeverity().equals(newEvent.getSeverity())
-				|| !oldEvent.getSecondaryType().equals(newEvent.getSecondaryType())
-				|| oldEvent.getMinutes() != newEvent.getMinutes();
+	private boolean isPenaltyEventUpdated(PenaltyEvent event) {
+		PenaltyEvent cachedEvent = getCachedPenaltyEvent(event.getId());
+		
+		if(cachedEvent == null) {
+			return false;
+		}
+		
+		return !cachedEvent.getPlayers().equals(event.getPlayers()) 
+				|| !cachedEvent.getTeam().equals(event.getTeam())
+				|| !cachedEvent.getSeverity().equals(event.getSeverity())
+				|| !cachedEvent.getSecondaryType().equals(event.getSecondaryType())
+				|| cachedEvent.getMinutes() != event.getMinutes();
 	}
 
 	public static EmbedCreateSpec buildPenaltyMessageEmbed(PenaltyEvent event) {
@@ -645,7 +639,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		
 		String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
 		return EmbedCreateSpec.builder()
-				.color(event.getTeam().getColor())
+				.color(Color.BLACK)
 				.addField(header, description.toString(), false)
 				.footer(time, null)
 				.build();
@@ -675,14 +669,19 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private Message sendSummaryMessage() {
-		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(getSummaryEmbedSpec()).build();
-		
+		summaryMessageEmbed = getSummaryEmbedSpec();
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(summaryMessageEmbed).build();
 		return DiscordManager.sendAndGetMessage(channel, messageSpec);
 	}
 
 	private void updateSummaryMessage() {
-		MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(getSummaryEmbedSpec()).build();
-		DiscordManager.updateMessage(summaryMessage, messageSpec);
+		EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
+		boolean updated = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
+		if (summaryMessage != null && updated) {
+			summaryMessageEmbed = newSummaryMessageEmbed;
+			MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(summaryMessageEmbed).build();
+			DiscordManager.updateMessage(summaryMessage, messageSpec);
+		}
 	}
 	
 	private EmbedCreateSpec getSummaryEmbedSpec() {

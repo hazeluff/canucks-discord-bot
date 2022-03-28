@@ -57,12 +57,12 @@ public class Game {
 	}
 
 	public void updateGameData(BsonDocument rawScheduleData) {
-		LOGGER.trace("Updating Game Schedule Data. [" + gamePk + "]");
+		LOGGER.debug("Updating Game Schedule Data. [" + gamePk + "]");
 		this.rawScheduleData = rawScheduleData;
 	}
 
 	public void updateLiveData() {
-		LOGGER.debug("Updating Game Live Data. [" + gamePk + "]");
+		LOGGER.info("Updating Game Live Data. [" + gamePk + "]");
 		if (liveData == null) {
 			liveData = LiveData.create(getGamePk());
 		} else {
@@ -97,7 +97,7 @@ public class Game {
 	}
 
 	public Team getWinningTeam() {
-		if (!getStatus().isFinished()) {
+		if (!getStatus().isFinal()) {
 			return null;
 		}
 		if (getLineScore().getHomeScore() > getLineScore().getAwayScore()) {

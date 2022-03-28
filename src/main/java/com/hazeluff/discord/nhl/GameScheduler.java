@@ -187,6 +187,8 @@ public class GameScheduler extends Thread {
 					// Games can be null if they fail to parse.
 					// Only put non-null values (map throws error otherwise).
 					games.put(gamePk, newGame);
+				} else {
+					LOGGER.debug("Fetched game could not be parsed. Skipping insertion...");
 				}
 			} else {
 				existingGame.updateGameData(jsonFetchedGame.getValue());
@@ -346,7 +348,7 @@ public class GameScheduler extends Thread {
 				.map(Entry::getValue)
 				.sorted(GAME_COMPARATOR.reversed())
 				.filter(game -> team == null ? true : game.containsTeam(team))
-				.filter(game -> game.getStatus().isFinished())
+				.filter(game -> game.getStatus().isFinal())
 				.collect(Collectors.toList());
 	}
 

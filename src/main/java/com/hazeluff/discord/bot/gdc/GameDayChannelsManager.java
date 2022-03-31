@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.bot.ExceptionHandler;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
@@ -109,7 +108,6 @@ public class GameDayChannelsManager extends Thread {
 	public GameDayChannelsManager(NHLBot nhlBot) {
 		this.nhlBot = nhlBot;
 		gameDayChannels = new ConcurrentHashMap<>();
-		setUncaughtExceptionHandler(new ExceptionHandler(GameDayChannelsManager.class));
 	}
 
 	@Override

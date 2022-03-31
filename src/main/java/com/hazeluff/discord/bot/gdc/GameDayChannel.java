@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.ExceptionHandler;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
@@ -118,7 +117,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private GameDayChannel(NHLBot nhlBot, GameTracker gameTracker,
 			Game game, Guild guild, TextChannel channel) {
-		setUncaughtExceptionHandler(new ExceptionHandler(GameDayChannelsManager.class));
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
 		this.game = game;

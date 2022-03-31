@@ -34,12 +34,7 @@ public class LiveData {
 
 	public static LiveData create(int gamePk) {
 		LiveData liveData = new LiveData(gamePk);
-		try {
-			liveData.resetLiveData();
-		} catch (LiveDataException e) {
-			LOGGER.warn("Could not create LiveData. gamePk=" + gamePk);
-			return null;
-		}
+		liveData.resetLiveData();
 		return liveData;
 	}
 
@@ -56,26 +51,33 @@ public class LiveData {
 			} else {
 				resetLiveData();
 			}
-		} catch (LiveDataException e) {
-			LOGGER.warn("Failed to fetch data. gamePk=" + gamePk);
 		} catch (Exception e) {
 			LOGGER.warn("Failed to update. gamePk=" + gamePk, e);
 		}
-
 	}
 
-	private void patchLiveData() throws LiveDataException {
-		BsonDocument tempLiveData = getJson();
-		BsonArray jsonDiffs = fetchDiffs(gamePk, getTimecode());
-		for (BsonValue jsonDiff : jsonDiffs) {
-			BsonPatch.applyInPlace(jsonDiff.asDocument().getArray("diff"), tempLiveData);
+	private void patchLiveData() {
+		try {
+			BsonDocument tempLiveData = getJson();
+			BsonArray jsonDiffs = fetchDiffs(gamePk, getTimecode());
+			for (BsonValue jsonDiff : jsonDiffs) {
+				BsonPatch.applyInPlace(jsonDiff.asDocument().getArray("diff"), tempLiveData);
+			}
+			rawJson.set(tempLiveData);
+		} catch (LiveDataException e) {
+			LOGGER.warn("Failed to fetch data.", e);
 		}
-		rawJson.set(tempLiveData);
 	}
 
-	public void resetLiveData() throws LiveDataException {
-		BsonDocument jsonLiveData = fetchLiveData(gamePk);
-		rawJson.set(jsonLiveData);
+	public void resetLiveData() {
+		try {
+			BsonDocument jsonLiveData = fetchLiveData(gamePk);
+			rawJson.set(jsonLiveData);
+		} catch (LiveDataException e) {
+			LOGGER.warn("Failed to fetch data.", e);
+		} catch (Exception e) {
+			LOGGER.warn("Failed to reset. gamePk=" + gamePk, e);
+		}
 	}
 
 	private static BsonDocument fetchLiveData(int gamePk) throws LiveDataException {

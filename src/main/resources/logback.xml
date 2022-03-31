@@ -70,6 +70,55 @@
       </encoder>
     </appender>
     
+    <appender name="System" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/system.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/system-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>50MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="SystemErr" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/system.err</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/system-%i.err.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>50MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
+    <root level="info">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="System"/>
+    </root>
+    
+    <logger name="com.hazeluff.discord.bot.ExceptionHandler" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="SystemErr"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="NHLBot"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord" level="warn" additivity="false">
+      <appender-ref ref="NHLBotError"/>
+    </logger>
+    
     <logger name="com.hazeluff.discord.bot.gdc.GameDayChannelsManager" level="info" additivity="false">
       <appender-ref ref="Console"/>
       <appender-ref ref="GameDayChannelManager"/>
@@ -80,16 +129,15 @@
       <appender-ref ref="GameScheduler"/>
     </logger>
     
-    <logger name="com.hazeluff.discord" level="info" additivity="false">
+    <logger name="com.hazeluff.nhl.game.Game" level="info" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="NHLBot"/>
+      <appender-ref ref="GameScheduler"/>
     </logger>
     
-    <root level="warn">
+    <logger name="com.hazeluff.discord.nhl.GameTracker" level="info" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="NHLBot"/>
-      <appender-ref ref="NHLBotError"/>
-    </root>
+      <appender-ref ref="GameScheduler"/>
+    </logger>
     
     
 </configuration>

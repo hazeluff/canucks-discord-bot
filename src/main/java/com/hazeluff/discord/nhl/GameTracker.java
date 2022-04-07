@@ -101,10 +101,9 @@ public class GameTracker extends Thread {
 				// Game is close to starting. Poll at higher rate than previously
 				
 				// Wait for start of game
-				boolean started = false;
 				do {
 					game.updateLiveData();
-					if (!started) {
+					if (!game.getStatus().isStarted()) {
 						Utils.sleep(ACTIVE_POLL_RATE_MS);
 					}
 				} while (!game.getStatus().isStarted());

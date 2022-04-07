@@ -68,41 +68,24 @@ public class GameDayChannelsManager extends Thread {
 	 * 
 	 * @param guildId
 	 * @param gamePk
-	 * @return true - if channel was stopped and removed.<br>
-	 *         false - otherwise
+	 * @return the removed GameDayChannel
 	 */
-	boolean removeGameDayChannel(long guildId, int gamePk) {
-		if (gameDayChannels.containsKey(guildId)) {
-			Map<Integer, GameDayChannel> guildChannels = gameDayChannels.get(guildId);
-			GameDayChannel gameDayChannel = guildChannels.remove(gamePk);
-			boolean stopAndRemove = gameDayChannel != null;
-			if (stopAndRemove) {
-				gameDayChannel.stopAndRemoveGuildChannel();
-			}
-			
-			if (guildChannels.isEmpty()) {
-				gameDayChannels.remove(guildId);
-			}
-			return stopAndRemove;
+	GameDayChannel removeGameDayChannel(long guildId, int gamePk) {
+		if (!gameDayChannels.containsKey(guildId)) {
+			return null;
 		}
-		return false;
-	}
 
-	/**
-	 * Remove GameDayChannels that are finished from the Map, and from its guild.
-	 */
-	void removeFinishedGameDayChannels() {
-		gameDayChannels.entrySet().removeIf(guildEntry -> {
-			guildEntry.getValue().entrySet().removeIf(gameEntry -> {
-				GameDayChannel gameDayChannel = gameEntry.getValue();
-				boolean isInactive = !isGameDayChannelActive(gameDayChannel);
-				if (isInactive) {
-					gameDayChannel.stopAndRemoveGuildChannel();
-				}
-				return isInactive;
-			});
-			return guildEntry.getValue().isEmpty();
-		});
+		Map<Integer, GameDayChannel> guildChannels = gameDayChannels.get(guildId);
+		GameDayChannel gameDayChannel = guildChannels.remove(gamePk);
+		if (gameDayChannel == null) {
+			return null;
+		}
+
+		gameDayChannel.stopAndRemoveGuildChannel();
+		if (guildChannels.isEmpty()) {
+			gameDayChannels.remove(guildId);
+		}
+		return gameDayChannel;
 	}
 
 	public GameDayChannelsManager(NHLBot nhlBot) {
@@ -122,7 +105,6 @@ public class GameDayChannelsManager extends Thread {
 					Utils.sleep(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channels...");
-					removeFinishedGameDayChannels();
 					deleteInactiveChannels();
 					updateChannels();
 					lastUpdate = schedulerUpdate;
@@ -232,29 +214,37 @@ public class GameDayChannelsManager extends Thread {
 	 * #deleteInactiveGuildChannels(IGuild).
 	 */
 	void deleteInactiveTextChannel(TextChannel channel, GuildPreferences preferences) {
+		// Does not remove channels not in the Game Day Channel Category
 		if (!isInGameDayCategory(channel)) {
 			return;
 		}
 
+		// Does not remove channels that does not have the correct name format
 		if (!GameDayChannel.isChannelNameFormat(channel.getName())) {
 			return;
 		}
 
+		// Does not remove active games
 		String channelName = channel.getName();
 		if (isGameActive(preferences.getTeams(), channelName)) {
 			return;
 		}
 
+		/*
+		 * Remove games that are:
+		 * - In the category
+		 * - Has the correct name format for a gdc
+		 * - Is not active
+		 */
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channelName);
-		boolean removedChannel = false;
 		if (game != null) {
-			removedChannel = removeGameDayChannel(channel.getGuildId().asLong(), game.getGamePk());
-		}
-
-		if (!removedChannel) {
-			DiscordManager.deleteChannel(channel);
+			GameDayChannel removedChannel = removeGameDayChannel(channel.getGuildId().asLong(), game.getGamePk());
+			if (removedChannel == null) {
+				DiscordManager.deleteChannel(channel);
+			}
 		}
 	}
+
 
 	boolean isGameActive(List<Team> teams, String channelName) {
 		return teams.stream().anyMatch(team -> nhlBot.getGameScheduler().isGameActive(team, channelName));

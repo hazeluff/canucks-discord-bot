@@ -231,10 +231,10 @@ public class GameDayChannelsManager extends Thread {
 		}
 
 		/*
-		 * Remove games that are:
-		 * - In the category
-		 * - Has the correct name format for a gdc
-		 * - Is not active
+		 * Remove games that:
+		 * - are in the category
+		 * - have the correct name format for a gdc
+		 * - are not active
 		 */
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channelName);
 		if (game != null) {

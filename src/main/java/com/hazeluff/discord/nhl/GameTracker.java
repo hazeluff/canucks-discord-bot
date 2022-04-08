@@ -101,12 +101,14 @@ public class GameTracker extends Thread {
 				// Game is close to starting. Poll at higher rate than previously
 				
 				// Wait for start of game
-				do {
+				boolean started = false;
+				do {					
 					game.updateLiveData();
-					if (!game.getStatus().isStarted()) {
+					started = game.getStatus().isStarted();
+					if (!started) {
 						Utils.sleep(ACTIVE_POLL_RATE_MS);
 					}
-				} while (!game.getStatus().isStarted());
+				} while (!started);
 				// - wait for start of game
 				
 				// Game has started
@@ -121,11 +123,11 @@ public class GameTracker extends Thread {
 					// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
 					if (game.getStatus().isFinal()) {
 						if (lastFinal == null) {
-							LOGGER.info("Game finished. Continuing polling...");
+							LOGGER.debug("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();
 						}
 						long timeAfterFinal = DateUtils.diffMs(lastFinal, ZonedDateTime.now());
-						LOGGER.info("Game finished. timeAfterFinal={}(ms)", timeAfterFinal);
+						LOGGER.debug("Game finished. timeAfterFinal={}(ms)", timeAfterFinal);
 
 						stopUpdates = timeAfterFinal > POST_GAME_UPDATE_DURATION;
 					} else {

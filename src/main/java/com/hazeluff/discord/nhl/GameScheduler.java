@@ -460,6 +460,11 @@ public class GameScheduler extends Thread {
 				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.getChannelName(game)));
 	}
 
+	public boolean isGameActive(List<Team> teams, String channelName) {
+		return getActiveGames(teams).stream()
+				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.getChannelName(game)));
+	}
+
 	Map<Game, GameTracker> getActiveGameTrackers() {
 		return new HashMap<>(activeGameTrackers);
 	}

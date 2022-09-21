@@ -62,7 +62,7 @@ public class Game {
 	}
 
 	public void updateLiveData() {
-		LOGGER.info("Updating Game Live Data. [" + gamePk + "]");
+		LOGGER.debug("Updating Game Live Data. [" + gamePk + "]");
 		if (liveData == null) {
 			liveData = LiveData.create(getGamePk());
 		} else {

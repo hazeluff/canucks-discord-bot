@@ -21,6 +21,7 @@ import discord4j.core.spec.TextChannelCreateSpec;
 import discord4j.core.spec.TextChannelEditSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 /**
  * Provides methods that interface with Discord. The methods provide error handling.
@@ -301,30 +302,6 @@ public class DiscordManager {
 
 		return block(guild.createTextChannel(channelSpec).onErrorReturn(null));
 	}
-
-	/**
-	 * Creates channel in specified guild
-	 * 
-	 * @param guild
-	 *            guild to create the channel in
-	 * @param channelName
-	 *            name of channel to create
-	 * @return TextChannel that was created
-	 */
-	public static void createChannel(Guild guild, String channelName) {
-		if (guild == null) {
-			logNullArgumentsStackTrace("`guild` was null.");
-			return;
-		}
-
-		if (channelName == null) {
-			logNullArgumentsStackTrace("`spec` was null.");
-			return;
-		}
-
-		TextChannelCreateSpec textChannelCreateSpec = TextChannelCreateSpec.builder().name(channelName).build();
-		subscribe(guild.createTextChannel(textChannelCreateSpec));
-	}
 	
 	public static TextChannel getTextChannel(Guild guild, String channelName) {
 
@@ -480,20 +457,20 @@ public class DiscordManager {
 
 	public static <T> T block(Mono<T> mono) {
 		return mono.onErrorResume(DiscordManager::handleError)
-				.retry(1)
+				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(10)))
 				.blockOptional()
 				.orElseGet(() -> null);
 	}
 
 	public static <T> void subscribe(Mono<T> mono) {
 		mono.onErrorResume(DiscordManager::handleError)
-			.retry(1)
-			.subscribe();
+				.retryWhen(Retry.fixedDelay(2, Duration.ofMinutes(1)))
+				.subscribe();
 	}
 
 	public static <T> List<T> block(Flux<T> flux) {
 		return flux.onErrorResume(DiscordManager::handleError)
-				.retry(1)
+				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(10)))
 				.collectList()
 				.blockOptional()
 				.orElseGet(() -> null);
@@ -501,8 +478,8 @@ public class DiscordManager {
 
 	public static <T> void subscribe(Flux<T> flux) {
 		flux.onErrorResume(DiscordManager::handleError)
-			.retry(1)
-			.subscribe();
+				.retryWhen(Retry.fixedDelay(2, Duration.ofMinutes(1)))
+				.subscribe();
 	}
 
 	private static <T> Mono<T> handleError(Throwable t) {

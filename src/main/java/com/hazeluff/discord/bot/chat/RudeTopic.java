@@ -30,7 +30,7 @@ public class RudeTopic extends Topic {
 				"You're probably getting coal this Christmas.", 
 				"I'm just doing my job. :cry:", 
 				"That's not nice.",
-				String.format("Hazeluff worked really hard on me.")));
+				"Hazeluff worked really hard on me."));
 		sendMessage(event, reply);
 	}
 

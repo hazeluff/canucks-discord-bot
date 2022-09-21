@@ -4,7 +4,6 @@ import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 
@@ -90,18 +89,14 @@ public class WordcloudCommand extends Command {
 		if (game == null) {
 			return Mono.empty();
 		}
-
-		ZoneId timeZone = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong()).getTimeZone();
 		
-
 		Long minFont = getOptionAsLong(event, "minfont");
 		Long maxFont = getOptionAsLong(event, "maxfont");
 		
 		if (minFont == null || maxFont == null) {
-			sendWordcloud(channel, game, timeZone);
+			sendWordcloud(channel, game);
 		} else {
-			sendWordcloud(channel, game, timeZone, new LinearFontScalar(minFont.intValue(), maxFont.intValue()));
+			sendWordcloud(channel, game, new LinearFontScalar(minFont.intValue(), maxFont.intValue()));
 		}
 		return event.reply(ACKNOWLEDGED).withEphemeral(true);
 	}
@@ -112,8 +107,8 @@ public class WordcloudCommand extends Command {
 	static final String ACKNOWLEDGED = 
 			"Generating Wordcloud... Please wait. This could take a minute.";
 
-	public void sendWordcloud(TextChannel channel, Game game, ZoneId timeZone) {
-		sendWordcloud(channel, game, timeZone, new LinearFontScalar(20, 140));
+	public void sendWordcloud(TextChannel channel, Game game) {
+		sendWordcloud(channel, game, new LinearFontScalar(20, 140));
 	}
 
 	/**
@@ -125,8 +120,8 @@ public class WordcloudCommand extends Command {
 	 * @param title
 	 * @param fontScaler
 	 */
-	public void sendWordcloud(TextChannel channel, Game game, ZoneId timeZone, FontScalar fontScaler) {
-		String title = GameDayChannel.getDetailsMessage(game, timeZone);
+	public void sendWordcloud(TextChannel channel, Game game, FontScalar fontScaler) {
+		String title = GameDayChannel.getDetailsMessage(game);
 		new Thread(() -> {
 			Message generatingMessage = DiscordManager.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
 

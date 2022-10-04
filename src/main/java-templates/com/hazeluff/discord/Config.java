@@ -5,6 +5,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.command.AboutCommand;
+import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.bot.command.FuckCommand;
+import com.hazeluff.discord.bot.command.GDCCommand;
+import com.hazeluff.discord.bot.command.HelpCommand;
+import com.hazeluff.discord.bot.command.NextGameCommand;
+import com.hazeluff.discord.bot.command.ScheduleCommand;
+import com.hazeluff.discord.bot.command.StatsCommand;
+import com.hazeluff.discord.bot.command.SubscribeCommand;
+import com.hazeluff.discord.bot.command.ThreadsCommand;
+import com.hazeluff.discord.bot.command.UnsubscribeCommand;
+import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.nhl.Seasons;
 import com.hazeluff.discord.nhl.Seasons.Season;
 
@@ -21,13 +34,26 @@ public class Config {
 			return strValue.isEmpty() || Boolean.valueOf(strValue);
 		}
 	}
+	
+	public static class Deploy {
+		private static final String SCRIPT_ONLY_KEY = "deploy.scripts";
+
+		public static boolean isScriptOnly() {
+			boolean hasKey = systemProperties.containsKey(SCRIPT_ONLY_KEY);
+			if(!hasKey) {
+				return false;
+			}
+			String strValue = systemProperties.getProperty(SCRIPT_ONLY_KEY);
+			return strValue.isEmpty() || Boolean.valueOf(strValue);
+		}
+	}
 
 	private static final Properties systemProperties = System.getProperties();
 
 	/* 
-	 * Quick Config
+	 * Season Config
 	 */
-	public static final Season CURRENT_SEASON = Seasons.S21_22;
+	public static final Season CURRENT_SEASON = Seasons.S22_23;
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
 	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
@@ -62,12 +88,50 @@ public class Config {
 	public static final String HAZELUFF_TWITTER = "@Hazeluff";
 	
 	public static final String VERSION = "${project.version}";
+
 	
-	public static final String MONGO_HOST = "localhost";
+	private static final String MONGO_HOST_KEY = "mongo.host";
+	public static final String MONGO_HOST_DEFAULT = "localhost";
 	public static final int MONGO_PORT = 27017;
+	public static String getMongoHost() {
+		boolean hasKey = systemProperties.containsKey(MONGO_HOST_KEY);
+		if(!hasKey) {
+			return MONGO_HOST_DEFAULT;
+		}
+		return systemProperties.getProperty(MONGO_HOST_KEY);
+	}
+	
 	public static final String MONGO_DATABASE_NAME = "NHLBot";
 	public static final String MONGO_TEST_DATABASE_NAME = "NHLBotIntegrationTest";
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
 	
 	public static final String STATUS_MESSAGE = "/help for commands";
+	
+	// Slash Commands
+	/**
+	 * <p>
+	 * Configures which Commands are used/added to discord as slash commands.
+	 * </p>
+	 * 
+	 * <p>
+	 * NEW COMMANDS NEED TO BE ADDED HERE!
+	 * </p>
+	 * 
+	 * @param nhlBot
+	 * @return
+	 */
+	public static List<Command> getSlashCommands(NHLBot nhlBot) {
+		return Arrays.asList(
+				new AboutCommand(nhlBot),
+				new GDCCommand(nhlBot),
+				new HelpCommand(nhlBot),
+				new NextGameCommand(nhlBot),
+				new SubscribeCommand(nhlBot),
+				new ScheduleCommand(nhlBot),
+				new StatsCommand(nhlBot),
+				new ThreadsCommand(nhlBot),
+				new UnsubscribeCommand(nhlBot),
+				new WordcloudCommand(nhlBot)
+		);
+	}
 }

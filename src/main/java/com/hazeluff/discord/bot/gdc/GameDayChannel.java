@@ -199,24 +199,27 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				meta = GDCMeta.of(channel.getId().asLong());
 			}
 			// Load Goal Messages
-			goalEventMessages.putAll(meta.getGoalMessageIds().entrySet()
-					.stream()
-					.collect(Collectors.toMap(
-							e -> e.getKey(), 
-							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue())
-					))
-			);
+			addEventMessages(goalEventMessages, meta.getGoalMessageIds());
 			// Load Penalty Messages
-			penaltyEventMessages.putAll(meta.getPenaltyMessageIds().entrySet()
-					.stream()
-					.collect(Collectors.toMap(
-							e -> e.getKey(),
-							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue())
-					))
-			);
+			addEventMessages(penaltyEventMessages, meta.getPenaltyMessageIds());
+
 			saveMetadata();
 		}
 	}
+
+	private void addEventMessages(Map<Integer, Message> map, Map<Integer, Long> eventMessages) {
+		for (Entry<Integer, Long> entry : eventMessages.entrySet()) {
+			Integer eventId = entry.getKey();
+			Long messageId = entry.getValue();
+			Message message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+			if (message != null) {
+				map.put(eventId, message);
+			} else {
+				LOGGER.warn("Failed to find message: " + messageId);
+			}
+		}
+	}
+
 
 	private void saveMetadata() {
 		LOGGER.trace("Save Metadata.");

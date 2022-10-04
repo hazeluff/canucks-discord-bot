@@ -180,7 +180,7 @@ public class GameDayChannelsManager extends Thread {
 	 *            guild to initialize channels for
 	 */
 	void updateChannels() {
-		LOGGER.info("Updates channels for all guilds.");
+		LOGGER.info("Updating channels for all guilds.");
 		for (Guild guild : nhlBot.getDiscordManager().getGuilds()) {
 			updateChannels(guild);
 		}

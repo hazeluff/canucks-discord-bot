@@ -29,8 +29,8 @@ public class PersistentData {
 		this.gdcMetaData = gdcMetaData;
 	}
 
-	public static PersistentData load() {
-		return load(getDatabase());
+	public static PersistentData load(String hostName, int port) {
+		return load(getDatabase(hostName, port));
 	}
 
 	static PersistentData load(MongoDatabase database) {
@@ -42,8 +42,8 @@ public class PersistentData {
 	}
 
 	@SuppressWarnings("resource")
-	private static MongoDatabase getDatabase() {
-		return new MongoClient(Config.MONGO_HOST, Config.MONGO_PORT)
+	private static MongoDatabase getDatabase(String hostName, int port) {
+		return new MongoClient(hostName, port)
 				.getDatabase(Config.MONGO_DATABASE_NAME);
 	}
 

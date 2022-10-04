@@ -110,12 +110,12 @@
       <appender-ref ref="SystemErr"/>
     </logger>
     
-    <logger name="com.hazeluff.discord" level="info" additivity="false">
+    <logger name="com.hazeluff.discord.*" level="info" additivity="false">
       <appender-ref ref="Console"/>
       <appender-ref ref="NHLBot"/>
     </logger>
     
-    <logger name="com.hazeluff.discord" level="warn" additivity="false">
+    <logger name="com.hazeluff.discord.*" level="warn" additivity="false">
       <appender-ref ref="NHLBotError"/>
     </logger>
     

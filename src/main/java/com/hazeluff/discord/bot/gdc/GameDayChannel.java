@@ -778,15 +778,8 @@ public class GameDayChannel extends Thread {
 	}
 
 	private Message sendGDCHelpMessage() {
-		String pollMessage = String.format(
-				"**This game/channel is interactable with Slash Commands!**"
-				+ "\nUse `/gdc subcommand:help` to bring up a list of commands."
-				+ "\n"
-				+ "\n**Predict the outcome of this game!**"
-				+ "\n%s: `/gdc subcommand:votehome`"
-				+ "\n%s: `/gdc subcommand:voteaway`",
-				game.getHomeTeam().getName(), 
-				game.getAwayTeam().getName());
+		String pollMessage = "**This game/channel is interactable with Slash Commands!**"
+				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
 
 		Message message = DiscordManager.sendAndGetMessage(channel, pollMessage);
 		DiscordManager.pinMessage(message);

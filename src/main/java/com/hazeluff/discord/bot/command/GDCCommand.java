@@ -12,8 +12,6 @@ import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
-import com.hazeluff.discord.bot.command.gdc.GDCVoteAwayCommand;
-import com.hazeluff.discord.bot.command.gdc.GDCVoteHomeCommand;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.data.LiveDataException;
@@ -39,8 +37,6 @@ public class GDCCommand extends Command {
 			.asList(
 					new GDCScoreCommand(),
 					new GDCGoalsCommand(),
-					new GDCVoteHomeCommand(),
-					new GDCVoteAwayCommand(),
 					new GDCStatusCommand()
 			).stream()
 			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));

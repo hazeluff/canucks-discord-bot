@@ -19,7 +19,6 @@ import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
 import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.discord.utils.Utils;
 
-import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
@@ -176,44 +175,33 @@ public class NHLBot extends Thread {
 
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
-		
+
+		// Dev Commands
 		List<ApplicationCommandRequest> devCommands = commands
 				.stream()
 				.filter(cmd -> cmd.getACR() != null)
 				.filter(Command::isDevOnly)
 				.map(Command::getACR)
 				.collect(Collectors.toList());
+		for (Long guildId : Config.DEV_GUILD_LIST) {
+			LOGGER.info("Registering Dev Commands with guild: " + guildId);
+			DiscordManager.subscribe(
+				restClient.getApplicationService()
+					.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devCommands)
+			);
+		}
 
+		// Common Commands
 		List<ApplicationCommandRequest> commonCommands = commands.stream()
 				.filter(cmd -> cmd.getACR() != null)
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-
-		List<Long> guilds = getDiscordManager().getGuilds().stream()
-					.map(Guild::getId)
-					.map(Snowflake::asLong)
-					.collect(Collectors.toList());
-		
-		guilds.removeAll(Config.DEV_GUILD_LIST);
-
-		// All Guilds
-		for (Long guildId : guilds) {
-			LOGGER.info("Registering Commands with guild: " + guildId);
-			DiscordManager.subscribe(
-				restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(
-							applicationId, guildId, commonCommands)
-			);
-		}
-
-		// Dev Guilds
-		for (Long guildId : Config.DEV_GUILD_LIST) {
-			LOGGER.info("Registering Commands (incl. dev) with guild: " + guildId);
-			DiscordManager.subscribe(
-					restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(
-							applicationId, guildId, devCommands)
-			);
-		}
+		LOGGER.info("Registering Global Commands");
+		DiscordManager.subscribe(
+			restClient.getApplicationService()
+				.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands)
+		);
 	}
 
 	private static void attachSlashCommandListeners(NHLBot nhlBot) {

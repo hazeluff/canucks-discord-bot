@@ -223,7 +223,7 @@ public class NHLBot extends Thread {
 	private static void attachListeners(NHLBot nhlBot) {
 		LOGGER.info("Attaching Listeners.");
 
-		Consumer<? super Throwable> logError = t -> LOGGER.error("Error occurred when responding to message.", t);
+		Consumer<? super Throwable> logError = t -> LOGGER.error("Error occurred when responding to event.", t);
 
 		nhlBot.getDiscordManager().getClient().getEventDispatcher().on(MessageCreateEvent.class).doOnError(logError)
 				.onErrorResume(e -> Mono.empty()).subscribe(event -> nhlBot.getMessageListener().execute(event));

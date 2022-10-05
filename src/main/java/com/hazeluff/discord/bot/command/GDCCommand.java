@@ -12,6 +12,8 @@ import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCVoteAwayCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCVoteHomeCommand;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.data.LiveDataException;
@@ -37,6 +39,8 @@ public class GDCCommand extends Command {
 			.asList(
 					new GDCScoreCommand(),
 					new GDCGoalsCommand(),
+					new GDCVoteHomeCommand(),
+					new GDCVoteAwayCommand(),
 					new GDCStatusCommand()
 			).stream()
 			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));
@@ -55,7 +59,7 @@ public class GDCCommand extends Command {
 				.description("Get the score of the current game. Use only in Game Day Channels.")
                 .addOption(ApplicationCommandOptionData.builder()
                         .name("subcommand")
-						.description("Subcommand to execute. Help: `/gdc subcommand: help`")
+						.description("Subcommand to execute. Help: `/gdc subcommand:help`")
 						.type(ApplicationCommandOption.Type.STRING.getValue())
 						.required(false)
                         .build())
@@ -112,7 +116,7 @@ public class GDCCommand extends Command {
 		 */
 		GDCSubCommand subCommand = SUB_COMMANDS.get(strSubcommand.toLowerCase());
 		if (subCommand != null) {
-			return subCommand.reply(event, game);
+			return subCommand.reply(event, nhlBot, game);
 		}
 		InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
 				.addEmbed(HELP_MESSAGE_EMBED)

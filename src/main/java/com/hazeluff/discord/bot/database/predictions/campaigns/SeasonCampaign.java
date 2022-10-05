@@ -16,6 +16,7 @@ import org.javatuples.Pair;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.database.predictions.IPrediction;
 import com.hazeluff.discord.bot.database.predictions.results.SeasonCampaignResults;
 import com.hazeluff.nhl.Team;
@@ -35,7 +36,7 @@ public class SeasonCampaign extends Campaign {
 
 	// Prediction storage
 	public static void savePrediction(NHLBot nhlBot, Prediction prediction) {
-		prediction.saveToDatabase(nhlBot);
+		prediction.saveToDatabase(nhlBot.getPersistentData());
 	}
 
 	public static Prediction loadPrediction(NHLBot nhlBot, String campaignId, int gamePk, long userId) {
@@ -105,14 +106,15 @@ public class SeasonCampaign extends Campaign {
 			return prediction;
 		}
 
-		void saveToDatabase(NHLBot nhlBot) {
-			getCollection(nhlBot.getPersistentData().getMongoDatabase(), campaignId).updateOne(
+		void saveToDatabase(PersistentData persistentData) {
+			getCollection(persistentData.getMongoDatabase(), campaignId).updateOne(
 					new Document()
 							.append(USER_ID_KEY, userId)
 							.append(GAME_PK_KEY,gamePk),
 					new Document("$set", new Document()
-							.append(PREDICTION_KEY, prediction == null ? null : prediction)),
-					new UpdateOptions().upsert(true));
+							.append(PREDICTION_KEY, prediction)),
+					new UpdateOptions().upsert(true)
+			);
 		}
 
 		static Prediction loadFromDatabase(NHLBot nhlBot, String campaignId, int gamePk, long userId) {

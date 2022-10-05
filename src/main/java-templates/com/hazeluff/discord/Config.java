@@ -8,7 +8,6 @@ import java.util.Properties;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.bot.command.FuckCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
@@ -80,7 +79,7 @@ public class Config {
 	
 	public static final String DONATION_URL = "https://paypal.me/hazeluff";
 	public static final String DONATION_DOGE = "DK58dzmNCExxCocq9tMbYVzg3rdWuYsbY8";
-	public static final String DONATION_ETH = "0x313faE0D36BFf3F7a4817E52a71B74e2924D4b97";
+	public static final String DONATION_ETH = "hazeluff.eth (0x313faE0D36BFf3F7a4817E52a71B74e2924D4b97)";
 	public static final long HAZELUFF_ID = 225742618422673409l;
 	public static final String HAZELUFF_MENTION = "<@225742618422673409>";
 	public static final String HAZELUFF_SITE = "http://www.hazeluff.com";
@@ -101,8 +100,8 @@ public class Config {
 		return systemProperties.getProperty(MONGO_HOST_KEY);
 	}
 	
-	public static final String MONGO_DATABASE_NAME = "NHLBot";
-	public static final String MONGO_TEST_DATABASE_NAME = "NHLBotIntegrationTest";
+	public static final String MONGO_DATABASE_NAME = "CanucksBot";
+	public static final String MONGO_TEST_DATABASE_NAME = "CanucksBotIntegrationTest";
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
 	
 	public static final String STATUS_MESSAGE = "/help for commands";

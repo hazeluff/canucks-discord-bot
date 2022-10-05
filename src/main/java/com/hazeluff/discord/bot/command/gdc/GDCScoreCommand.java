@@ -2,6 +2,7 @@ package com.hazeluff.discord.bot.command.gdc;
 
 import org.reactivestreams.Publisher;
 
+import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.nhl.game.Game;
 
@@ -22,7 +23,7 @@ public class GDCScoreCommand extends GDCSubCommand {
 	}
 
 	@Override
-	public Publisher<?> reply(ChatInputInteractionEvent event, Game game) {
+	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		if (!game.getStatus().isStarted()) {
 			return Command.deferReply(event, GAME_NOT_STARTED_MESSAGE);
 		}

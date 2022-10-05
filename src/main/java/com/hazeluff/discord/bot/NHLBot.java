@@ -181,7 +181,7 @@ public class NHLBot extends Thread {
 		LOGGER.info("Discord Initializer started.");
 	}
 
-	public void updateSlashCommands() {
+	public void registerSlashCommands() {
 		LOGGER.info("Update Slash Commands with Discord.");
 
 		DiscordManager discordManager = getDiscordManager();
@@ -298,10 +298,11 @@ public class NHLBot extends Thread {
 	 */
 	public void deployScript() {
 		LOGGER.info("Deploy scripts executing...");
-		updateSlashCommands();
+		registerSlashCommands();
 		LOGGER.info("Deploy scripts completed.");
 	}
 
+	@SuppressWarnings("unused")
 	private void deregisterGlobalSlashCommands() {
 		long applicationId = getDiscordManager().getApplicationId();
 		DiscordManager.block(getDiscordManager().getClient().getRestClient().getApplicationService()
@@ -309,12 +310,14 @@ public class NHLBot extends Thread {
 
 	}
 
+	@SuppressWarnings("unused")
 	private List<ApplicationCommandData> getGlobalSlashCommandsInfo() {
 		long applicationId = getDiscordManager().getApplicationId();
 		return DiscordManager.block(getDiscordManager().getClient().getRestClient().getApplicationService()
 				.getGlobalApplicationCommands(applicationId));
 	}
 
+	@SuppressWarnings("unused")
 	private List<ApplicationCommandData> getGuildSlashCommandsInfo(long guildId) {
 		long applicationId = getDiscordManager().getApplicationId();
 		return DiscordManager.block(getDiscordManager().getClient().getRestClient()

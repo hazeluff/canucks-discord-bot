@@ -183,9 +183,10 @@ public class NHLBot extends Thread {
 				.filter(Command::isDevOnly)
 				.map(Command::getACR)
 				.collect(Collectors.toList());
+		LOGGER.info("Registering Dev Commands : " + devCommands);
 		for (Long guildId : Config.DEV_GUILD_LIST) {
 			LOGGER.info("Registering Dev Commands with guild: " + guildId);
-			DiscordManager.subscribe(
+			DiscordManager.block(
 				restClient.getApplicationService()
 					.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devCommands)
 			);
@@ -197,8 +198,8 @@ public class NHLBot extends Thread {
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-		LOGGER.info("Registering Global Commands");
-		DiscordManager.subscribe(
+		LOGGER.info("Registering Global Commands: " + commonCommands);
+		DiscordManager.block(
 			restClient.getApplicationService()
 				.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands)
 		);

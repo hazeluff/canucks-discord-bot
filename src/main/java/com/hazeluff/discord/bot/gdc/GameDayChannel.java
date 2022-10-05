@@ -123,13 +123,13 @@ public class GameDayChannel extends Thread {
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
 		GameDayChannel gameDayChannel = new GameDayChannel(nhlBot, gameTracker, guild);
-		gameDayChannel.channel = gameDayChannel.getChannel();
+		gameDayChannel.channel = gameDayChannel.getTextChannel();
 		gameDayChannel.loadMetadata();
 		gameDayChannel.start();
 		return gameDayChannel;
 	}
 
-	TextChannel getChannel() {
+	TextChannel getTextChannel() {
 		TextChannel channel = null;
 		try {
 			String channelName = getChannelName();
@@ -146,8 +146,8 @@ public class GameDayChannel extends Thread {
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 				if (channel != null) {
 					// Send Messages to Initialize Channel
-					sendDetailsMessage();
-					sendGDCHelpMessage();
+					sendDetailsMessage(channel);
+					sendGDCHelpMessage(channel);
 				}
 			} else {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
@@ -236,8 +236,6 @@ public class GameDayChannel extends Thread {
 		} catch (Exception e) {
 			LOGGER.error("Error occurred while running thread.", e);
 		} finally {
-			// Deregister processing on ReactionListener
-			// unregisterFromListener();
 			LOGGER.info("Thread completed");
 		}
 	}
@@ -768,21 +766,24 @@ public class GameDayChannel extends Thread {
 		return teams.stream().filter(team -> game.containsTeam(team)).collect(Collectors.toList());
 	}
 
-	private Message sendDetailsMessage() {
-		preferences.getTimeZone();
+	private Message sendDetailsMessage(TextChannel channel) {
 		String detailsMessage = getDetailsMessage();
 		Message message = DiscordManager.sendAndGetMessage(channel, detailsMessage);
-		DiscordManager.pinMessage(message);
+		if (message != null) {
+			DiscordManager.pinMessage(message);
+		}
 
 		return message;
 	}
 
-	private Message sendGDCHelpMessage() {
+	private Message sendGDCHelpMessage(TextChannel channel) {
 		String pollMessage = "**This game/channel is interactable with Slash Commands!**"
 				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
 
 		Message message = DiscordManager.sendAndGetMessage(channel, pollMessage);
-		DiscordManager.pinMessage(message);
+		if (message != null) {
+			DiscordManager.pinMessage(message);
+		}
 
 		return message;
 	}

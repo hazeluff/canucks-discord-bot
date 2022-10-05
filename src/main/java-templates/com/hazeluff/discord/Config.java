@@ -74,7 +74,7 @@ public class Config {
 	 *  About
 	 */
 	public static final String APPLICATION_NAME = "${project.name}";
-	public static final String GIT_URL = "http://canucks-discord.hazeluff.com/";
+	public static final String GIT_URL = "http://nhlbot.hazeluff.com/";
 	
 	public static final String DONATION_URL = "https://paypal.me/hazeluff";
 	public static final String DONATION_DOGE = "DK58dzmNCExxCocq9tMbYVzg3rdWuYsbY8";
@@ -99,8 +99,8 @@ public class Config {
 		return systemProperties.getProperty(MONGO_HOST_KEY);
 	}
 	
-	public static final String MONGO_DATABASE_NAME = "CanucksBot";
-	public static final String MONGO_TEST_DATABASE_NAME = "CanucksBotIntegrationTest";
+	public static final String MONGO_DATABASE_NAME = "NHLBot";
+	public static final String MONGO_TEST_DATABASE_NAME = "NHLBotIntegrationTest";
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
 	
 	public static final String STATUS_MESSAGE = "/help for commands";

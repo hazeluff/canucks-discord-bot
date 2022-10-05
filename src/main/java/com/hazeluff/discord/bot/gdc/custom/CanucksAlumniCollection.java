@@ -7,34 +7,18 @@ public class CanucksAlumniCollection extends CustomMessageCollection {
 	public CanucksAlumniCollection() {
 		super();
 		// Loui Eriksson
-		add(new CustomMessage(
-				"ELITE!!!",
-				scorer(8470626)));
+		add(scorer("ELITE!!!", 8470626));
 		// Chris Tanev
-		add(new CustomMessage(
-				"Pug Dad!",
-				scorer(8475690)));
-		add(new CustomMessage(
-				"Who's our Daddy? D:",
-				scorer(8475690)));
-		add(new CustomMessage(
-				"https://giphy.com/gifs/nhl-lol-hair-tanev-WQxrnpiCEiKsZwh8VY",
-				scorer(8475690)));
+		add(scorer("Pug Dad!", 8475690));
+		add(scorer("Who's our Daddy? D:", 8475690));
+		add(scorer("https://giphy.com/gifs/nhl-lol-hair-tanev-WQxrnpiCEiKsZwh8VY", 8475690));
 		// Alex Edler
-		add(new CustomMessage( // Break dance
-				"https://gfycat.com/gregariousunhappyelk",
-				scorer(8479355)));
+		add(scorer("https://gfycat.com/gregariousunhappyelk", 8479355)); // Break dance
 		// Nate Schmidt
-		add(new CustomMessage( // :schmidtMug:
-				"https://cdn.discordapp.com/emojis/805996907314413578.png",
-				scorer(8475690)));
+		add(scorer("https://cdn.discordapp.com/emojis/805996907314413578.png", 8475690)); // :schmidtMug:
 		// Zack MacEwen
-		add(new CustomMessage(
-				"Big MAC 🍔", 
-				scorer(8479772)));
+		add(scorer("Big MAC 🍔", 8479772));
 		// Olli Juolevi
-		add(new CustomMessage(
-				"Olli Not Ded",
-				scorer(8479355)));
+		add(scorer("Olli Not Ded", 8479355));
 	}
 }

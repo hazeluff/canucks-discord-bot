@@ -16,6 +16,8 @@ import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
+import com.hazeluff.nhl.game.data.LiveData;
+import com.hazeluff.nhl.game.data.LiveDataException;
 
 
 public class Game {
@@ -55,7 +57,7 @@ public class Game {
 	}
 
 	public void updateGameData(BsonDocument rawScheduleData) {
-		LOGGER.trace("Updating Game Schedule Data. [" + gamePk + "]");
+		LOGGER.debug("Updating Game Schedule Data. [" + gamePk + "]");
 		this.rawScheduleData = rawScheduleData;
 	}
 
@@ -68,9 +70,9 @@ public class Game {
 		}
 	}
 
-	public void fetchLiveData() {
+	public void resetLiveData() throws LiveDataException {
 		if (liveData != null) {
-			liveData.fetchLiveData();
+			liveData.resetLiveData();
 		}
 	}
 
@@ -95,7 +97,7 @@ public class Game {
 	}
 
 	public Team getWinningTeam() {
-		if (!getStatus().isFinished()) {
+		if (!getStatus().isFinal()) {
 			return null;
 		}
 		if (getLineScore().getHomeScore() > getLineScore().getAwayScore()) {
@@ -157,7 +159,7 @@ public class Game {
 		if (liveData == null) {
 			return Collections.emptyList();
 		}
-		return liveData.getLiveData().getDocument("plays").getArray("allPlays")
+		return liveData.getPlays().getArray("allPlays")
 				.getValues()
 				.stream()
 				.map(BsonValue::asDocument)
@@ -165,7 +167,6 @@ public class Game {
 				.collect(Collectors.toList());
 	}
 
-	// TODO: Cache the result and refresh when hash of raw json changes.
 	public List<GoalEvent> getScoringEvents() {
 		if (liveData == null) {
 			return getScheduledData().getArray("scoringPlays")

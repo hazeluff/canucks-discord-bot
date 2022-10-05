@@ -12,20 +12,26 @@ public class CustomMessage {
 	private final String message;
 	private final Predicate<GoalEvent> goalApplicable;
 	private final Predicate<List<GoalEvent>> goalsApplicable;
+	private final int priority;
 
 	public CustomMessage(String message, Predicate<GoalEvent> goalApplicable,
-			Predicate<List<GoalEvent>> goalsApplicable) {
+			Predicate<List<GoalEvent>> goalsApplicable, int priority) {
 		this.message = message;
 		this.goalApplicable = goalApplicable;
 		this.goalsApplicable = goalsApplicable;
+		this.priority = priority;
 	}
 
-	public CustomMessage(String message, Predicate<GoalEvent> goalApplicable) {
-		this(message, goalApplicable, null);
+	public CustomMessage(String message, Predicate<GoalEvent> goalApplicable, int priority) {
+		this(message, goalApplicable, null, priority);
 	}
 
 	public String getMessage() {
 		return message;
+	}
+
+	public int getPriority() {
+		return priority;
 	}
 
 	public boolean isApplicable(List<GoalEvent> previousEvents, GoalEvent currentEvent) {
@@ -38,29 +44,44 @@ public class CustomMessage {
 	}
 
 	/*
-	 * Convenient Predicates
+	 * Convenient Instance Creators
 	 */
-	public static Predicate<GoalEvent> scorer(int playerId) {
-		return goalEvent -> goalEvent.getPlayers().get(0).getId() == playerId;
+
+	public static CustomMessage hatTrick(String message, int playerId) {
+		return new CustomMessage(
+				message, 
+				null, 
+				goalEvents -> {
+					long numGoals = goalEvents.stream().filter(goal -> goal.getPlayers().get(0).getId() == playerId).count();
+					return numGoals == 3;
+				}, 
+				3);
+	}
+	
+	public static CustomMessage scorer(String message, int playerId) {
+		return new CustomMessage(
+				message, 
+				goalEvent -> goalEvent.getPlayers().get(0).getId() == playerId, 
+				2);
 	}
 
-	public static Predicate<List<GoalEvent>> hatTrick(int playerId) {
-		return goalEvents -> {
-			long numGoals = goalEvents.stream().filter(goal -> goal.getPlayers().get(0).getId() == playerId).count();
-			return numGoals == 3;
-		};
+	public static CustomMessage involved(String message, int playerId) {
+		return new CustomMessage(
+				message, 
+				goalEvent -> goalEvent.getPlayers().stream().anyMatch(player -> player.getId() == playerId), 
+				2);
 	}
 
-	public static Predicate<GoalEvent> involved(int playerId) {
-		return goalEvent -> goalEvent.getPlayers().stream().anyMatch(player -> player.getId() == playerId);
-	}
-
-	public static Predicate<GoalEvent> involved(Integer... playerIds) {
+	public static CustomMessage involved(String message, Integer... playerIds) {
 		List<Integer> playerIdList = Arrays.asList(playerIds);
-		return goalEvent -> goalEvent.getPlayers().stream().allMatch(player -> playerIdList.contains(player.getId()));
+		return new CustomMessage(message,
+				goalEvent -> goalEvent.getPlayers().stream().allMatch(player -> playerIdList.contains(player.getId())),
+				2);
 	}
 
-	public static Predicate<GoalEvent> team(Team team) {
-		return goalEvent -> goalEvent.getTeam().equals(team);
+	public static CustomMessage team(String message, Team team) {
+		return new CustomMessage(message,
+				goalEvent -> goalEvent.getTeam().equals(team),
+				1);
 	}
 }

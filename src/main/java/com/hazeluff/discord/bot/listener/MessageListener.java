@@ -3,7 +3,6 @@ package com.hazeluff.discord.bot.listener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.chat.FriendlyTopic;
@@ -18,13 +17,11 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.User;
-import discord4j.core.spec.MessageCreateSpec;
 
 public class MessageListener extends EventListener {
-	static final Consumer<MessageCreateSpec> UNKNOWN_COMMAND_REPLY = spec -> spec
-			.setContent("Sorry, I don't understand that. Send `@NHLBot help` for a list of commands.");
-	static final Consumer<MessageCreateSpec> FUCK_MESSIER_REPLY = spec -> spec
-			.setContent("FUCK MESSIER");
+	static final String UNKNOWN_COMMAND_MESSAGE = 
+			"Sorry, I don't understand that. Send `@NHLBot help` for a list of commands.";
+	static final String FUCK_MESSIER_MESSAGE = "FUCK MESSIER";
 	static long FUCK_MESSIER_COUNT_LIFESPAN = 60000;
 
 	private final List<Topic> topics;

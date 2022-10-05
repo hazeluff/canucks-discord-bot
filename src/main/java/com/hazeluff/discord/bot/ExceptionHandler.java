@@ -9,14 +9,7 @@ public class ExceptionHandler implements UncaughtExceptionHandler {
 	private final Logger LOGGER;
 
 	public ExceptionHandler() {
-		this(null);
-	}
-
-	public ExceptionHandler(Class<?> clazz) {
-		if (clazz == null) {
-			clazz = ExceptionHandler.class;
-		}
-		LOGGER = LoggerFactory.getLogger(clazz);
+		LOGGER = LoggerFactory.getLogger(ExceptionHandler.class);
 	}
 
 	@Override

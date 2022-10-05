@@ -10,45 +10,30 @@
       </encoder>
     </appender>
     
-    <appender name="GameDayChannel" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <file>logs/messages.log</file>
+    <appender name="GameScheduler" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/scheduler.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/gamedaychannel.%i.log</fileNamePattern>
+        <fileNamePattern>logs/older/scheduler-%i.log.zip</fileNamePattern>
         <minIndex>1</minIndex>
-        <maxIndex>10</maxIndex>
+        <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>1MB</maxFileSize>
+        <maxFileSize>50MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
       </encoder>
     </appender>
     
-    <appender name="Messages" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <file>logs/messages.log</file>
+    <appender name="GameDayChannelManager" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/gdc-manager.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/messages.%i.log</fileNamePattern>
+        <fileNamePattern>logs/older/gdc-manager-%i.log.zip</fileNamePattern>
         <minIndex>1</minIndex>
-        <maxIndex>10</maxIndex>
+        <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>1MB</maxFileSize>
-      </triggeringPolicy>
-      <encoder>
-        <pattern>${pattern}</pattern>
-      </encoder>
-    </appender>
-    
-    <appender name="Connectivity" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <file>logs/connectivity.log</file>
-      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/connectivity.%i.log</fileNamePattern>
-        <minIndex>1</minIndex>
-        <maxIndex>10</maxIndex>
-      </rollingPolicy>
-      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>1MB</maxFileSize>
+        <maxFileSize>50MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -58,12 +43,12 @@
     <appender name="NHLBot" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <file>logs/nhlbot.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/nhlbot.%i.log</fileNamePattern>
+        <fileNamePattern>logs/older/nhlbot-%i.log.zip</fileNamePattern>
         <minIndex>1</minIndex>
-        <maxIndex>10</maxIndex>
+        <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>1MB</maxFileSize>
+        <maxFileSize>50MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -73,53 +58,86 @@
     <appender name="NHLBotError" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <file>logs/nhlbot.err</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/nhlbot.%i.err</fileNamePattern>
+        <fileNamePattern>logs/older/nhlbot-%i.err.zip</fileNamePattern>
         <minIndex>1</minIndex>
-        <maxIndex>10</maxIndex>
+        <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>1MB</maxFileSize>
+        <maxFileSize>50MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
       </encoder>
     </appender>
     
-    <logger name="com.hazeluff.discord.bot.GameDayChannelsManager" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="GameDayChannel"/>
-    </logger>
+    <appender name="System" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/system.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/system-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>50MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
     
-    <logger name="com.hazeluff.discord.bot.GameDayChannel" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="GameDayChannel"/>
-    </logger>
+    <appender name="SystemErr" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/system.err</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/system-%i.err.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>50MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
     
-    <logger name="com.hazeluff.discord.bot.MessageListener" level="info" additivity="false">
+    <root level="info">
       <appender-ref ref="Console"/>
-      <appender-ref ref="Messages"/>
-    </logger>
-    
-    <logger name="com.hazeluff.discord.bot.command.*" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="Messages"/>
-    </logger>
-    
-    <logger name="com.hazeluff.discord.bot.ConnectionListener" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="Connectivity"/>
-    </logger>
-    
-    <logger name="com.hazeluff.discord" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="NHLBot"/>
-    </logger>
-    
-    <root level="warn">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="NHLBot"/>
-      <appender-ref ref="NHLBotError"/>
+      <appender-ref ref="System"/>
     </root>
+    
+    <logger name="com.hazeluff.discord.bot.ExceptionHandler" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="SystemErr"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.*" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="NHLBot"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.*" level="warn" additivity="false">
+      <appender-ref ref="NHLBotError"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.bot.gdc.GameDayChannelsManager" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="GameDayChannelManager"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.nhl.GameScheduler" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="GameScheduler"/>
+    </logger>
+    
+    <logger name="com.hazeluff.nhl.game.Game" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="GameScheduler"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.nhl.GameTracker" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="GameScheduler"/>
+    </logger>
     
     
 </configuration>

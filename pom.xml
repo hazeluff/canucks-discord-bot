@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hazeluff.discord</groupId>
   <artifactId>nhlbot</artifactId>
-  <version>1.0.5</version>
+  <version>1.2.13</version>
   <packaging>jar</packaging>
   <name>NHLBot</name>
   <url>http://maven.apache.org</url>
@@ -17,13 +17,13 @@
 	<dependency>
 	  <groupId>com.discord4j</groupId>
 	  <artifactId>discord4j-core</artifactId>
-	  <version>3.1.8</version>
+	  <version>3.2.3</version>
 	</dependency>
 
     <dependency>
       <groupId>org.mongodb</groupId>
       <artifactId>mongo-java-driver</artifactId>
-      <version>3.4.0</version>
+      <version>3.12.10</version>
     </dependency>
     
     <dependency>
@@ -89,7 +89,7 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.2.0</version>
+      <version>1.2.10</version>
     </dependency>
     
   </dependencies>

@@ -4,6 +4,7 @@ package com.hazeluff.discord.bot.chat;
 import java.util.regex.Pattern;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.TextChannel;
@@ -40,8 +41,8 @@ public abstract class Topic {
 	public abstract boolean isReplyTo(MessageCreateEvent event);
 
 	protected void sendMessage(MessageCreateEvent event, String message) {
-		TextChannel channel = (TextChannel) nhlBot.getDiscordManager().block(event.getMessage().getChannel());
-		nhlBot.getDiscordManager().sendMessage(channel, spec -> spec.setContent(message));
+		TextChannel channel = (TextChannel) DiscordManager.block(event.getMessage().getChannel());
+		DiscordManager.sendMessage(channel, message);
 	}
 
 	/**

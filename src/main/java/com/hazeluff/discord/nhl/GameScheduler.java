@@ -15,10 +15,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.apache.http.client.utils.URIBuilder;
@@ -68,7 +70,7 @@ public class GameScheduler extends Thread {
 
 	private final Map<Game, GameTracker> activeGameTrackers;
 
-	LocalDate lastUpdate;
+	AtomicReference<LocalDate> lastUpdate = new AtomicReference<>();
 
 	/**
 	 * Constructor for injecting private members (Use only for testing).
@@ -108,19 +110,21 @@ public class GameScheduler extends Thread {
 		}
 
 		init.set(true);
+		LOGGER.info("Finished Initializing.");
 
-		lastUpdate = Utils.getCurrentDate(Config.DATE_START_TIME_ZONE);
+		lastUpdate.set(Utils.getCurrentDate(Config.DATE_START_TIME_ZONE));
 		while (!isStop()) {
+			LOGGER.info("Checking for update [lastUpdate={}]", getLastUpdate().toString());
 			LocalDate today = Utils.getCurrentDate(Config.DATE_START_TIME_ZONE);
-			if (today.compareTo(lastUpdate) > 0) {
+			if (today.compareTo(getLastUpdate()) > 0) {
+				LOGGER.info("New day detected [today={}]. Updating schedule and trackers...", today.toString());
 				try {
 					updateGameSchedule();
 					updateTrackers();
-					lastUpdate = today;
-
-				} catch (HttpException e) {
+					lastUpdate.set(today);
+					LOGGER.info("Successfully updated games.");
+				} catch (Exception e) {
 					LOGGER.error("Error occured when updating games.", e);
-					throw new RuntimeException(e);
 				}
 			}
 			Utils.sleep(UPDATE_RATE);
@@ -138,9 +142,11 @@ public class GameScheduler extends Thread {
 		// Retrieve schedule/game information from NHL API
 		games = getRawGames().entrySet()
 		        .stream()
+		        .map(e -> Game.parse(e.getValue()))
+		        .filter(Objects::nonNull)
 				.collect(Collectors.toConcurrentMap(
-						e -> e.getKey(),
-						e -> Game.parse(e.getValue())));
+						game -> game.getGamePk(),
+						game -> game));
 		LOGGER.info("Retrieved all games: [" + games.size() + "]");
 		LOGGER.info("Finished Initialization.");
 	}
@@ -170,20 +176,27 @@ public class GameScheduler extends Thread {
 	void updateGameSchedule() throws HttpException {
 		LOGGER.info("Updating game schedule.");
 
-		Map<Integer, BsonDocument> fetchedGames = getRawGames();
-		fetchedGames.entrySet().stream().forEach(fetchedGame -> {
-			int gamePk = fetchedGame.getKey();
+		Map<Integer, BsonDocument> jsonFetchedGames = getRawGames();
+		jsonFetchedGames.entrySet().stream().forEach(jsonFetchedGame -> {
+			int gamePk = jsonFetchedGame.getKey();
 			Game existingGame = games.get(gamePk);
 			if (existingGame == null) {
 				// Create a new game object and put it in our map
-				games.put(gamePk, Game.parse(fetchedGame.getValue()));
+				Game newGame = Game.parse(jsonFetchedGame.getValue());
+				if (newGame != null) {
+					// Games can be null if they fail to parse.
+					// Only put non-null values (map throws error otherwise).
+					games.put(gamePk, newGame);
+				} else {
+					LOGGER.debug("Fetched game could not be parsed. Skipping insertion...");
+				}
 			} else {
-				existingGame.updateGameData(fetchedGame.getValue());
+				existingGame.updateGameData(jsonFetchedGame.getValue());
 			}
 		});
 
 		// Remove the game if it isn't in the list of games fetched
-		games.entrySet().removeIf(entry -> !fetchedGames.containsKey(entry.getKey()));
+		games.entrySet().removeIf(entry -> !jsonFetchedGames.containsKey(entry.getKey()));
 	}
 
 	/**
@@ -335,7 +348,7 @@ public class GameScheduler extends Thread {
 				.map(Entry::getValue)
 				.sorted(GAME_COMPARATOR.reversed())
 				.filter(game -> team == null ? true : game.containsTeam(team))
-				.filter(game -> game.getStatus().isFinished())
+				.filter(game -> game.getStatus().isFinal())
 				.collect(Collectors.toList());
 	}
 
@@ -447,6 +460,11 @@ public class GameScheduler extends Thread {
 				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.getChannelName(game)));
 	}
 
+	public boolean isGameActive(List<Team> teams, String channelName) {
+		return getActiveGames(teams).stream()
+				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.getChannelName(game)));
+	}
+
 	Map<Game, GameTracker> getActiveGameTrackers() {
 		return new HashMap<>(activeGameTrackers);
 	}
@@ -469,7 +487,7 @@ public class GameScheduler extends Thread {
 	}
 
 	public LocalDate getLastUpdate() {
-		return lastUpdate;
+		return lastUpdate.get();
 	}
 
 	public Set<Game> getGames() {

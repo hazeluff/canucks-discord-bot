@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
 
+import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
@@ -14,6 +16,7 @@ import com.hazeluff.nhl.game.Status;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.EmbedCreateSpec.Builder;
 
 public class GDCGoalsCommand extends GDCScoreCommand {
 
@@ -28,18 +31,26 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 	}
 
 	@Override
-	public Publisher<?> reply(ChatInputInteractionEvent event, Game game) {
+	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		if (!game.getStatus().isStarted()) {
-			return event.reply(GAME_NOT_STARTED_MESSAGE);
+			return Command.deferReply(event, GAME_NOT_STARTED_MESSAGE, true);
 		}
 
-		return event.reply(callbackSpec -> callbackSpec
-				.addEmbed(embedSpec -> GDCScoreCommand.buildEmbed(embedSpec, game))
-				.addEmbed(embedSpec -> buildEmbed(embedSpec, game))
-		);
+		Builder embedBuilder = EmbedCreateSpec.builder();
+		// Add Score
+		GDCScoreCommand.buildEmbed(embedBuilder, game);
+		// Add Goals
+		buildEmbed(embedBuilder, game);
+		return Command.deferReply(event, embedBuilder.build());
 	}
 
-	public static EmbedCreateSpec buildEmbed(EmbedCreateSpec embedSpec, Game game) {
+	public static EmbedCreateSpec getEmbed(Game game) {
+		Builder embedBuilder = EmbedCreateSpec.builder();
+		buildEmbed(embedBuilder, game);
+		return embedBuilder.build();
+	}
+
+	public static EmbedCreateSpec.Builder buildEmbed(EmbedCreateSpec.Builder embedBuilder, Game game) {
 		List<GoalEvent> goals = game.getScoringEvents();
 		// Regulation Periods
 		for (int period = 1; period <= 3; period++) {
@@ -71,7 +82,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 			} else {
 				strGoals = "None";
 			}
-			embedSpec.addField(strPeriod, strGoals, false);
+			embedBuilder.addField(strPeriod, strGoals, false);
 		}
 		// Overtime and Shootouts
 		Predicate<GameEvent> isExtraPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() > 3;
@@ -85,12 +96,12 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 				}
 				sbGoals.append(buildGoalLine(goal));
 			}
-			embedSpec.addField(strPeriod, sbGoals.toString(), false);
+			embedBuilder.addField(strPeriod, sbGoals.toString(), false);
 		}
 
 		Status status = game.getStatus();
-		embedSpec.setFooter("Status: " + status.getDetailedState().toString(), null);
-		return embedSpec;
+		embedBuilder.footer("Status: " + status.getDetailedState().toString(), null);
+		return embedBuilder;
 	}
 
 	/**

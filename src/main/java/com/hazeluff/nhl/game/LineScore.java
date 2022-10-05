@@ -1,6 +1,7 @@
 package com.hazeluff.nhl.game;
 
 import org.bson.BsonDocument;
+import org.bson.BsonString;
 
 public class LineScore {
 	// Period
@@ -47,8 +48,8 @@ public class LineScore {
 	public static LineScore parse(BsonDocument json) {
 		// Period
 		int currentPeriod = json.getInt32("currentPeriod").getValue();
-		String currentPeriodOrdinal = json.getString("currentPeriodOrdinal").getValue();
-		String currentPeriodTimeRemaining = json.getString("currentPeriodTimeRemaining").getValue();
+		String currentPeriodOrdinal = json.getString("currentPeriodOrdinal", new BsonString("")).getValue();
+		String currentPeriodTimeRemaining = json.getString("currentPeriodTimeRemaining", new BsonString("")).getValue();
 		boolean hasShootout = json.getBoolean("hasShootout").getValue();
 		// Intermission
 		BsonDocument jsonIntermission = json.getDocument("intermissionInfo");

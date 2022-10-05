@@ -18,7 +18,7 @@ public class RudeTopic extends Topic {
 	public void execute(MessageCreateEvent event) {
 		String reply = Utils.getRandom(Arrays.asList(
 				"Nah, you should fuck off.", 
-				"Go kill yourself.", 
+				"Go ahead and leave the server.", 
 				"You can suck my dick.",
 				"Go take it, and shove it up your butt.", 
 				"Please, eat shit and die.", 
@@ -30,7 +30,7 @@ public class RudeTopic extends Topic {
 				"You're probably getting coal this Christmas.", 
 				"I'm just doing my job. :cry:", 
 				"That's not nice.",
-				String.format("Hazeluff worked really hard on me.")));
+				"Hazeluff worked really hard on me."));
 		sendMessage(event, reply);
 	}
 

@@ -16,6 +16,7 @@ import org.javatuples.Pair;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.database.predictions.IPrediction;
 import com.hazeluff.discord.bot.database.predictions.results.SeasonCampaignResults;
 import com.hazeluff.nhl.Team;
@@ -35,7 +36,7 @@ public class SeasonCampaign extends Campaign {
 
 	// Prediction storage
 	public static void savePrediction(NHLBot nhlBot, Prediction prediction) {
-		prediction.saveToDatabase(nhlBot);
+		prediction.saveToDatabase(nhlBot.getPersistentData());
 	}
 
 	public static Prediction loadPrediction(NHLBot nhlBot, String campaignId, int gamePk, long userId) {
@@ -105,14 +106,15 @@ public class SeasonCampaign extends Campaign {
 			return prediction;
 		}
 
-		void saveToDatabase(NHLBot nhlBot) {
-			getCollection(nhlBot.getPersistentData().getMongoDatabase(), campaignId).updateOne(
+		void saveToDatabase(PersistentData persistentData) {
+			getCollection(persistentData.getMongoDatabase(), campaignId).updateOne(
 					new Document()
 							.append(USER_ID_KEY, userId)
 							.append(GAME_PK_KEY,gamePk),
 					new Document("$set", new Document()
-							.append(PREDICTION_KEY, prediction == null ? null : prediction)),
-					new UpdateOptions().upsert(true));
+							.append(PREDICTION_KEY, prediction)),
+					new UpdateOptions().upsert(true)
+			);
 		}
 
 		static Prediction loadFromDatabase(NHLBot nhlBot, String campaignId, int gamePk, long userId) {
@@ -193,7 +195,7 @@ public class SeasonCampaign extends Campaign {
 		String campaignId = buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
 		Set<Game> games = nhlBot.getGameScheduler().getGames();
 		Map<Integer, Team> gamesResults = games.stream()
-				.filter(game -> game.getStatus().isFinished())
+				.filter(game -> game.getStatus().isFinal())
 				.filter(game -> game.getWinningTeam() != null)
 				.collect(Collectors.toMap(Game::getGamePk, Game::getWinningTeam));
 		return new SeasonCampaignResults(campaignId, gamesResults, games.size());

@@ -48,17 +48,17 @@ public class HelpCommand extends Command {
 		}
 		switch(command) {
 		case "teams":
-			return event.replyEphemeral(TEAMS_MESSAGE);
+			return deferReply(event, TEAMS_MESSAGE, true);
 		case ScheduleCommand.NAME:
-			return event.replyEphemeral(ScheduleCommand.HELP_MESSAGE);
+			return deferReply(event, ScheduleCommand.HELP_MESSAGE, true);
 		case GDCCommand.NAME:
-			return event.reply(GDCCommand.HELP_MESSAGE);
+			return deferReply(event, GDCCommand.HELP_MESSAGE_EMBED, true);
 		case SubscribeCommand.NAME:
-			return event.replyEphemeral(SubscribeCommand.HELP_MESSAGE);
+			return deferReply(event, SubscribeCommand.HELP_MESSAGE, true);
 		case UnsubscribeCommand.NAME:
-			return event.replyEphemeral(UnsubscribeCommand.HELP_MESSAGE);
+			return deferReply(event, UnsubscribeCommand.HELP_MESSAGE, true);
 		default:
-			return event.replyEphemeral("Unknown command: " + command);
+			return deferReply(event, "Unknown command: " + command, true);
 		}
 	}
 

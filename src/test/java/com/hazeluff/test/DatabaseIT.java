@@ -24,7 +24,7 @@ public abstract class DatabaseIT {
 	public abstract MongoClient getClient();
 
 	public static MongoClient createConnection() {
-		return new MongoClient(Config.MONGO_HOST, Config.MONGO_PORT);
+		return new MongoClient(Config.getMongoHost(), Config.MONGO_PORT);
 	}
 
 	public static void closeConnection(MongoClient client) {

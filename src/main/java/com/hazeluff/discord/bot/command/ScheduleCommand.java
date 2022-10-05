@@ -1,9 +1,7 @@
 package com.hazeluff.discord.bot.command;
 
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
@@ -59,8 +57,10 @@ public class ScheduleCommand extends Command {
 					.getGuildPreferences(guildId.asLong()).getTeams();
 
 			if (preferredTeams.isEmpty()) {
-				return event.replyEphemeral(SUBSCRIBE_FIRST_MESSAGE + "\n\n"
-						+ "Alternatively you can choose a specific team's schedule to view.");
+				return event
+						.reply(SUBSCRIBE_FIRST_MESSAGE
+								+ "\n\nAlternatively you can choose a specific team's schedule to view.")
+						.withEphemeral(true);
 			}
 			return event.reply(getScheduleMessage(preferredTeams));
 		}
@@ -76,82 +76,80 @@ public class ScheduleCommand extends Command {
 					+ "where [team] is the one of the three letter codes for your team below: "
 					+ getTeamsListBlock();
 
-	Consumer<InteractionApplicationCommandCallbackSpec> getScheduleMessage(Team team) {
+	InteractionApplicationCommandCallbackSpec getScheduleMessage(Team team) {
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
-		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
+		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+		embedBuilder.color(team.getColor());
 
 		for (Game game : gameScheduler.getPastGames(team, 1)) {
-			embedAppends.add(getEmbedGameAppend(game, team, GameState.PAST));
+			appendGameToEmbed(embedBuilder, game, team, GameState.PAST);
 		}
 		
 		Game currentGame = gameScheduler.getCurrentLiveGame(team);
 
 		if (currentGame != null) {
-			embedAppends.add(getEmbedGameAppend(currentGame, team, GameState.CURRENT));
+			appendGameToEmbed(embedBuilder, currentGame, team, GameState.CURRENT);
 		}
 		
 		int numFutureGames = currentGame == null ? 4 : 3;
 		boolean isNext = true;
 		for (Game game : gameScheduler.getFutureGames(team, numFutureGames)) {
 			if (currentGame == null && isNext) {
-				embedAppends.add(getEmbedGameAppend(game, team, GameState.NEXT));
+				appendGameToEmbed(embedBuilder, game, team, GameState.NEXT);
 				isNext = false;
 			} else {
-				embedAppends.add(getEmbedGameAppend(game, team, GameState.FUTURE));
-
+				appendGameToEmbed(embedBuilder, game, team, GameState.FUTURE);
 			}
 		}
 
-		return spec -> spec
-				.setContent("Here is the schedule for the " + team.getFullName())
-				.addEmbed(embed -> {
-					embed.setColor(team.getColor());
-					embedAppends.forEach(e -> e.accept(embed));
-				});
+		return InteractionApplicationCommandCallbackSpec.builder()
+				.content("Here is the schedule for the " + team.getFullName())
+				.addEmbed(embedBuilder.build())
+				.build();
 	}
 
-	Consumer<InteractionApplicationCommandCallbackSpec> getScheduleMessage(List<Team> teams) {
+	InteractionApplicationCommandCallbackSpec getScheduleMessage(List<Team> teams) {
 		GameScheduler gameScheduler = nhlBot.getGameScheduler();
-		List<Consumer<EmbedCreateSpec>> embedAppends = new ArrayList<>();
+		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+		if (teams.size() == 1) {
+			embedBuilder.color(teams.get(0).getColor());
+		}
 		for (Team team : teams) {
 			for (Game game : gameScheduler.getPastGames(team, 1)) {
-				embedAppends.add(getEmbedGameAppend(game, team, GameState.PAST));
+				appendGameToEmbed(embedBuilder, game, team, GameState.PAST);
 			}
 
 			Game currentGame = gameScheduler.getCurrentLiveGame(team);
 
 			if (currentGame != null) {
-				embedAppends.add(getEmbedGameAppend(currentGame, team, GameState.CURRENT));
+				appendGameToEmbed(embedBuilder, currentGame, team, GameState.CURRENT);
 			}
 
 			int numFutureGames = currentGame == null ? 2 : 1;
 			boolean isNext = true;
 			for (Game game : gameScheduler.getFutureGames(team, numFutureGames)) {
 				if (currentGame == null && isNext) {
-					embedAppends.add(getEmbedGameAppend(game, team, GameState.NEXT));
+					appendGameToEmbed(embedBuilder, game, team, GameState.NEXT);
 					isNext = false;
 				} else {
-					embedAppends.add(getEmbedGameAppend(game, team, GameState.FUTURE));
+					appendGameToEmbed(embedBuilder, game, team, GameState.FUTURE);
 
 				}
 			}
 		}
 
-		return spec -> spec
-				.setContent("Here is the schedule for all your teams. You may use the `team` option to specify a team.")
-				.addEmbed(embed -> {
-					if (teams.size() == 1) {
-						embed.setColor(teams.get(0).getColor());
-					}
-					embedAppends.forEach(e -> e.accept(embed));
-				});
+		return InteractionApplicationCommandCallbackSpec.builder()
+				.content("Here is the schedule for all your teams. You may use the `team` option to specify a team.")
+				.addEmbed(embedBuilder.build())
+				.build();
 	}
 
 	enum GameState {
 		PAST, CURRENT, NEXT, FUTURE;
 	}
 
-	Consumer<EmbedCreateSpec> getEmbedGameAppend(Game game, Team preferedTeam, GameState state) {
+	EmbedCreateSpec.Builder appendGameToEmbed(EmbedCreateSpec.Builder builder, Game game, Team preferedTeam,
+			GameState state) {
 		ZoneId timeZone = preferedTeam.getTimeZone();
 		StringBuilder date = new StringBuilder(GameDayChannel.getNiceDate(game, timeZone));
 		String message;
@@ -197,7 +195,7 @@ public class ScheduleCommand extends Command {
 			break;
 		}
 
-		return embed -> embed.addField(date.toString(), message, false);
+		return builder.addField(date.toString(), message, false);
 	}
 
 	private static String buildGameScore(Game game) {

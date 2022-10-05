@@ -82,9 +82,7 @@ public class GameTracker extends Thread {
 		try {
 			setName(GameDayChannel.getChannelName(game));
 			game.updateLiveData();
-			if (!game.getStatus().isFinished()) {
-				
-				
+			if (!game.getStatus().isFinal()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
 				boolean closeToStart;
@@ -101,54 +99,46 @@ public class GameTracker extends Thread {
 				} while (!closeToStart);
 				LOGGER.info("Game is about to start. Polling more actively.");
 				// Game is close to starting. Poll at higher rate than previously
-
 				
 				// Wait for start of game
 				boolean started = false;
-				do {
+				do {					
 					game.updateLiveData();
+					started = game.getStatus().isStarted();
 					if (!started) {
 						Utils.sleep(ACTIVE_POLL_RATE_MS);
 					}
-				} while (!game.getStatus().isStarted());
+				} while (!started);
 				// - wait for start of game
 				
-
 				// Game has started
 				LOGGER.info("Game has started.");
-
-				// The thread terminates when the GameStatus is Final and 10 minutes has elapsed
+				
+				// Main update loop
 				ZonedDateTime lastFinal = null;
-				long timeAfterLast = 0l;
-				while (timeAfterLast < POST_GAME_UPDATE_DURATION) {
-					
-					
-					// Main update loop
-					while (!game.getStatus().isFinished()) {
-						game.updateLiveData();
+				boolean stopUpdates = false;
+				do {
+					game.updateLiveData();
 
-						if (!game.getStatus().isFinished()) {
-							Utils.sleep(ACTIVE_POLL_RATE_MS);
-						}
-					}
-					// - main update loop
-
-
-					// Send and update end of game message
+					// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
 					if (game.getStatus().isFinal()) {
 						if (lastFinal == null) {
-							LOGGER.info("Game finished. Continuing polling...");
+							LOGGER.debug("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();
 						}
-						timeAfterLast = DateUtils.diffMs(ZonedDateTime.now(), lastFinal);
-						LOGGER.debug("Time till thread finishes (ms): "
-								+ String.valueOf(POST_GAME_UPDATE_DURATION - timeAfterLast));
+						long timeAfterFinal = DateUtils.diffMs(lastFinal, ZonedDateTime.now());
+						LOGGER.debug("Game finished. timeAfterFinal={}(ms)", timeAfterFinal);
+
+						stopUpdates = timeAfterFinal > POST_GAME_UPDATE_DURATION;
 					} else {
 						lastFinal = null;
-						LOGGER.info("Game not finished.");
+						LOGGER.debug("Game not finished.");
 					}
+
 					Utils.sleep(ACTIVE_POLL_RATE_MS);
-				}
+				} while (!stopUpdates);
+				// - main update loop
+				
 				LOGGER.info("Game thread finished");
 			} else {
 				LOGGER.info("Game is already finished");

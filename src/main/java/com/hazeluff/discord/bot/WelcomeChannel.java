@@ -1,13 +1,12 @@
 package com.hazeluff.discord.bot;
 
 
-import java.util.function.Consumer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
+import com.hazeluff.discord.bot.discord.DiscordManager;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
@@ -19,9 +18,7 @@ public class WelcomeChannel extends Thread {
 
 	private static final String CHANNEL_NAME = "welcome";
 
-	// Update every hour
-	private static final Consumer<MessageCreateSpec> UPDATED_MESSAGE = spec -> spec
-			.setContent("I was just deployed/restarted.");
+	private static final String UPDATED_MESSAGE = "I was just deployed/restarted.";
 
 	private final NHLBot nhlBot;
 	private final TextChannel channel;
@@ -42,7 +39,7 @@ public class WelcomeChannel extends Thread {
 					.onErrorReturn(null)
 					.blockFirst();
 		} catch (Exception e) {
-			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, CHANNEL_NAME);
+			channel = DiscordManager.createAndGetChannel(guild, CHANNEL_NAME);
 		}
 		WelcomeChannel welcomeChannel = new WelcomeChannel(nhlBot, channel);
 		welcomeChannel.start();
@@ -58,17 +55,18 @@ public class WelcomeChannel extends Thread {
 
 		Snowflake lastMessageId = channel.getLastMessageId().orElse(null);
 		if (lastMessageId != null) {
-			channel.getMessagesBefore(lastMessageId).collectList().block().stream()
+			DiscordManager.block(channel.getMessagesBefore(lastMessageId)).stream()
 					.filter(message -> nhlBot.getDiscordManager().isAuthorOfMessage(message))
-					.forEach(message -> nhlBot.getDiscordManager().deleteMessage(message));
-			nhlBot.getDiscordManager().deleteMessage(
-					nhlBot.getDiscordManager().block(channel.getLastMessage()));
+					.forEach(message -> DiscordManager.deleteMessage(message));
+			DiscordManager.deleteMessage(DiscordManager.block(channel.getLastMessage()));
 		}
-		nhlBot.getDiscordManager().sendMessage(channel, UPDATED_MESSAGE);
-		nhlBot.getDiscordManager().sendMessage(channel, spec -> {
-			spec.setContent("About the bot:");
-			spec.addEmbed(AboutCommand.EMBED_SPEC);
-		});
-		nhlBot.getDiscordManager().sendMessage(channel, HelpCommand.COMMAND_LIST);
+		DiscordManager.sendMessage(channel, UPDATED_MESSAGE);
+		DiscordManager.sendMessage(channel, MessageCreateSpec
+				.builder()
+			.content("About the bot:")
+			.addEmbed(AboutCommand.EMBED_SPEC)
+			.build()
+		);
+		DiscordManager.sendMessage(channel, HelpCommand.COMMAND_LIST);
 	}
 }

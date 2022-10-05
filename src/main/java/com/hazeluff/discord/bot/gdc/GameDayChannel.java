@@ -12,26 +12,25 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.bot.ExceptionHandler;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
+import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.Team;
-import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
@@ -46,9 +45,9 @@ import discord4j.core.object.reaction.ReactionEmoji;
 import discord4j.core.object.reaction.ReactionEmoji.Unicode;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import discord4j.rest.util.Color;
 
 public class GameDayChannel extends Thread implements IEventProcessor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannel.class);
@@ -56,6 +55,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	// Number of retries to do when NHL API returns no events.
 	static final int NHL_EVENTS_RETRIES = 5;
 
+	// Time to wait before tryign to fetch the Discord channel
+	static final long CHANNEL_FETCH_RETRY_RATE_MS = 60000l;
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
 	// Polling time for when game is started/almost-started
@@ -87,76 +88,81 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private GuildPreferences preferences;
 
+	private GDCMeta meta;
+
 	private List<GoalEvent> cachedGoalEvents = new ArrayList<>();
 	private List<PenaltyEvent> cachedPenaltyEvents = new ArrayList<>();
-	
-	private int eventsRetries = 0;
 
-	private GDCMeta meta;
+	// Events that happened before the bot started.
+	private List<GoalEvent> skippableGoalEvents = new ArrayList<>();
+	private List<PenaltyEvent> skippablePenaltyEvents = new ArrayList<>();
 
 	private final Map<Integer, Message> goalEventMessages = new HashMap<>();
 	private final Map<Integer, Message> penaltyEventMessages = new HashMap<>();
 
 	private Message summaryMessage;
+	private EmbedCreateSpec summaryMessageEmbed; // Used to determine if message needs updating.
 	private Message endOfGameMessage;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 
-	private GameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Game game, List<GoalEvent> goalEvents, Guild guild,
-			TextChannel channel) {
-		setUncaughtExceptionHandler(new ExceptionHandler(GameDayChannelsManager.class));
+	private GameDayChannel(NHLBot nhlBot, GameTracker gameTracker,
+			Game game, Guild guild, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
 		this.game = game;
-		this.cachedGoalEvents = goalEvents;
 		this.guild = guild;
 		this.channel = channel;
 	}
 
 	GameDayChannel(NHLBot nhlBot, Game game, Guild guild) {
-		this(nhlBot, null, game, game.getScoringEvents(), guild, null);
+		this(nhlBot, null, game, guild, null);
 	}
 
 	GameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
-		this(nhlBot, gameTracker, gameTracker.getGame(), gameTracker.getGame().getScoringEvents(), guild, null);
+		this(nhlBot, gameTracker, gameTracker.getGame(), guild, null);
 	}
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
 		GameDayChannel gameDayChannel = new GameDayChannel(nhlBot, gameTracker, guild);
-		gameDayChannel.getChannel();
+		gameDayChannel.channel = gameDayChannel.getChannel();
 		gameDayChannel.loadMetadata();
 		gameDayChannel.start();
 		return gameDayChannel;
 	}
 
-	void getChannel() {
-		String channelName = getChannelName();
-		Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
-		preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong());
-		Category category = nhlBot.getGdcCategoryManager().get(guild);
-		if (!nhlBot.getDiscordManager().getTextChannels(guild).stream().anyMatch(channelMatcher)) {
-			Consumer<TextChannelCreateSpec> channelSpec = spec -> {
-				spec.setName(channelName);
-				spec.setTopic(preferences.getCheer());
+	TextChannel getChannel() {
+		TextChannel channel = null;
+		try {
+			String channelName = getChannelName();
+			Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
+			preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong());
+			Category category = nhlBot.getGdcCategoryManager().get(guild);
+			if (!DiscordManager.getTextChannels(guild).stream().anyMatch(channelMatcher)) {
+				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
+				channelSpecBuilder.name(channelName);
+				channelSpecBuilder.topic(preferences.getCheer());
 				if (category != null) {
-					spec.setParentId(category.getId());
+					channelSpecBuilder.parentId(category.getId());
 				}
-			};
-			channel = nhlBot.getDiscordManager().createAndGetChannel(guild, channelSpec);
-			if (channel != null) {
-				preferences.getTimeZone();
-				Message message = sendAndGetMessage(getDetailsMessage(preferences.getTimeZone()));
-				nhlBot.getDiscordManager().pinMessage(message);
-			}
-		} else {
-			LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
-			channel = nhlBot.getDiscordManager().getTextChannels(guild).stream().filter(channelMatcher).findAny()
-					.orElse(null);
+				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
+				if (channel != null) {
+					// Send Messages to Initialize Channel
+					sendDetailsMessage();
+					sendGDCHelpMessage();
+				}
+			} else {
+				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
+				channel = DiscordManager.getTextChannels(guild).stream().filter(channelMatcher).findAny().orElse(null);
 
-			if (!channel.getCategoryId().isPresent() && category != null) {
-				nhlBot.getDiscordManager().moveChannel(category, channel);
+				if (category != null && !channel.getCategoryId().isPresent()) {
+					DiscordManager.moveChannel(category, channel);
+				}
 			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to create channel.", e);
 		}
+		return channel;
 	}
 
 	/**
@@ -181,24 +187,27 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				meta = GDCMeta.of(channel.getId().asLong());
 			}
 			// Load Goal Messages
-			goalEventMessages.putAll(meta.getGoalMessageIds().entrySet()
-					.stream()
-					.collect(Collectors.toMap(
-							e -> e.getKey(), 
-							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue())
-					))
-			);
+			addEventMessages(goalEventMessages, meta.getGoalMessageIds());
 			// Load Penalty Messages
-			penaltyEventMessages.putAll(meta.getPenaltyMessageIds().entrySet()
-					.stream()
-					.collect(Collectors.toMap(
-							e -> e.getKey(),
-							e -> nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), e.getValue())
-					))
-			);
+			addEventMessages(penaltyEventMessages, meta.getPenaltyMessageIds());
+
 			saveMetadata();
 		}
 	}
+
+	private void addEventMessages(Map<Integer, Message> map, Map<Integer, Long> eventMessages) {
+		for (Entry<Integer, Long> entry : eventMessages.entrySet()) {
+			Integer eventId = entry.getKey();
+			Long messageId = entry.getValue();
+			Message message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+			if (message != null) {
+				map.put(eventId, message);
+			} else {
+				LOGGER.warn("Failed to find message: " + messageId);
+			}
+		}
+	}
+
 
 	private void saveMetadata() {
 		LOGGER.trace("Save Metadata.");
@@ -224,18 +233,30 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	@Override
 	public void run() {
+		try {
+			_run();
+		} catch (Exception e) {
+			LOGGER.error("Error occurred while running thread.", e);
+		} finally {
+			// Deregister processing on ReactionListener
+			// unregisterFromListener();
+			LOGGER.info("Thread completed");
+		}
+	}
+
+	private void _run() {
 		String channelName = getChannelName();
 		String threadName = String.format("<%s> <%s>", guild.getName(), channelName);
 		setName(threadName);
-		LOGGER.info("Started thread for channel [{}] in guild [{}]", channelName, guild.getName());
+		LOGGER.info("Started GameDayChannel thread.");
+
+		this.skippableGoalEvents = game.getScoringEvents();
+		this.skippablePenaltyEvents = game.getPenaltyEvents();
 
 		// Post Predictions poll
 		summaryMessage = getSummaryMessage();
 
-		updateCachedData();
-
-		if (!game.getStatus().isFinished()) {
-
+		if (!game.getStatus().isFinal()) {
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
 			sendReminders();
@@ -253,15 +274,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 
 			while (!gameTracker.isFinished()) {
-				if (isGameUpdated()) {
-					updateGoalMessages();
-					updatePenaltyMessages();
-					updateSummaryMessage();
+				refreshMessages();
 
-					updateCachedData();
-				}
-
-				if (game.getStatus().isFinished()) {
+				if (game.getStatus().isFinal()) {
 					updateEndOfGameMessage();
 				}
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
@@ -269,17 +284,22 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		} else {
 			LOGGER.info("Game is already finished");
 		}
-
 		LOGGER.info("Thread Completed");
 	}
 
-	private boolean isGameUpdated() {
-		return true;
-	}
+	/**
+	 * Used to update all messages.
+	 */
+	public void refreshMessages() {
+		List<GoalEvent> goalEvents = game.getScoringEvents();
+		List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
+		updateGoalMessages(goalEvents);
+		updatePenaltyMessages(penaltyEvents);
 
-	private void updateCachedData() {
-		this.cachedGoalEvents = game.getScoringEvents();
-		this.cachedPenaltyEvents = game.getPenaltyEvents();
+		updateSummaryMessage();
+
+		this.cachedGoalEvents = goalEvents;
+		this.cachedPenaltyEvents = penaltyEvents;
 	}
 
 	/**
@@ -355,72 +375,49 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		sendMessage("Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe");
 	}
 
-	/**
-	 * <p>
-	 * Determines if game events should be fetched again before updating the
-	 * messages.
-	 * </p>
-	 * 
-	 * <p>
-	 * A retry should happen if the existing events is more than 1 and the api
-	 * returned 0 events. Otherwise, if there is 1 existing event and none is
-	 * fetched, retry {@link #NHL_EVENTS_RETRIES} times until accepting the changes.
-	 * </p>
-	 * 
-	 * @param fetchedGameEvents
-	 *            the fetched game events
-	 * @return true - if events should be fetched again<br>
-	 *         false - otherwise
-	 */
-	public boolean isRetryEventFetch(List<GameEvent> fetchedGameEvents) {
-		if (fetchedGameEvents.isEmpty()) {
-			if (cachedGoalEvents.size() > 1) {
-				LOGGER.warn("NHL api returned no events, but we have stored more than one event.");
-				return true;
-			} else if (cachedGoalEvents.size() == 1) {
-				LOGGER.warn("NHL api returned no events, but we have stored one event.");
-				if (eventsRetries++ < NHL_EVENTS_RETRIES) {
-					LOGGER.warn(String.format(
-							"Could be a rescinded goal or NHL api issue. " + "Retrying %s time(s) out of %s",
-							eventsRetries, NHL_EVENTS_RETRIES));
-					return true;
-				}
-			}
-		}
-		eventsRetries = 0;
-		return false;
-	}
-
 	/*
 	 * Goals
 	 */
+	public GoalEvent getSkippableGoalEvent(int id) {
+		return skippableGoalEvents.stream()
+				.filter(skippableGoalEvent -> skippableGoalEvent.getId() == id)
+				.findAny()
+				.orElse(null);
+	}
+
 	public GoalEvent getCachedGoalEvent(int id) {
 		return cachedGoalEvents.stream()
 				.filter(cachedGoalEvent -> cachedGoalEvent.getId() == id)
-				.findAny().orElse(null);
+				.findAny()
+				.orElse(null);
 	}
 	
 	/**
-	 * Updates messages for Events
+	 * <p>
+	 * Sends/Updates messages for GoalEvents. If message has not been sent, it will
+	 * be created. Otherwise, the existing message will be updated.
+	 * </p>
 	 * 
-	 * @param currentEvents
+	 * <p>
+	 * Does not update for events occurring before this thread (/the bot) was
+	 * started.
+	 * </p>
 	 */
-	private void updateGoalMessages() {
-
+	private void updateGoalMessages(List<GoalEvent> goals) {
 		// Update Messages
-		game.getScoringEvents().forEach(currentEvent -> {
+		goals.forEach(currentEvent -> {
 			if (currentEvent.getPlayers().isEmpty()) {
 				return;
 			}
 
-			GoalEvent cachedEvent = getCachedGoalEvent(currentEvent.getId());
-			if(cachedEvent == null) {
+			GoalEvent skippableEvent = getSkippableGoalEvent(currentEvent.getId());
+			if (skippableEvent != null) {
 				return;
 			}
 			if (!goalEventMessages.containsKey(currentEvent.getId())) {
 				// New event
 				sendGoalMessage(currentEvent);
-			} else if (isGoalEventUpdated(cachedEvent, currentEvent)) {
+			} else if (isGoalEventUpdated(currentEvent)) {
 				// Updated event
 				updateGoalMessage(currentEvent);
 			}
@@ -429,9 +426,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Remove Messages that do not have a corresponding event in the game's data.
 		goalEventMessages.entrySet().removeIf(entry -> {
 			int eventId = entry.getKey().intValue();
-			if (game.getScoringEvents().stream()
-					.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-
+			if (goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
 				GoalEvent cachedEvent = getCachedGoalEvent(eventId);
 				sendRescindedGoalMessage(cachedEvent);
 				return true;
@@ -442,7 +437,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	
 	void sendGoalMessage(GoalEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
-		Message message = sendAndGetMessage(spec -> spec.addEmbed(buildGoalMessageEmbed(event)));
+		String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
+		if (messageContent != null) {
+			sendMessage(messageContent);
+		}
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
+				.addEmbed(buildGoalMessageEmbed(event))
+				.build();
+		Message message = DiscordManager.sendAndGetMessage(channel, messageSpec);
 		if (message != null) {
 			goalEventMessages.put(event.getId(), message);
 			meta.setGoalMessageIds(goalEventMessages);
@@ -451,12 +453,15 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	
 	void updateGoalMessage(GoalEvent event) {
-		LOGGER.debug("Updating message for event [" + event + "].");
+		LOGGER.info("Updating message for event [" + event + "].");
 		if (!goalEventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = goalEventMessages.get(event.getId());
-			nhlBot.getDiscordManager().updateMessage(message, spec -> spec.addEmbed(buildGoalMessageEmbed(event)));
+			MessageEditSpec messageSpec = MessageEditSpec.builder()
+					.addEmbed(buildGoalMessageEmbed(event))
+					.build();
+			DiscordManager.updateMessage(message, messageSpec);
 		}
 	}
 
@@ -467,23 +472,32 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	boolean isGoalEventUpdated(GoalEvent oldEvent, GoalEvent newEvent) {
-		return !oldEvent.getStrength().equals(newEvent.getStrength())
-				|| !oldEvent.getPlayers().equals(newEvent.getPlayers())
-				|| !oldEvent.getTeam().equals(newEvent.getTeam());
+	private boolean isGoalEventUpdated(GoalEvent event) {
+		GoalEvent cachedEvent = getCachedGoalEvent(event.getId());
+		
+		if(cachedEvent == null) {
+			return false;
+		}
+		
+		return !cachedEvent.getStrength().equals(event.getStrength())
+				|| !cachedEvent.getPlayers().equals(event.getPlayers())
+				|| !cachedEvent.getTeam().equals(event.getTeam());
 	}
 
-	public static Consumer<EmbedCreateSpec> buildGoalMessageEmbed(GoalEvent event) {
+	public static EmbedCreateSpec buildGoalMessageEmbed(GoalEvent event) {
+		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
+
 		List<Player> players = event.getPlayers();
 
 		String scorer = players.get(0).getFullName();
 
 		switch (event.getPeriod().getType()) {
 		case SHOOTOUT:
-			return spec -> spec
-					.setColor(event.getTeam().getColor())
+			return builder
+					.color(event.getTeam().getColor())
 					.addField(scorer, "Shootout goal", false)
-					.setFooter("Shootout", null);
+					.footer("Shootout", null)
+					.build();
 		default:
 			String description = event.getTeam().getFullName() + " "
 					+ event.getStrength().getValue().toLowerCase()
@@ -497,41 +511,54 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 			String fAssists = assists;
 			String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
-			return spec -> spec
-					.setDescription(description)
-					.setColor(event.getTeam().getColor())
+			return builder
+					.description(description)
+					.color(event.getTeam().getColor())
 					.addField(scorer, fAssists, false)
-					.setFooter(time, null);
+					.footer(time, null)
+					.build();
 		}
 	}
 
 	/*
 	 * Penalty Messages
 	 */
+	private PenaltyEvent getSkippablePenaltyEvent(int id) {
+		return skippablePenaltyEvents.stream()
+				.filter(skippableGoalEvent -> skippableGoalEvent.getId() == id)
+				.findAny()
+				.orElse(null);
+	}
 	
-	public PenaltyEvent getCachedPenaltyEvent(int id) {
+	private PenaltyEvent getCachedPenaltyEvent(int id) {
 		return cachedPenaltyEvents.stream()
 				.filter(cachedPenaltyEvent -> cachedPenaltyEvent.getId() == id)
 				.findAny()
 				.orElse(null);
 	}
-	
+
 	/**
-	 * Updates messages for Events
+	 * <p>
+	 * Sends/Updates messages for PenaltyEvents. If message has not been sent, it
+	 * will be created. Otherwise, the existing message will be updated.
+	 * </p>
 	 * 
-	 * @param currentEvents
+	 * <p>
+	 * Does not update for events occurring before this thread (/the bot) was
+	 * started.
+	 * </p>
 	 */
-	private void updatePenaltyMessages() {
+	private void updatePenaltyMessages(List<PenaltyEvent> penalties) {
 		// Update Messages
-		game.getPenaltyEvents().forEach(currentEvent -> {
-			PenaltyEvent cachedEvent = getCachedPenaltyEvent(currentEvent.getId());
-			if (cachedEvent == null) {
+		penalties.forEach(currentEvent -> {
+			PenaltyEvent skippableEvent = getSkippablePenaltyEvent(currentEvent.getId());
+			if (skippableEvent != null) {
 				return;
 			}
 			if (!penaltyEventMessages.containsKey(currentEvent.getId())) {
 				// New event
 				sendPenaltyMessage(currentEvent);
-			} else if (isPenaltyEventUpdated(cachedEvent, currentEvent)) {
+			} else if (isPenaltyEventUpdated(currentEvent)) {
 				// Updated event
 				updatePenaltyMessage(currentEvent);
 			}
@@ -540,9 +567,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Remove Messages that do not have a corresponding event in the game's data.
 		penaltyEventMessages.entrySet().removeIf(entry -> {
 			int eventId = entry.getKey().intValue();
-			if (game.getPenaltyEvents().stream()
-					.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-
+			if (penalties.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
 				PenaltyEvent cachedEvent = getCachedPenaltyEvent(eventId);
 				sendRescindedPenaltyMessage(cachedEvent);
 				return true;
@@ -551,10 +576,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		});
 	}
 	
-	void sendPenaltyMessage(PenaltyEvent event) {
+	private void sendPenaltyMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
-		Message message = sendAndGetMessage(spec -> spec
-				.addEmbed(buildPenaltyMessageEmbed(event)));
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
+				.addEmbed(buildPenaltyMessageEmbed(event))
+				.build();
+		Message message = DiscordManager.sendAndGetMessage(channel, messageSpec);
 		if (message != null) {
 			penaltyEventMessages.put(event.getId(), message);
 			meta.setPenaltyMessageIds(penaltyEventMessages);
@@ -562,31 +589,38 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 	
-	void updatePenaltyMessage(PenaltyEvent event) {
-		LOGGER.debug("Updating message for event [" + event + "].");
+	private void updatePenaltyMessage(PenaltyEvent event) {
+		LOGGER.info("Updating message for event [" + event + "].");
 		if (!penaltyEventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = penaltyEventMessages.get(event.getId());
-			nhlBot.getDiscordManager().updateMessage(message, spec -> spec
-					.addEmbed(buildPenaltyMessageEmbed(event)));
+
+			MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(buildPenaltyMessageEmbed(event)).build();
+			DiscordManager.updateMessage(message, messageSpec);
 		}
 	}
 
-	void sendRescindedPenaltyMessage(PenaltyEvent event) {
+	private void sendRescindedPenaltyMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending rescinded message for penalty event [" + event + "].");
 		sendMessage(String.format("Penalty has been rescinded. event=", event.toString()));
 	}
 
-	boolean isPenaltyEventUpdated(PenaltyEvent oldEvent, PenaltyEvent newEvent) {
-		return !oldEvent.getPlayers().equals(newEvent.getPlayers())
-				|| !oldEvent.getTeam().equals(newEvent.getTeam())
-				|| !oldEvent.getSeverity().equals(newEvent.getSeverity())
-				|| !oldEvent.getSecondaryType().equals(newEvent.getSecondaryType())
-				|| oldEvent.getMinutes() != newEvent.getMinutes();
+	private boolean isPenaltyEventUpdated(PenaltyEvent event) {
+		PenaltyEvent cachedEvent = getCachedPenaltyEvent(event.getId());
+		
+		if(cachedEvent == null) {
+			return false;
+		}
+		
+		return !cachedEvent.getPlayers().equals(event.getPlayers()) 
+				|| !cachedEvent.getTeam().equals(event.getTeam())
+				|| !cachedEvent.getSeverity().equals(event.getSeverity())
+				|| !cachedEvent.getSecondaryType().equals(event.getSecondaryType())
+				|| cachedEvent.getMinutes() != event.getMinutes();
 	}
 
-	public static Consumer<EmbedCreateSpec> buildPenaltyMessageEmbed(PenaltyEvent event) {
+	public static EmbedCreateSpec buildPenaltyMessageEmbed(PenaltyEvent event) {
 		String header = String.format("%s - %s Penalty", event.getTeam().getLocation(), event.getSeverity());
 		StringBuilder description = new StringBuilder();
 		if (event.getPlayers().size() > 0) {
@@ -602,49 +636,59 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				event.getSecondaryType(), event.getMinutes()));
 		
 		String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
-		return spec -> spec
-				.setColor(event.getTeam().getColor())
+		return EmbedCreateSpec.builder()
+				.color(Color.BLACK)
 				.addField(header, description.toString(), false)
-				.setFooter(time, null);
+				.footer(time, null)
+				.build();
 	}
 
 	/*
 	 * Summary Message
 	 */
 	private Message getSummaryMessage() {
-		Message message;
-		Long messageId = meta.getSummaryMessageId();
-		if (messageId == null) {
-			message = sendSummaryMessage();
-		} else {
-			message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
-			if (message == null) {
+		Message message = null;
+		if (meta != null) {
+			Long messageId = meta.getSummaryMessageId();
+			if (messageId == null) {
 				message = sendSummaryMessage();
+			} else {
+				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+				if (message == null) {
+					message = sendSummaryMessage();
+				}
 			}
-		}
 
-		if (message != null) {
-			nhlBot.getDiscordManager().pinMessage(message);
-			meta.setSummaryMessageId(message.getId().asLong());
-			saveMetadata();
+			if (message != null) {
+				DiscordManager.pinMessage(message);
+				meta.setSummaryMessageId(message.getId().asLong());
+				saveMetadata();
+			}
 		}
 		return message;
 	}
 
 	private Message sendSummaryMessage() {
-		return nhlBot.getDiscordManager().sendAndGetMessage(channel, 
-				messageSpec -> messageSpec
-						.addEmbed(embedSpec -> GDCScoreCommand.buildEmbed(embedSpec, game))
-						.addEmbed(embedSpec -> GDCGoalsCommand.buildEmbed(embedSpec, game))
-		);
+		summaryMessageEmbed = getSummaryEmbedSpec();
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(summaryMessageEmbed).build();
+		return DiscordManager.sendAndGetMessage(channel, messageSpec);
 	}
 
 	private void updateSummaryMessage() {
-		nhlBot.getDiscordManager().updateMessage(summaryMessage, 
-				messageSpec -> messageSpec
-						.addEmbed(embedSpec -> GDCScoreCommand.buildEmbed(embedSpec, game))
-						.addEmbed(embedSpec -> GDCGoalsCommand.buildEmbed(embedSpec, game))
-		);
+		EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
+		boolean updated = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
+		if (summaryMessage != null && updated) {
+			summaryMessageEmbed = newSummaryMessageEmbed;
+			MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(summaryMessageEmbed).build();
+			DiscordManager.updateMessage(summaryMessage, messageSpec);
+		}
+	}
+	
+	private EmbedCreateSpec getSummaryEmbedSpec() {
+		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+		GDCScoreCommand.buildEmbed(embedBuilder, game);
+		GDCGoalsCommand.buildEmbed(embedBuilder, game);
+		return embedBuilder.build();
 	}
 
 	/*
@@ -656,16 +700,16 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	void updateEndOfGameMessage() {
 		if (endOfGameMessage == null) {
 			if (channel != null) {
-				endOfGameMessage = sendAndGetMessage(buildEndOfGameMessage());
+				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
 			}
 			if (endOfGameMessage != null) {
 				LOGGER.debug("Sent end of game message for game. Pinning it...");
-				nhlBot.getDiscordManager().pinMessage(endOfGameMessage);
+				DiscordManager.pinMessage(endOfGameMessage);
 			}
 		} else {
 			LOGGER.trace("End of game message already sent.");
 			String newEndOfGameMessage = buildEndOfGameMessage();
-			Message updatedMessage = nhlBot.getDiscordManager()
+			Message updatedMessage = DiscordManager
 					.updateAndGetMessage(endOfGameMessage, newEndOfGameMessage);
 			if (updatedMessage != null) {
 				endOfGameMessage = updatedMessage;
@@ -695,7 +739,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 			} else {
 				message += "\nThe next game is: "
-						+ getGameDayChannel(nextGames.get(0)).getDetailsMessage(preferences.getTimeZone());
+						+ getGameDayChannel(nextGames.get(0)).getDetailsMessage();
 			}
 		}
 		return message;
@@ -712,24 +756,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	protected void sendMessage(String message) {
 		if (channel != null) {
-			nhlBot.getDiscordManager().sendMessage(channel, message);
+			DiscordManager.sendMessage(channel, message);
 		}
 	}
 
-	protected void sendMessage(Consumer<MessageCreateSpec> spec) {
+	protected void sendMessage(MessageCreateSpec spec) {
 		if (channel != null) {
-			nhlBot.getDiscordManager().sendMessage(channel, spec);
+			DiscordManager.sendMessage(channel, spec);
 		}
-	}
-
-	protected Message sendAndGetMessage(String message) {
-		return channel == null ? null
-				: nhlBot.getDiscordManager().sendAndGetMessage(channel, message);
-	}
-
-	protected Message sendAndGetMessage(Consumer<MessageCreateSpec> spec) {
-		return channel == null ? null
-				: nhlBot.getDiscordManager().sendAndGetMessage(channel, spec);
 	}
 
 	static List<Team> getRelevantTeams(List<Team> teams, Game game) {
@@ -739,10 +773,125 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	/*
 	 * Predictions
 	 */
+	@Override
+	public void process(Event event) {
+		// Do Nothing
+	}
+	/*
+	private void registerToListener() {
+		nhlBot.getReactionListener().addProccessor(this, ReactionAddEvent.class);
+		nhlBot.getReactionListener().addProccessor(this, ReactionRemoveEvent.class);
+	}
+
+	private void unregisterFromListener() {
+		nhlBot.getReactionListener().removeProccessor(this);
+	}
 
 	@Override
 	public void process(Event event) {
-		
+		if (event instanceof ReactionAddEvent) {
+			ReactionAddEvent addEvent = (ReactionAddEvent) event;
+
+			if (!addEvent.getChannelId().equals(channel.getId())) {
+				// Not the same channel/game
+				return;
+			}
+			
+			Unicode addedUnicodeEmoji = addEvent.getEmoji().asUnicodeEmoji().orElse(null);
+			if (addedUnicodeEmoji == null) {
+				return;
+			}
+
+			String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
+			long userId = addEvent.getUserId().asLong();
+
+			if (addedUnicodeEmoji.equals(HOME_EMOJI)) {
+				SeasonCampaign.savePrediction(nhlBot,
+						new Prediction(campaignId, userId, game.getGamePk(), game.getHomeTeam().getId()));
+				removeReactions(pollMessage, addedUnicodeEmoji, addEvent.getUserId());
+			} else if (addedUnicodeEmoji.equals(AWAY_EMOJI)) {
+				SeasonCampaign.savePrediction(nhlBot,
+						new Prediction(campaignId, userId, game.getGamePk(), game.getAwayTeam().getId()));
+				removeReactions(pollMessage, addedUnicodeEmoji, addEvent.getUserId());
+			} else {
+				LOGGER.warn("Unknown emoji: " + addedUnicodeEmoji);
+			}
+		} else if (event instanceof ReactionRemoveEvent) {
+			ReactionRemoveEvent removeEvent = (ReactionRemoveEvent) event;
+
+			if (!removeEvent.getChannelId().equals(channel.getId())) {
+				// Not the same channel/game
+				return;
+			}
+
+			Unicode removedUnicodeEmoji = removeEvent.getEmoji().asUnicodeEmoji().orElse(null);
+			if (removedUnicodeEmoji == null) {
+				return;
+			}
+
+			String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
+			long userId = removeEvent.getUserId().asLong();
+			
+			// Do not interact with persistent data if removed emoji was not of the stored prediction.
+			// Prevents removing the prediction when NHLBot removes the reaction.
+			SeasonCampaign.Prediction prediction = SeasonCampaign.loadPrediction(
+					nhlBot, campaignId, game.getGamePk(), userId);
+
+			if (prediction != null) {
+				if (removedUnicodeEmoji.equals(HOME_EMOJI)) {
+					if (!Integer.valueOf(game.getHomeTeam().getId()).equals(prediction.getPrediction())) {
+						return;
+					}
+				} else if (removedUnicodeEmoji.equals(AWAY_EMOJI)) {
+					if (!Integer.valueOf(game.getAwayTeam().getId()).equals(prediction.getPrediction())) {
+						return;
+					}
+				} else {
+					LOGGER.warn("Unknown emoji: " + removedUnicodeEmoji);
+				}
+			}
+
+			// Remove the prediction from the persistent data
+			SeasonCampaign.savePrediction(nhlBot, new Prediction(campaignId, userId, game.getGamePk(), null));
+		} else {
+			LOGGER.warn("Event provided is of unknown type: " + event.getClass().getSimpleName());
+		}
+	}
+	
+	private void removeReactions(Message message, Unicode excludedReaction, Snowflake userId) {
+		for (Reaction messageReaction : message.getReactions()) {
+			Unicode messageReactionUnicode = messageReaction.getEmoji().asUnicodeEmoji().orElse(null);
+			if (messageReactionUnicode != null && !messageReactionUnicode.equals(excludedReaction)) {
+				DiscordManager.subscribe(message.removeReaction(messageReactionUnicode, userId));
+			}
+		}
+	}
+	*/
+
+	private Message sendDetailsMessage() {
+		preferences.getTimeZone();
+		String detailsMessage = getDetailsMessage();
+		Message message = DiscordManager.sendAndGetMessage(channel, detailsMessage);
+		DiscordManager.pinMessage(message);
+
+		return message;
+	}
+
+	private Message sendGDCHelpMessage() {
+		String pollMessage = String.format(
+				"**This game/channel is interactable with Slash Commands!**"
+				+ "\nUse `/gdc subcommand:help` to bring up a list of commands."
+				+ "\n"
+				+ "\n**Predict the outcome of this game!**"
+				+ "\n%s: `/gdc subcommand:votehome`"
+				+ "\n%s: `/gdc subcommand:voteaway`",
+				game.getHomeTeam().getName(), 
+				game.getAwayTeam().getName());
+
+		Message message = DiscordManager.sendAndGetMessage(channel, pollMessage);
+		DiscordManager.pinMessage(message);
+
+		return message;
 	}
 
 	boolean isBotSelf(User user) {
@@ -873,9 +1022,11 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public static String getDetailsMessage(Game game, ZoneId timeZone) {
-		String message = String.format("**%s** vs **%s** at **%s** on **%s**", game.getHomeTeam().getFullName(),
-				game.getAwayTeam().getFullName(), getTime(game, timeZone), getNiceDate(game, timeZone));
+	public static String getDetailsMessage(Game game) {
+		String message = String.format("**%s** vs **%s** at <t:%s>", 
+				game.getHomeTeam().getFullName(),
+				game.getAwayTeam().getFullName(), 
+				game.getDate().toEpochSecond());
 		return message;
 	}
 
@@ -888,8 +1039,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public String getDetailsMessage(ZoneId timeZone) {
-		return getDetailsMessage(game, timeZone);
+	public String getDetailsMessage() {
+		return getDetailsMessage(game);
 	}
 
 	/**
@@ -916,31 +1067,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * Stops the thread and deletes the channel from the Discord Guild.
 	 */
 	void stopAndRemoveGuildChannel() {
-		nhlBot.getDiscordManager().deleteChannel(channel);
+		DiscordManager.deleteChannel(channel);
 		interrupt();
 	}
 
 	@Override
 	public void interrupt() {
 		super.interrupt();
-	}
-
-	/*
-	 * Utils
-	 */
-	<T> T block(Mono<T> mono) {
-		return nhlBot.getDiscordManager().block(mono);
-	}
-
-	<T> List<T> block(Flux<T> flux) {
-		return nhlBot.getDiscordManager().block(flux);
-	}
-
-	void subscribe(Mono<Void> mono) {
-		nhlBot.getDiscordManager().subscribe(mono);
-	}
-
-	void subscribe(Flux<?> flux) {
-		nhlBot.getDiscordManager().subscribe(flux);
 	}
 }

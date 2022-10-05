@@ -25,7 +25,6 @@ import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
-import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
@@ -35,7 +34,6 @@ import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
 
-import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
@@ -49,7 +47,7 @@ import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
 import discord4j.rest.util.Color;
 
-public class GameDayChannel extends Thread implements IEventProcessor {
+public class GameDayChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannel.class);
 
 	// Number of retries to do when NHL API returns no events.
@@ -769,104 +767,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	static List<Team> getRelevantTeams(List<Team> teams, Game game) {
 		return teams.stream().filter(team -> game.containsTeam(team)).collect(Collectors.toList());
 	}
-
-	/*
-	 * Predictions
-	 */
-	@Override
-	public void process(Event event) {
-		// Do Nothing
-	}
-	/*
-	private void registerToListener() {
-		nhlBot.getReactionListener().addProccessor(this, ReactionAddEvent.class);
-		nhlBot.getReactionListener().addProccessor(this, ReactionRemoveEvent.class);
-	}
-
-	private void unregisterFromListener() {
-		nhlBot.getReactionListener().removeProccessor(this);
-	}
-
-	@Override
-	public void process(Event event) {
-		if (event instanceof ReactionAddEvent) {
-			ReactionAddEvent addEvent = (ReactionAddEvent) event;
-
-			if (!addEvent.getChannelId().equals(channel.getId())) {
-				// Not the same channel/game
-				return;
-			}
-			
-			Unicode addedUnicodeEmoji = addEvent.getEmoji().asUnicodeEmoji().orElse(null);
-			if (addedUnicodeEmoji == null) {
-				return;
-			}
-
-			String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
-			long userId = addEvent.getUserId().asLong();
-
-			if (addedUnicodeEmoji.equals(HOME_EMOJI)) {
-				SeasonCampaign.savePrediction(nhlBot,
-						new Prediction(campaignId, userId, game.getGamePk(), game.getHomeTeam().getId()));
-				removeReactions(pollMessage, addedUnicodeEmoji, addEvent.getUserId());
-			} else if (addedUnicodeEmoji.equals(AWAY_EMOJI)) {
-				SeasonCampaign.savePrediction(nhlBot,
-						new Prediction(campaignId, userId, game.getGamePk(), game.getAwayTeam().getId()));
-				removeReactions(pollMessage, addedUnicodeEmoji, addEvent.getUserId());
-			} else {
-				LOGGER.warn("Unknown emoji: " + addedUnicodeEmoji);
-			}
-		} else if (event instanceof ReactionRemoveEvent) {
-			ReactionRemoveEvent removeEvent = (ReactionRemoveEvent) event;
-
-			if (!removeEvent.getChannelId().equals(channel.getId())) {
-				// Not the same channel/game
-				return;
-			}
-
-			Unicode removedUnicodeEmoji = removeEvent.getEmoji().asUnicodeEmoji().orElse(null);
-			if (removedUnicodeEmoji == null) {
-				return;
-			}
-
-			String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
-			long userId = removeEvent.getUserId().asLong();
-			
-			// Do not interact with persistent data if removed emoji was not of the stored prediction.
-			// Prevents removing the prediction when NHLBot removes the reaction.
-			SeasonCampaign.Prediction prediction = SeasonCampaign.loadPrediction(
-					nhlBot, campaignId, game.getGamePk(), userId);
-
-			if (prediction != null) {
-				if (removedUnicodeEmoji.equals(HOME_EMOJI)) {
-					if (!Integer.valueOf(game.getHomeTeam().getId()).equals(prediction.getPrediction())) {
-						return;
-					}
-				} else if (removedUnicodeEmoji.equals(AWAY_EMOJI)) {
-					if (!Integer.valueOf(game.getAwayTeam().getId()).equals(prediction.getPrediction())) {
-						return;
-					}
-				} else {
-					LOGGER.warn("Unknown emoji: " + removedUnicodeEmoji);
-				}
-			}
-
-			// Remove the prediction from the persistent data
-			SeasonCampaign.savePrediction(nhlBot, new Prediction(campaignId, userId, game.getGamePk(), null));
-		} else {
-			LOGGER.warn("Event provided is of unknown type: " + event.getClass().getSimpleName());
-		}
-	}
-	
-	private void removeReactions(Message message, Unicode excludedReaction, Snowflake userId) {
-		for (Reaction messageReaction : message.getReactions()) {
-			Unicode messageReactionUnicode = messageReaction.getEmoji().asUnicodeEmoji().orElse(null);
-			if (messageReactionUnicode != null && !messageReactionUnicode.equals(excludedReaction)) {
-				DiscordManager.subscribe(message.removeReaction(messageReactionUnicode, userId));
-			}
-		}
-	}
-	*/
 
 	private Message sendDetailsMessage() {
 		preferences.getTimeZone();

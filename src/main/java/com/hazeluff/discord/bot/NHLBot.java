@@ -5,7 +5,6 @@ import static com.hazeluff.discord.utils.Utils.not;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -17,8 +16,6 @@ import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
-import com.hazeluff.discord.bot.listener.MessageListener;
-import com.hazeluff.discord.bot.listener.ReactionListener;
 import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.discord.utils.Utils;
 
@@ -26,9 +23,6 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
-import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.event.domain.message.ReactionAddEvent;
-import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
@@ -53,9 +47,6 @@ public class NHLBot extends Thread {
 	private PersistentData persistantData;
 	private GameScheduler gameScheduler;
 	private GameDayChannelsManager gameDayChannelsManager;
-
-	private final MessageListener messageListener = new MessageListener(this);
-	private final ReactionListener reactionListener = new ReactionListener(this);
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 
@@ -102,9 +93,6 @@ public class NHLBot extends Thread {
 
 		// Init MongoClient/GuildPreferences
 		initPersistentData();
-
-		// Attach Listeners
-		attachListeners(this);
 
 		// Attach Listeners for Bot Slash Commands
 		attachSlashCommandListeners(this);
@@ -239,19 +227,6 @@ public class NHLBot extends Thread {
 		}
 	}
 
-	private static void attachListeners(NHLBot nhlBot) {
-		LOGGER.info("Attaching Listeners.");
-
-		Consumer<? super Throwable> logError = t -> LOGGER.error("Error occurred when responding to message.", t);
-
-		nhlBot.getDiscordManager().getClient().getEventDispatcher().on(MessageCreateEvent.class).doOnError(logError)
-				.onErrorResume(e -> Mono.empty()).subscribe(event -> nhlBot.getMessageListener().execute(event));
-		nhlBot.getDiscordManager().getClient().getEventDispatcher().on(ReactionAddEvent.class).doOnError(logError)
-				.onErrorResume(e -> Mono.empty()).subscribe(event -> nhlBot.getReactionListener().execute(event));
-		nhlBot.getDiscordManager().getClient().getEventDispatcher().on(ReactionRemoveEvent.class).doOnError(logError)
-				.onErrorResume(e -> Mono.empty()).subscribe(event -> nhlBot.getReactionListener().execute(event));
-	}
-
 	private void updateWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
 		getDiscordManager().getClient().getGuilds()
@@ -273,14 +248,6 @@ public class NHLBot extends Thread {
 
 	public GameDayChannelsManager getGameDayChannelsManager() {
 		return gameDayChannelsManager;
-	}
-
-	public MessageListener getMessageListener() {
-		return messageListener;
-	}
-
-	public ReactionListener getReactionListener() {
-		return reactionListener;
 	}
 
 	public GDCCategoryManager getGdcCategoryManager() {

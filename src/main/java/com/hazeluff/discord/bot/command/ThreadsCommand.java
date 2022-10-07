@@ -20,12 +20,20 @@ public class ThreadsCommand extends Command {
 		return NAME;
 	}
 
+	public boolean isDevOnly() {
+		return true;
+	}
+
 	public ApplicationCommandRequest getACR() {
-		return null;
+		return ApplicationCommandRequest.builder()
+				.name(getName())
+				.description("[DevOnly] Get number of threads.")
+				.build();
 	}
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		return event.reply("Threads: " + DiscordThreadFactory.getInstance().getThreads().size());
+		String message = "Threads: " + DiscordThreadFactory.getInstance().getThreads().size();
+		return deferReply(event, message);
 	}
 }

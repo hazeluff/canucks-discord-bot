@@ -1,7 +1,5 @@
 package com.hazeluff.discord.bot;
 
-import static com.hazeluff.discord.utils.Utils.not;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -186,23 +184,26 @@ public class NHLBot extends Thread {
 		LOGGER.info("Registering Dev Commands : " + devCommands);
 		for (Long guildId : Config.DEV_GUILD_LIST) {
 			LOGGER.info("Registering Dev Commands with guild: " + guildId);
-			DiscordManager.block(
+			List<ApplicationCommandData> registeredGuildCommands = DiscordManager.block(
 				restClient.getApplicationService()
 					.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devCommands)
 			);
+			LOGGER.info("Registered: " + registeredGuildCommands);
 		}
 
 		// Common Commands
+		/*
 		List<ApplicationCommandRequest> commonCommands = commands.stream()
 				.filter(cmd -> cmd.getACR() != null)
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
 		LOGGER.info("Registering Global Commands: " + commonCommands);
-		DiscordManager.block(
+		List<ApplicationCommandData> registeredGlobalCommands = DiscordManager.block(
 			restClient.getApplicationService()
-				.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands)
-		);
+						.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands));
+		LOGGER.info("Registered: " + registeredGlobalCommands);
+		*/
 	}
 
 	private static void attachSlashCommandListeners(NHLBot nhlBot) {
@@ -269,7 +270,9 @@ public class NHLBot extends Thread {
 	 */
 	public void deployScript() {
 		LOGGER.info("Deploy scripts executing...");
-		registerSlashCommands();
+		List<ApplicationCommandData> commands = DiscordManager.block(getDiscordManager().getClient().getRestClient()
+				.getApplicationService().getGlobalApplicationCommands(getDiscordManager().getApplicationId()));
+		LOGGER.info("Commands" + commands);
 		LOGGER.info("Deploy scripts completed.");
 	}
 

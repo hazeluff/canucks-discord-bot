@@ -49,6 +49,10 @@ public class SubscribeCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		Guild guild = getGuild(event);
+		if (guild == null) {
+			return event.reply(MUST_BE_GUILD);
+		}
+
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!hasPrivilege(guild, user)) {
 			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);

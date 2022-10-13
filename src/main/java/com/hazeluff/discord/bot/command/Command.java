@@ -149,6 +149,8 @@ public abstract class Command extends ReactiveEventAdapter {
 				", ");
 	}
 
+	static final String MUST_BE_GUILD = "Please use commands in a Server. Direct Messages to the bot do not work.";
+
 	protected boolean hasPrivilege(Guild guild, Member user) {
 		return isOwner(guild, user)
 				|| hasPermissions(guild, user, Arrays.asList(Permission.MANAGE_CHANNELS, Permission.ADMINISTRATOR));

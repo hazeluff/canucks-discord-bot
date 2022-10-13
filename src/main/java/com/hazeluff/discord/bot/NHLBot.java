@@ -119,8 +119,8 @@ public class NHLBot extends Thread {
 		getDiscordManager().changePresence(ONLINE_PRESENCE);
 
 		while (!isInterrupted()) {
-			getDiscordManager().changePresence(ONLINE_PRESENCE);
 			Utils.sleep(UPDATE_PLAY_STATUS_INTERVAL);
+			getDiscordManager().changePresence(ONLINE_PRESENCE);
 		}
 	}
 

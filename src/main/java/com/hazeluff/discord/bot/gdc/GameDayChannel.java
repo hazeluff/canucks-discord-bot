@@ -149,8 +149,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 				if (channel != null) {
 					// Send Messages to Initialize Channel
-					sendDetailsMessage();
-					sendGDCHelpMessage();
+					sendDetailsMessage(channel);
+					sendGDCHelpMessage(channel);
 				}
 			} else {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
@@ -882,7 +882,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	*/
 
-	private Message sendDetailsMessage() {
+	private Message sendDetailsMessage(TextChannel channel) {
 		preferences.getTimeZone();
 		String detailsMessage = getDetailsMessage();
 		Message message = DiscordManager.sendAndGetMessage(channel, detailsMessage);
@@ -891,7 +891,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		return message;
 	}
 
-	private Message sendGDCHelpMessage() {
+	private Message sendGDCHelpMessage(TextChannel channel) {
 		String pollMessage = String.format(
 				"**This game/channel is interactable with Slash Commands!**"
 				+ "\nUse `/gdc subcommand:help` to bring up a list of commands."

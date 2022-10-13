@@ -74,8 +74,8 @@ public class NHLBot extends Thread {
 	 * @return
 	 */
 	public static NHLBot create(GameScheduler gameScheduler, String botToken) {
-		LOGGER.info("Creating NHLBot v" + Config.VERSION);
-		Thread.currentThread().setName("NHLBot");
+		LOGGER.info("Creating " + Config.APPLICATION_NAME + " v" + Config.VERSION);
+		Thread.currentThread().setName(Config.APPLICATION_NAME);
 
 		NHLBot nhlBot = new NHLBot();
 		nhlBot.gameScheduler = gameScheduler;

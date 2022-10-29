@@ -35,14 +35,15 @@ import reactor.core.publisher.Mono;
 public class GDCCommand extends Command {
 	static final String NAME = "gdc";
 
-	private static Map<String, GDCSubCommand> SUB_COMMANDS = Arrays
-			.asList(
-					new GDCScoreCommand(),
-					new GDCGoalsCommand(),
-					new GDCVoteHomeCommand(),
-					new GDCVoteAwayCommand(),
-					new GDCStatusCommand()
-			).stream()
+	private static Map<String, GDCSubCommand> SUB_COMMANDS = 
+			Arrays.asList(
+				new GDCScoreCommand(),
+				new GDCGoalsCommand(),
+				new GDCVoteHomeCommand(),
+				new GDCVoteAwayCommand(),
+				new GDCStatusCommand()
+			)
+			.stream()
 			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));
 
 	public GDCCommand(NHLBot nhlBot) {
@@ -135,8 +136,7 @@ public class GDCCommand extends Command {
 	}
 
 	private Mono<Message> refreshChannelAndFollowup(ChatInputInteractionEvent event, Game game) {
-		long guildId = event.getInteraction().getGuildId().get().asLong();
-		GameDayChannel gameDayChannel = nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGamePk());
+		GameDayChannel gameDayChannel = getGameDayChannel(event, nhlBot, game);
 		if (gameDayChannel != null) {
 			try {
 				game.resetLiveData();
@@ -170,5 +170,10 @@ public class GDCCommand extends Command {
 				);
 		return builder.build();
 	}
-	
+
+	public static GameDayChannel getGameDayChannel(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
+		long guildId = event.getInteraction().getGuildId().get().asLong();
+		return nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGamePk());
+	}
+
 }

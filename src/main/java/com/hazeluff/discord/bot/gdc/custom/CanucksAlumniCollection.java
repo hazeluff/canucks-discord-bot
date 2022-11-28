@@ -18,7 +18,9 @@ public class CanucksAlumniCollection extends CustomMessageCollection {
 		add(scorer("https://cdn.discordapp.com/emojis/805996907314413578.png", 8475690)); // :schmidtMug:
 		// Zack MacEwen
 		add(scorer("Big MAC 🍔", 8479772));
-		// Olli Juolevi
-		add(scorer("Olli Not Ded", 8479355));
+		// Tyler Motte
+		add(scorer("**Tyler Fucking Motte.**"
+				+ "\nhttps://www.reddit.com/r/canucks/"
+				+ "comments/idz52h/gameday_hype_featuring_tyler_fucking_motte/", 8477353));
 	}
 }

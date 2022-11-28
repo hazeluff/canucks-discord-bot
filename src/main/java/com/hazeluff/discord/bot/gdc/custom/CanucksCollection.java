@@ -58,11 +58,9 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("**JONATHAN TONATHAN!**", 8476468));
 		add(scorer("**It's Miller Time!**", 8476468));
 		add(scorer("https://giphy.com/gifs/canucks-jt-miller-goal-2021-62XQNbTolaM9zokRAP", 8476468)); // Canucks Graphic 2021
-		
-		// Tyler Motte
-		add(scorer("**Tyler Fucking Motte.**"
-				+ "\nhttps://www.reddit.com/r/canucks/"
-				+ "comments/idz52h/gameday_hype_featuring_tyler_fucking_motte/", 8477353));
+
+		// Andrei Kuzmenko
+		add(scorer("https://tenor.com/view/vancouver-canucks-nhl-hockey-goal-andrei-kuzmenko-gif-27040696", 8483808));
 
 		// Tanner Pearson
 		add(scorer("🍐", 8476871));

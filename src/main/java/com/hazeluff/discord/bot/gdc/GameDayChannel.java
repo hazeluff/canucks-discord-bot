@@ -38,6 +38,7 @@ import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.data.LiveDataException;
 
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
@@ -282,7 +283,13 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 
 			while (!gameTracker.isFinished()) {
-				refreshMessages();
+				updateMessages();
+
+				EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
+				boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
+				if (summaryMessage != null && updatedSummary) {
+					updateSummaryMessage(newSummaryMessageEmbed);
+				}
 
 				if (game.getStatus().isFinal()) {
 					updateEndOfGameMessage();
@@ -297,16 +304,21 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/**
-	 * Used to update all messages.
+	 * Used to update all messages/pins.
+	 * 
+	 * @throws LiveDataException
 	 */
-	public void refreshMessages() {
+	public void refresh() throws LiveDataException {
+		game.resetLiveData();
+		updateMessages();
+		updateSummaryMessage(getSummaryEmbedSpec());
+	}
+
+	private void updateMessages() {
 		List<GoalEvent> goalEvents = game.getScoringEvents();
 		List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
 		updateGoalMessages(goalEvents);
 		updatePenaltyMessages(penaltyEvents);
-
-		updateSummaryMessage();
-
 		this.cachedGoalEvents = goalEvents;
 		this.cachedPenaltyEvents = penaltyEvents;
 	}
@@ -678,19 +690,15 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private Message sendSummaryMessage() {
-		summaryMessageEmbed = getSummaryEmbedSpec();
+		this.summaryMessageEmbed = getSummaryEmbedSpec();
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(summaryMessageEmbed).build();
 		return DiscordManager.sendAndGetMessage(channel, messageSpec);
 	}
 
-	private void updateSummaryMessage() {
-		EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
-		boolean updated = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
-		if (summaryMessage != null && updated) {
-			summaryMessageEmbed = newSummaryMessageEmbed;
-			MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(summaryMessageEmbed).build();
-			DiscordManager.updateMessage(summaryMessage, messageSpec);
-		}
+	private void updateSummaryMessage(EmbedCreateSpec newSummaryMessageEmbed) {
+		this.summaryMessageEmbed = newSummaryMessageEmbed;
+		MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(summaryMessageEmbed).build();
+		DiscordManager.updateMessage(summaryMessage, messageSpec);
 	}
 	
 	private EmbedCreateSpec getSummaryEmbedSpec() {
@@ -961,7 +969,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		Color color = Color.DISCORD_WHITE;
 		if (homeVotes > awayVotes) {
 			color = game.getHomeTeam().getColor();
-		} else if (homeVotes < homeVotes) {
+		} else if (homeVotes < awayVotes) {
 			color = game.getAwayTeam().getColor();
 		}
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();

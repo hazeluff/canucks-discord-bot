@@ -34,6 +34,7 @@ import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.Player;
+import com.hazeluff.nhl.Player.EventRole;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
@@ -524,11 +525,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					+ event.getStrength().getValue().toLowerCase()
 					+ " goal!";
 			String assists = "(Unassisted)";
-			if (players.size() > 1) {
-				assists = " Assists: " + players.get(1).getFullName();
+			List<Player> assistPlayers = players.stream()
+					.filter(player -> EventRole.ASSIST.equals(player.getRole()))
+					.collect(Collectors.toList());
+			if (assistPlayers.size() > 0) {
+				assists = " Assists: " + assistPlayers.get(0).getFullName();
 			}
-			if (players.size() > 2) {
-				assists += " , " + players.get(2).getFullName();
+			if (players.size() > 1) {
+				assists += " , " + players.get(1).getFullName();
 			}
 			String fAssists = assists;
 			String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();

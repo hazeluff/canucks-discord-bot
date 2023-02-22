@@ -531,8 +531,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			if (assistPlayers.size() > 0) {
 				assists = " Assists: " + assistPlayers.get(0).getFullName();
 			}
-			if (players.size() > 1) {
-				assists += " , " + players.get(1).getFullName();
+			if (assistPlayers.size() > 1) {
+				assists += " , " + assistPlayers.get(1).getFullName();
 			}
 			String fAssists = assists;
 			String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
@@ -648,15 +648,32 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	public static EmbedCreateSpec buildPenaltyMessageEmbed(PenaltyEvent event) {
 		String header = String.format("%s - %s Penalty", event.getTeam().getLocation(), event.getSeverity());
 		StringBuilder description = new StringBuilder();
-		if (event.getPlayers().size() > 0) {
+		
+		Player plyrPenaltyOn = event.getPlayers().stream()
+				.filter(player -> EventRole.PENALTY_ON.equals(player.getRole()))
+				.findAny()
+				.orElse(null);
+		if (plyrPenaltyOn != null) {
 			description.append(event.getPlayers().get(0).getFullName());
 		}
-		if (event.getPlayers().size() > 1) {
-			description.append(" penalty against " + event.getPlayers().get(1).getFullName());
+
+		Player plyrDrewBy = event.getPlayers().stream()
+				.filter(player -> EventRole.DREW_BY.equals(player.getRole()))
+				.findAny()
+				.orElse(null);
+		if (plyrDrewBy != null) {
+			description.append(" penalty against " + plyrDrewBy.getFullName());
 		}
-		if (event.getPlayers().size() > 2) {
-			description.append(" served by " + event.getPlayers().get(2).getFullName());
+		
+		Player plyrServedBy = event.getPlayers().stream()
+				.filter(player -> EventRole.SERVED_BY.equals(player.getRole()))
+				.findAny()
+				.orElse(null);
+		if (plyrServedBy != null) {
+			description.append(" served by " + plyrServedBy.getFullName());
 		}
+		
+		
 		description.append(String.format("\n**%s** - **%s** minutes",
 				event.getSecondaryType(), event.getMinutes()));
 		

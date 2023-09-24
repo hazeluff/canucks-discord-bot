@@ -1,12 +1,6 @@
 package com.hazeluff.discord.nhl;
 
-import static com.hazeluff.discord.Config.CURRENT_SEASON;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDate;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -23,17 +17,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import org.apache.http.client.utils.URIBuilder;
-import org.bson.BsonArray;
 import org.bson.BsonDocument;
-import org.bson.BsonInt32;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.utils.HttpException;
-import com.hazeluff.discord.utils.HttpUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
@@ -60,11 +50,11 @@ public class GameScheduler extends Thread {
 	static final Comparator<Game> GAME_COMPARATOR = new Comparator<Game>() {
 		@Override
 		public int compare(Game g1, Game g2) {
-			if (g1.getGamePk() == g2.getGamePk()) {
+			if (g1.getGameId() == g2.getGameId()) {
 				return 0;
 			}
-			int diff = g1.getDate().compareTo(g2.getDate());
-			return diff == 0 ? Integer.compare(g1.getGamePk(), g2.getGamePk()) : diff;
+			int diff = g1.getStartTime().compareTo(g2.getStartTime());
+			return diff == 0 ? Integer.compare(g1.getGameId(), g2.getGameId()) : diff;
 		}
 	};
 
@@ -140,15 +130,30 @@ public class GameScheduler extends Thread {
 	public void initGames() throws HttpException {
 		LOGGER.info("Initializing Games...");
 		// Retrieve schedule/game information from NHL API
-		games = getRawGames().entrySet()
-		        .stream()
-		        .map(e -> Game.parse(e.getValue()))
-		        .filter(Objects::nonNull)
-				.collect(Collectors.toConcurrentMap(
-						game -> game.getGamePk(),
-						game -> game));
+		this.games = initAllTeamGames();
 		LOGGER.info("Retrieved all games: [" + games.size() + "]");
 		LOGGER.info("Finished Initialization.");
+	}
+
+	static Map<Integer, Game> initAllTeamGames() {
+		LOGGER.info("Initializing All Teama Games...");
+		return buildGames(NHLGateway.getAllTeamRawGames());
+	}
+
+	static Map<Integer, Game> buildGames(Map<Integer, BsonDocument> rawMap) {
+		LOGGER.info("Build Games...");
+		return rawMap.entrySet()
+	        .stream()
+	        .map(e -> buildGame(e.getValue()))
+	        .filter(Objects::nonNull)
+			.collect(Collectors.toConcurrentMap(
+					game -> game.getGameId(),
+					game -> game));
+	}
+
+	static Game buildGame(BsonDocument jsonGame) {
+		Game game = Game.parse(jsonGame);
+		return game;
 	}
 
 	/**
@@ -176,11 +181,10 @@ public class GameScheduler extends Thread {
 	void updateGameSchedule() throws HttpException {
 		LOGGER.info("Updating game schedule.");
 
-		Map<Integer, BsonDocument> jsonFetchedGames = getRawGames();
+		Map<Integer, BsonDocument> jsonFetchedGames = NHLGateway.getAllTeamRawGames();
 		jsonFetchedGames.entrySet().stream().forEach(jsonFetchedGame -> {
 			int gamePk = jsonFetchedGame.getKey();
-			Game existingGame = games.get(gamePk);
-			if (existingGame == null) {
+			if (!games.containsKey(gamePk)) {
 				// Create a new game object and put it in our map
 				Game newGame = Game.parse(jsonFetchedGame.getValue());
 				if (newGame != null) {
@@ -190,13 +194,11 @@ public class GameScheduler extends Thread {
 				} else {
 					LOGGER.debug("Fetched game could not be parsed. Skipping insertion...");
 				}
-			} else {
-				existingGame.updateGameData(jsonFetchedGame.getValue());
 			}
 		});
 
-		// Remove the game if it isn't in the list of games fetched
-		games.entrySet().removeIf(entry -> !jsonFetchedGames.containsKey(entry.getKey()));
+		// Remove from stored games if it isn't in the list of games fetched
+		this.games.entrySet().removeIf(entry -> !jsonFetchedGames.containsKey(entry.getKey()));
 	}
 
 	/**
@@ -206,7 +208,7 @@ public class GameScheduler extends Thread {
 		LOGGER.info("Removing finished trackers.");
 		activeGameTrackers.entrySet().removeIf(map -> {
 			GameTracker gameTracker = map.getValue();
-			int gamePk = gameTracker.getGame().getGamePk();
+			int gamePk = gameTracker.getGame().getGameId();
 			if (!games.containsKey(gamePk)) {
 				LOGGER.info("Game is has been removed: " + gamePk);
 				gameTracker.interrupt();
@@ -226,53 +228,6 @@ public class GameScheduler extends Thread {
 				getGameTracker(activeGame);
 			});
 		}
-	}
-
-	Map<Integer, BsonDocument> getRawGames() throws HttpException {
-		return getRawGames(CURRENT_SEASON.getStartDate(), CURRENT_SEASON.getEndDate(), null);
-	}
-
-	Map<Integer, BsonDocument> getRawGames(ZonedDateTime startDate, ZonedDateTime endDate,
-			Team team)
-			throws HttpException {
-		LOGGER.info("Retrieving games of [" + team + "]");
-		String strStartDate = startDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		String strEndDate = endDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-		URI uri;
-		try {
-			URIBuilder uriBuilder = new URIBuilder(Config.NHL_API_URL + "/schedule");
-			uriBuilder.addParameter("startDate", strStartDate);
-			uriBuilder.addParameter("endDate", strEndDate);
-			if (team != null) {
-				uriBuilder.addParameter("teamId", String.valueOf(team.getId()));
-			}
-			uriBuilder.addParameter("expand", "schedule.scoringplays");
-			uri = uriBuilder.build();
-		} catch (URISyntaxException e) {
-			String message = "Error building URI";
-			RuntimeException runtimeException = new RuntimeException(message, e);
-			LOGGER.error(message, runtimeException);
-			throw runtimeException;
-		}
-
-		String strJSONSchedule = HttpUtils.getAndRetry(uri, 5, 10000l, "Get Game Schedule.");
-		Map<Integer, BsonDocument> games = new HashMap<>();
-		BsonDocument jsonSchedule = BsonDocument.parse(strJSONSchedule);
-		BsonArray jsonDates = jsonSchedule.getArray("dates");
-		jsonDates.forEach(jsonDate -> {
-			BsonArray jsonGames = jsonDate.asDocument().getArray("games");
-			jsonGames.forEach(jsonGame -> {
-				int gamePk = jsonGame.asDocument().getInt32("gamePk", new BsonInt32(-1)).getValue();
-				if (gamePk > 0) {
-					LOGGER.debug("Adding additional game [" + gamePk + "]");
-					games.put(gamePk, jsonGame.asDocument());
-				} else {
-					LOGGER.warn("Could not parse 'gamePk': " + jsonGame.toString());
-				}
-			});
-		});
-		return games;
 	}
 
 	/**
@@ -319,7 +274,7 @@ public class GameScheduler extends Thread {
 				.map(Entry::getValue)
 				.sorted(GAME_COMPARATOR)
 				.filter(game -> team == null ? true : game.containsTeam(team))
-				.filter(game -> !game.getStatus().isStarted())
+				.filter(game -> !game.getGameState().isStarted())
 				.collect(Collectors.toList());
 	}
 
@@ -347,8 +302,8 @@ public class GameScheduler extends Thread {
 		return games.entrySet().stream()
 				.map(Entry::getValue)
 				.sorted(GAME_COMPARATOR.reversed())
-				.filter(game -> team == null ? true : game.containsTeam(team))
-				.filter(game -> game.getStatus().isFinal())
+				.filter(game -> team == null || game.containsTeam(team))
+				.filter(game -> game.getGameState().isFinal())
 				.collect(Collectors.toList());
 	}
 
@@ -394,7 +349,7 @@ public class GameScheduler extends Thread {
 		return games.entrySet().stream()
 				.map(Entry::getValue)
 				.filter(game -> team == null ? true : game.containsTeam(team))
-				.filter(game -> game.getStatus().isLive())
+				.filter(game -> game.getGameState().isLive())
 				.findAny()
 				.orElse(null);
 	}
@@ -499,6 +454,6 @@ public class GameScheduler extends Thread {
 	}
 
 	public boolean isGameExist(Game game) {
-		return games.containsKey(game.getGamePk());
+		return games.containsKey(game.getGameId());
 	}
 }

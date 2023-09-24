@@ -8,11 +8,11 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.nhl.Player;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.game.Game;
-import com.hazeluff.nhl.game.Status;
+import com.hazeluff.nhl.game.GameState;
+import com.hazeluff.nhl.game.RosterPlayer;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -32,7 +32,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
-		if (!game.getStatus().isStarted()) {
+		if (!game.getGameState().isStarted()) {
 			return Command.deferReply(event, GAME_NOT_STARTED_MESSAGE, true);
 		}
 
@@ -68,39 +68,33 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 			}
 			String strGoals = ""; // Field Body
 			int fPeriod = period;
-			Predicate<GameEvent> isPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() == fPeriod;
+			Predicate<GameEvent> isPeriod = gameEvent -> gameEvent.getPeriod() == fPeriod;
 			if (goals.stream().anyMatch(isPeriod)) {
-				List<GoalEvent> periodGoals = goals.stream().filter(isPeriod).collect(Collectors.toList());
-				StringBuilder sbGoals = new StringBuilder();
-				for (GoalEvent gameEvent : periodGoals) {
-					if (sbGoals.length() != 0) {
-						sbGoals.append("\n");
-					}
-					sbGoals.append(buildGoalLine(gameEvent));
-				}
-				strGoals = sbGoals.toString();
+				List<String> strPeriodGoals = goals.stream()
+						.filter(isPeriod)
+						.map(goalEvent -> buildGoalLine(game, goalEvent))
+						.collect(Collectors.toList());
+				strGoals = String.join("\n", strPeriodGoals);
 			} else {
 				strGoals = "None";
 			}
 			embedBuilder.addField(strPeriod, strGoals, false);
 		}
 		// Overtime and Shootouts
-		Predicate<GameEvent> isExtraPeriod = gameEvent -> gameEvent.getPeriod().getPeriodNum() > 3;
+		Predicate<GameEvent> isExtraPeriod = gameEvent -> gameEvent.getPeriod() > 3;
 		if (goals.stream().anyMatch(isExtraPeriod)) {
-			List<GoalEvent> extraPeriodGoals = goals.stream().filter(isExtraPeriod).collect(Collectors.toList());
-			String strPeriod = extraPeriodGoals.get(0).getPeriod().getDisplayValue();
-			StringBuilder sbGoals = new StringBuilder();
-			for (GoalEvent goal : extraPeriodGoals) {
-				if (sbGoals.length() != 0) {
-					sbGoals.append("\n");
-				}
-				sbGoals.append(buildGoalLine(goal));
-			}
-			embedBuilder.addField(strPeriod, sbGoals.toString(), false);
+			List<String> strExtraPeriodGoals = goals.stream()
+					.filter(isExtraPeriod)
+					.map(goalEvent -> buildGoalLine(game, goalEvent))
+					.collect(Collectors.toList());
+			String periodCode = game.getGameType().getPeriodCode(
+					goals.stream().filter(isExtraPeriod).findAny().get().getPeriod());
+			String strGoals = String.join("\n", strExtraPeriodGoals);
+			embedBuilder.addField(periodCode, strGoals, false);
 		}
 
-		Status status = game.getStatus();
-		embedBuilder.footer("Status: " + status.getDetailedState().toString(), null);
+		GameState status = game.getGameState();
+		embedBuilder.footer("Status: " + status.toString(), null);
 		return embedBuilder;
 	}
 
@@ -109,23 +103,26 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 	 * 
 	 * @return details as formatted string
 	 */
-	private static String buildGoalLine(GoalEvent goalEvent) {
+	private static String buildGoalLine(Game game, GoalEvent goalEvent) {
 		StringBuilder details = new StringBuilder();
-		List<Player> players = goalEvent.getPlayers();
-		if (goalEvent.getPeriod().getPeriodNum() <= 3) {
+		RosterPlayer scorer = game.getPlayer(goalEvent.getScorerId());
+		if (!game.getGameType().isShootout(goalEvent.getPeriod())) {
+			List<RosterPlayer> assists = goalEvent.getAssistIds().stream()
+					.map(game::getPlayer)
+					.collect(Collectors.toList());
 			details.append(String.format("**%s** @ %s - **%-18s**", 
-					goalEvent.getTeam().getCode(), goalEvent.getPeriodTime(), players.get(0).getFullName()));
+					scorer.getTeam().getCode(), goalEvent.getPeriodTime(), scorer.getFullName()));
+			if (assists.size() > 0) {
+				details.append("  Assists: ");
+				details.append(assists.get(0).getFullName());
+			}
+			if (assists.size() > 1) {
+				details.append(", ");
+				details.append(assists.get(1).getFullName());
+			}
 		} else {
 			details.append(String.format("**%s** - **%-18s**", 
-					goalEvent.getTeam().getCode(), players.get(0).getFullName()));
-		}
-		if (players.size() > 1) {
-			details.append("  Assists: ");
-			details.append(players.get(1).getFullName());
-		}
-		if (players.size() > 2) {
-			details.append(", ");
-			details.append(players.get(2).getFullName());
+					scorer.getTeam().getCode(), scorer.getFullName()));
 		}
 		return details.toString();
 	}

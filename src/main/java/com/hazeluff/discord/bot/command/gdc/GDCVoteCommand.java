@@ -15,13 +15,13 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 public abstract class GDCVoteCommand extends GDCSubCommand {
 
 	protected Publisher<?> replyVoteTeam(ChatInputInteractionEvent event, NHLBot nhlBot, Game game, Team team) {
-		if (game.getStatus().isStarted()) {
+		if (game.getGameState().isStarted()) {
 			return Command.deferReply(event, GAME_STARTED_MESSAGE, true);
 		}
 
 		String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
 		Long userId = event.getInteraction().getUser().getId().asLong();
-		Prediction prediction = new Prediction(campaignId, userId, game.getGamePk(), team.getId());
+		Prediction prediction = new Prediction(campaignId, userId, game.getGameId(), team.getId());
 		SeasonCampaign.savePrediction(nhlBot, prediction);
 
 		new Thread(() -> getGameDayChannel(event, nhlBot, game).updateVotingMessage()).start();

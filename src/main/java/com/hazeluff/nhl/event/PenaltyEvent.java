@@ -1,34 +1,64 @@
 package com.hazeluff.nhl.event;
 
-import java.util.List;
+import org.bson.BsonDocument;
 
-import com.hazeluff.nhl.Player;
-import com.hazeluff.nhl.game.Period;
+import com.hazeluff.nhl.Team;
 
 public class PenaltyEvent extends GameEvent {
 	protected PenaltyEvent(GameEvent gameEvent) {
 		super(gameEvent);
 	}
 
-	@Override
-	public List<Player> getPlayers() {
-		List<Player> players = super.getPlayers();
-		return getPeriod().getType() == Period.Type.SHOOTOUT ? players.subList(0, 1) : players;
+	public BsonDocument getDetails() {
+		return rawJson.getDocument("details");
 	}
 
+	public Team getTeam() {
+		return Team.parse(getDetails().getInt32("eventOwnerTeamId").getValue());
+	}
+
+	public int getCommittedByPlayerId() {
+		return getDetails().getInt32("committedByPlayerId").getValue();
+	}
+
+	/**
+	 * The "Reason" for the penalty
+	 * 
+	 * @return
+	 */
 	public String getDescription() {
-		return getResultJson().getString("description").getValue();
+		return getDetails().getString("descKey").getValue();
 	}
 
-	public int getMinutes() {
-		return getResultJson().getInt32("penaltyMinutes").getValue();
+	public int getDuration() {
+		return getDetails().getInt32("duration").getValue();
 	}
 
 	public String getSeverity() {
-		return getResultJson().getString("penaltySeverity").getValue();
+		String typeCode = getDetails().getString("typeCode").getValue();
+		switch (typeCode) {
+		case "MIN":
+			return "minor";
+		case "MAJ":
+			return "major";
+		case "MIS":
+			return "misconduct";
+		default:
+			return "";
+		}
 	}
 
-	public String getSecondaryType() {
-		return getResultJson().getString("secondaryType").getValue();
+	/**
+	 * Determines if the given event is different from the current event.
+	 * 
+	 * @param newEvent
+	 * @return
+	 */
+	public boolean isUpdated(PenaltyEvent event) {
+		return !getDescription().equals(event.getDescription()) 
+				|| !getTeam().equals(event.getTeam())
+				|| getCommittedByPlayerId() != event.getCommittedByPlayerId()
+				|| getDuration() != event.getDuration() 
+				|| !getSeverity().equals(event.getSeverity());
 	}
 }

@@ -6,12 +6,10 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.nhl.game.AbstractGameState;
-
 public enum JSONOperation {
 	ADD("add"), REPLACE("replace"), REMOVE("remove");
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractGameState.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(JSONOperation.class);
 
 	private final String value;
 

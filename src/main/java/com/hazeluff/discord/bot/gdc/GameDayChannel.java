@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,13 +34,11 @@ import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Player;
-import com.hazeluff.nhl.Player.EventRole;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
-import com.hazeluff.nhl.game.data.LiveDataException;
+import com.hazeluff.nhl.game.RosterPlayer;
 
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
@@ -266,7 +265,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		summaryMessage = getSummaryMessage();
 		votingMessage = getVotingMessage();
 
-		if (!game.getStatus().isFinal()) {
+		if (!game.getGameState().isFinal()) {
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
 			sendReminders();
@@ -292,7 +291,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					updateSummaryMessage(newSummaryMessageEmbed);
 				}
 
-				if (game.getStatus().isFinal()) {
+				if (game.getGameState().isFinal()) {
 					updateEndOfGameMessage();
 				}
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
@@ -309,8 +308,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * 
 	 * @throws LiveDataException
 	 */
-	public void refresh() throws LiveDataException {
-		game.resetLiveData();
+	public void refresh() {
+		gameTracker.updateGame();
 		updateMessages();
 		updateSummaryMessage(getSummaryEmbedSpec());
 	}
@@ -334,7 +333,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		boolean closeToStart;
 		long timeTillGameMs = Long.MAX_VALUE;
 		do {
-			timeTillGameMs = DateUtils.diffMs(ZonedDateTime.now(), game.getDate());
+			timeTillGameMs = DateUtils.diffMs(ZonedDateTime.now(), game.getStartTime());
 			closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;
 			if (!closeToStart) {
 				// Check to see if message should be sent.
@@ -374,10 +373,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @throws InterruptedException
 	 */
 	boolean waitForStart() {
-		boolean alreadyStarted = game.getStatus().isStarted();
+		boolean alreadyStarted = game.getGameState().isStarted();
 		boolean started = false;
 		do {
-			started = game.getStatus().isStarted();
+			started = game.getGameState().isStarted();
 			if (!started && !isInterrupted()) {
 				LOGGER.trace("Game almost started. Sleeping for [" + ACTIVE_POLL_RATE_MS + "]");
 				Utils.sleep(ACTIVE_POLL_RATE_MS);
@@ -428,10 +427,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private void updateGoalMessages(List<GoalEvent> goals) {
 		// Update Messages
 		goals.forEach(currentEvent -> {
-			if (currentEvent.getPlayers().isEmpty()) {
-				return;
-			}
-
 			GoalEvent skippableEvent = getSkippableGoalEvent(currentEvent.getId());
 			if (skippableEvent != null) {
 				return;
@@ -464,7 +459,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			sendMessage(messageContent);
 		}
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
-				.addEmbed(buildGoalMessageEmbed(event))
+				.addEmbed(buildGoalMessageEmbed(this.game, event))
 				.build();
 		Message message = DiscordManager.sendAndGetMessage(channel, messageSpec);
 		if (message != null) {
@@ -481,7 +476,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		} else {
 			Message message = goalEventMessages.get(event.getId());
 			MessageEditSpec messageSpec = MessageEditSpec.builder()
-					.addEmbed(buildGoalMessageEmbed(event))
+					.addEmbed(buildGoalMessageEmbed(this.game, event))
 					.build();
 			DiscordManager.updateMessage(message, messageSpec);
 		}
@@ -490,7 +485,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	void sendRescindedGoalMessage(GoalEvent event) {
 		LOGGER.debug("Sending rescinded message for goal event [" + event + "].");
 		if (event != null) {
-			sendMessage(String.format("Goal by %s has been rescinded.", event.getPlayers().get(0).getFullName()));
+			String player = game.getPlayer(event.getScorerId()).getFullName();
+			sendMessage(String.format("Goal by %s has been rescinded.", player));
 		}
 	}
 
@@ -501,45 +497,39 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			return false;
 		}
 		
-		return !cachedEvent.getStrength().equals(event.getStrength())
-				|| !cachedEvent.getPlayers().equals(event.getPlayers())
-				|| !cachedEvent.getTeam().equals(event.getTeam());
+		return cachedEvent.isUpdated(event);
 	}
 
-	public static EmbedCreateSpec buildGoalMessageEmbed(GoalEvent event) {
+	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 
-		List<Player> players = event.getPlayers();
+		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 
-		String scorer = players.get(0).getFullName();
-
-		switch (event.getPeriod().getType()) {
-		case SHOOTOUT:
+		if (game.getGameType().isShootout(event.getPeriod())) {
 			return builder
-					.color(event.getTeam().getColor())
-					.addField(scorer, "Shootout goal", false)
-					.footer("Shootout", null)
-					.build();
-		default:
-			String description = event.getTeam().getFullName() + " "
-					+ event.getStrength().getValue().toLowerCase()
-					+ " goal!";
-			String assists = "(Unassisted)";
-			List<Player> assistPlayers = players.stream()
-					.filter(player -> EventRole.ASSIST.equals(player.getRole()))
+			.color(scorer.getTeam().getColor())
+			.addField(scorer.getFullName(), "Shootout goal", false)
+			.footer("Shootout", null)
+			.build();
+		} else {
+			String description = scorer.getFullName() + " goal!";
+			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()
+					.map(game::getPlayer)
 					.collect(Collectors.toList());
-			if (assistPlayers.size() > 0) {
-				assists = " Assists: " + assistPlayers.get(0).getFullName();
-			}
+
+			String assists = assistPlayers.size() > 0 
+					? " Assists: " + assistPlayers.get(0).getFullName()
+					: "(Unassisted)";
+					
 			if (assistPlayers.size() > 1) {
-				assists += " , " + assistPlayers.get(1).getFullName();
+				assists += ", " + assistPlayers.get(1).getFullName();
 			}
 			String fAssists = assists;
-			String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
+			String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
 			return builder
 					.description(description)
-					.color(event.getTeam().getColor())
-					.addField(scorer, fAssists, false)
+					.color(scorer.getTeam().getColor())
+					.addField(scorer.getFullName(), fAssists, false)
 					.footer(time, null)
 					.build();
 		}
@@ -604,7 +594,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private void sendPenaltyMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending message for event [" + event + "].");
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
-				.addEmbed(buildPenaltyMessageEmbed(event))
+				.addEmbed(buildPenaltyMessageEmbed(this.game, event))
 				.build();
 		Message message = DiscordManager.sendAndGetMessage(channel, messageSpec);
 		if (message != null) {
@@ -621,7 +611,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		} else {
 			Message message = penaltyEventMessages.get(event.getId());
 
-			MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(buildPenaltyMessageEmbed(event)).build();
+			MessageEditSpec messageSpec = MessageEditSpec.builder()
+					.addEmbed(buildPenaltyMessageEmbed(this.game, event))
+					.build();
 			DiscordManager.updateMessage(message, messageSpec);
 		}
 	}
@@ -638,46 +630,24 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			return false;
 		}
 		
-		return !cachedEvent.getPlayers().equals(event.getPlayers()) 
-				|| !cachedEvent.getTeam().equals(event.getTeam())
-				|| !cachedEvent.getSeverity().equals(event.getSeverity())
-				|| !cachedEvent.getSecondaryType().equals(event.getSecondaryType())
-				|| cachedEvent.getMinutes() != event.getMinutes();
+		return cachedEvent.isUpdated(event);
 	}
 
-	public static EmbedCreateSpec buildPenaltyMessageEmbed(PenaltyEvent event) {
-		String header = String.format("%s - %s Penalty", event.getTeam().getLocation(), event.getSeverity());
+	public static EmbedCreateSpec buildPenaltyMessageEmbed(Game game, PenaltyEvent event) {
+		String header = String.format("%s - %s penalty", 
+				event.getTeam().getLocation(), 
+				event.getSeverity());
 		StringBuilder description = new StringBuilder();
 		
-		Player plyrPenaltyOn = event.getPlayers().stream()
-				.filter(player -> EventRole.PENALTY_ON.equals(player.getRole()))
-				.findAny()
-				.orElse(null);
-		if (plyrPenaltyOn != null) {
-			description.append(event.getPlayers().get(0).getFullName());
+		RosterPlayer committedByPlayer = game.getPlayer(event.getCommittedByPlayerId());
+		if (committedByPlayer != null) {
+			description.append(committedByPlayer.getFullName());
 		}
-
-		Player plyrDrewBy = event.getPlayers().stream()
-				.filter(player -> EventRole.DREW_BY.equals(player.getRole()))
-				.findAny()
-				.orElse(null);
-		if (plyrDrewBy != null) {
-			description.append(" penalty against " + plyrDrewBy.getFullName());
-		}
-		
-		Player plyrServedBy = event.getPlayers().stream()
-				.filter(player -> EventRole.SERVED_BY.equals(player.getRole()))
-				.findAny()
-				.orElse(null);
-		if (plyrServedBy != null) {
-			description.append(" served by " + plyrServedBy.getFullName());
-		}
-		
 		
 		description.append(String.format("\n**%s** - **%s** minutes",
-				event.getSecondaryType(), event.getMinutes()));
+				StringUtils.capitalize(event.getDescription()), event.getDuration()));
 		
-		String time = event.getPeriod().getDisplayValue() + " @ " + event.getPeriodTime();
+		String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
 		return EmbedCreateSpec.builder()
 				.color(Color.BLACK)
 				.addField(header, description.toString(), false)
@@ -979,7 +949,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private EmbedCreateSpec getVotingEmbedSpec() {
 		String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
 		List<Prediction> predictions = SeasonCampaign.loadPredictions(nhlBot, campaignId).stream()
-				.filter(prediction -> prediction.getGamePk() == this.game.getGamePk())
+				.filter(prediction -> prediction.getGamePk() == this.game.getGameId())
 				.collect(Collectors.toList());
 		long homeVotes = predictions.stream()
 				.filter(prediction -> prediction.getPrediction() == this.game.getHomeTeam().getId())
@@ -1056,7 +1026,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return the date in the format "YY-MM-DD"
 	 */
 	public static String getShortDate(Game game, ZoneId zone) {
-		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("yy-MM-dd"));
+		return game.getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("yy-MM-dd"));
 	}
 
 	/**
@@ -1069,7 +1039,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return the date in the format "EEEE dd MMM yyyy"
 	 */
 	public static String getNiceDate(Game game, ZoneId zone) {
-		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
+		return game.getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
 	}
 
 	/**
@@ -1093,7 +1063,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return the time in the format "HH:mm aaa"
 	 */
 	public static String getTime(Game game, ZoneId zone) {
-		return game.getDate().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("H:mm z"));
+		return game.getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("H:mm z"));
 	}
 
 	/**
@@ -1151,7 +1121,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		String message = String.format("**%s** vs **%s** at <t:%s>", 
 				game.getHomeTeam().getFullName(),
 				game.getAwayTeam().getFullName(), 
-				game.getDate().toEpochSecond());
+				game.getStartTime().toEpochSecond());
 		return message;
 	}
 

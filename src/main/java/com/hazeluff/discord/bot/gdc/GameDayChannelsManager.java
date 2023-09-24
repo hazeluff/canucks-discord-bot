@@ -146,7 +146,7 @@ public class GameDayChannelsManager extends Thread {
 	public GameDayChannel createChannel(Game game, Guild guild) {
 		LOGGER.info("Initializing for channel. channelName={}, guild={}",
 				GameDayChannel.getChannelName(game), guild.getName());
-		int gamePk = game.getGamePk();
+		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
 
 		GameDayChannel gameDayChannel = getGameDayChannel(guildId, gamePk);
@@ -168,7 +168,7 @@ public class GameDayChannelsManager extends Thread {
 		LOGGER.info("Creating channel. channelName={}, guild={}", 
 				GameDayChannel.getChannelName(gameTracker.getGame()), guild.getName());
 		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
-		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGamePk(), channel);
+		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
 		return channel;
 	}
 
@@ -246,7 +246,7 @@ public class GameDayChannelsManager extends Thread {
 		 */
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game != null) {
-			GameDayChannel removedChannel = removeGameDayChannel(channel.getGuildId().asLong(), game.getGamePk());
+			GameDayChannel removedChannel = removeGameDayChannel(channel.getGuildId().asLong(), game.getGameId());
 			if (removedChannel == null) {
 				DiscordManager.deleteChannel(channel);
 			}

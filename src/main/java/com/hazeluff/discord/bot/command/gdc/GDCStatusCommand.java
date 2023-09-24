@@ -23,7 +23,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
-		if (!game.getStatus().isStarted()) {
+		if (!game.getGameState().isStarted()) {
 			return event.reply(GAME_NOT_STARTED_MESSAGE);
 		}
 
@@ -35,37 +35,40 @@ public class GDCStatusCommand extends GDCSubCommand {
 		embedBuilder.title("Status Report");
 		embedBuilder.description(
 				String.format("%s vs %s", game.getHomeTeam().getFullName(), game.getAwayTeam().getFullName()));
-		embedBuilder.footer("Status: " + game.getStatus().getDetailedState().toString(), null);
+		embedBuilder.footer("Status: " + game.getGameState(), null);
 
 		String fieldDescription;
-		if (game.getStatus().isFinal()) {
+		if (game.getGameState().isFinal()) {
 			fieldDescription = "Game has finished";
-			if (game.getLineScore().hasShootout()) {
+			if (game.hasShootout()) {
 				fieldDescription += " in shootout.";
 				// Add shootout score
-			}
-			int numOvertime = game.getLineScore().getCurrentPeriod() - 3;
-			if (numOvertime <= 0) {
-				fieldDescription += " in regulation time.";
-
-			} else if (numOvertime == 1) {
-				fieldDescription += " in overtime";
 			} else {
-				fieldDescription += " in " + numOvertime + " overtimes";
+				int numOvertime = game.getPeriod() - 3;
+				if (numOvertime <= 0) {
+					fieldDescription += " in regulation time.";
+
+				} else if (numOvertime == 1) {
+					fieldDescription += " in overtime";
+				} else {
+					fieldDescription += " in " + numOvertime + " overtimes";
+				}
 			}
-		} else if (game.getStatus().isStarted()) {
+
+		} else if (game.getGameState().isStarted()) {
 			fieldDescription = "Game is in progress.";
-			if (game.getLineScore().hasShootout()) {
+			if (game.hasShootout()) {
 				fieldDescription += " Currently in shootout.";
 				// Add shootout score
-			}
-			int numOvertime = game.getLineScore().getCurrentPeriod() - 3;
-			if (numOvertime <= 0) {
-				fieldDescription += " Currently in " + game.getLineScore().getCurrentPeriod() + " period.";
-			} else if (numOvertime == 1) {
-				fieldDescription += " Currently in overtime.";
 			} else {
-				fieldDescription += " Currently in " + numOvertime + " overtimes";
+				int numOvertime = game.getPeriod() - 3;
+				if (numOvertime <= 0) {
+					fieldDescription += " Currently in " + game.getPeriod() + " period.";
+				} else if (numOvertime == 1) {
+					fieldDescription += " Currently in overtime.";
+				} else {
+					fieldDescription += " Currently in " + numOvertime + " overtimes";
+				}
 			}
 		} else {
 			// Might not display as main command will reply when games are not started.
@@ -77,13 +80,10 @@ public class GDCStatusCommand extends GDCSubCommand {
 				game.getAwayScore(), game.getAwayTeam().getName());
 		embedBuilder.addField(fieldDescription, score, false);
 		
-		if (game.getStatus().isLive()) {
-			if (game.getLineScore().isIntermission()) {
-				String intermissionTitle = "Currently in an intermission: "
-						+ game.getLineScore().getCurrentPeriodOrdinal();
-				String intermissionDescription = String.format("Elapsed: %s. Remaining: %s.",
-						game.getLineScore().getIntermissionTimeElapsed(),
-						game.getLineScore().getIntermissionTimeRemaining());
+		if (game.getGameState().isLive()) {
+			if (game.isInIntermission()) {
+				String intermissionTitle = "Currently in an intermission: " + game.getPeriodOridnal();
+				String intermissionDescription = String.format("Remaining: %s.", game.getClockRemaining());
 				embedBuilder.addField(intermissionTitle, intermissionDescription, false);
 			}
 		}

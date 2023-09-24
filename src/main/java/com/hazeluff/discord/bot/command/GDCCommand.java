@@ -152,7 +152,7 @@ public class GDCCommand extends Command {
 
 	public static GameDayChannel getGameDayChannel(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		long guildId = event.getInteraction().getGuildId().get().asLong();
-		return nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGamePk());
+		return nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGameId());
 	}
 
 }

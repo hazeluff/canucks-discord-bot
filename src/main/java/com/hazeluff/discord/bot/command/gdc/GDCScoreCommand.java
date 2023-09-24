@@ -24,7 +24,7 @@ public class GDCScoreCommand extends GDCSubCommand {
 
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
-		if (!game.getStatus().isStarted()) {
+		if (!game.getGameState().isStarted()) {
 			return Command.deferReply(event, GAME_NOT_STARTED_MESSAGE);
 		}
 

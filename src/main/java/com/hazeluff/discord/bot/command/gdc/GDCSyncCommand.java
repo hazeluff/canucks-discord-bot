@@ -6,7 +6,6 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.game.Game;
-import com.hazeluff.nhl.game.data.LiveDataException;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 
@@ -24,13 +23,8 @@ public class GDCSyncCommand extends GDCSubCommand {
 
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
-		try {
-			GameDayChannel gameDayChannel = getGameDayChannel(event, nhlBot, game);
-			gameDayChannel.refresh();
-		} catch (LiveDataException e) {
-			return Command.deferReply(event, "Failed to sync.");
-		}
-
+		GameDayChannel gameDayChannel = getGameDayChannel(event, nhlBot, game);
+		gameDayChannel.refresh();
 		return Command.deferReply(event, "Game synced.");
 	}
 

@@ -1,17 +1,8 @@
 package com.hazeluff.nhl.event;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.bson.BsonDocument;
-import org.bson.BsonValue;
 
-import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.Player;
-import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.EventType;
-import com.hazeluff.nhl.game.Period;
 
 public class GameEvent {
 	protected BsonDocument rawJson;
@@ -24,10 +15,10 @@ public class GameEvent {
 		this.rawJson = gameEvent.rawJson;
 	}
 
-	public static GameEvent of(BsonDocument rawJson) {
+	public static GameEvent parse(BsonDocument rawJson) {
 		GameEvent event = new GameEvent(rawJson);
 		if (event.getType() == null) {
-			return null;
+			return event;
 		}
 		switch (event.getType()) {
 		case GOAL:
@@ -39,50 +30,35 @@ public class GameEvent {
 		}
 	}
 
-	protected BsonDocument getResultJson() {
-		return rawJson.getDocument("result");
-	}
-
 	public EventType getType() {
-		return EventType.parse(getResultJson().getString("eventTypeId").getValue());
-	}
-
-	protected BsonDocument getAboutJson() {
-		return rawJson.getDocument("about");
+		return EventType.parse(rawJson.getString("typeDescKey").getValue());
 	}
 
 	public int getId() {
-		return getAboutJson().getInt32("eventId").getValue();
+		return rawJson.getInt32("eventId").getValue();
 	}
 
-	public int getIdx() {
-		return getAboutJson().getInt32("eventIdx").getValue();
-	}
-
-	public ZonedDateTime getDate() {
-		return DateUtils.parseNHLDate(getAboutJson().getString("dateTime").getValue());
-	}
-
-	public Period getPeriod() {
-		return new Period(
-				getAboutJson().getInt32("period").getValue(), 
-				Period.Type.parse(getAboutJson().getString("periodType").getValue()),
-				getAboutJson().getString("ordinalNum").getValue());
+	public int getPeriod() {
+		return rawJson.getInt32("period").getValue();
 	}
 
 	public String getPeriodTime() {
-		return getAboutJson().getString("periodTime").getValue();
+		return rawJson.getString("timeInPeriod").getValue();
 	}
 
-	public Team getTeam() {
-		return Team.parse(rawJson.getDocument("team").getInt32("id").getValue());
-	}
-
-	public List<Player> getPlayers() {
-		return rawJson.getArray("players").getValues().stream()
-				.map(BsonValue::asDocument)
-				.map(Player::parse)
-				.collect(Collectors.toList());
+	/**
+	 * Situation on ice. i.e. number of skaters and goalies for each team.
+	 * 
+	 * @return Format: "ABYZ"
+	 *         <ul>
+	 *         <li>A: Home Goalie (1 in, 0 pulled)</li>
+	 *         <li>B: # of Home Skaters</li>
+	 *         <li>Y: # of Away Skaters</li>
+	 *         <li>Z: Away Goalie (1 in, 0 pulled)</li>
+	 *         </ul>
+	 */
+	public String getSituationCode() {
+		return rawJson.getString("situationCode").getValue();
 	}
 
 	@Override

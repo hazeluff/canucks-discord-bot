@@ -13,7 +13,7 @@ public class GoalEvent extends GameEvent {
 	}
 
 	public BsonDocument getDetails() {
-		return rawJson.getDocument("details");
+		return getJson().getDocument("details");
 	}
 
 	public List<Integer> getPlayerIds() {

@@ -69,7 +69,7 @@ public class PlayByPlayData {
 	public void update(BsonDocument playByPlayJson) {
 		this.jsonPbp.set(playByPlayJson);
 		this.homeStats.update(playByPlayJson.getDocument("homeTeam"));
-		this.homeStats.update(playByPlayJson.getDocument("awayTeam"));
+		this.awayStats.update(playByPlayJson.getDocument("awayTeam"));
 		// this.players - Player rosters do not need to be updated
 	}
 
@@ -135,6 +135,32 @@ public class PlayByPlayData {
 		public int getSOG() {
 			return getJson().getInt32("sog").getValue();
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((jsonTeamStats == null) ? 0 : jsonTeamStats.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			TeamStats other = (TeamStats) obj;
+			if (jsonTeamStats == null) {
+				if (other.jsonTeamStats != null)
+					return false;
+			} else if (!jsonTeamStats.equals(other.jsonTeamStats))
+				return false;
+			return true;
+		}
+
 	}
 
 	public List<GameEvent> getPlays() {
@@ -148,5 +174,48 @@ public class PlayByPlayData {
 
 	public Map<Integer, RosterPlayer> getPlayers() {
 		return players;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((awayStats == null) ? 0 : awayStats.hashCode());
+		result = prime * result + ((homeStats == null) ? 0 : homeStats.hashCode());
+		result = prime * result + ((jsonPbp == null) ? 0 : jsonPbp.hashCode());
+		result = prime * result + ((players == null) ? 0 : players.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PlayByPlayData other = (PlayByPlayData) obj;
+		if (awayStats == null) {
+			if (other.awayStats != null)
+				return false;
+		} else if (!awayStats.equals(other.awayStats))
+			return false;
+		if (homeStats == null) {
+			if (other.homeStats != null)
+				return false;
+		} else if (!homeStats.equals(other.homeStats))
+			return false;
+		if (jsonPbp == null) {
+			if (other.jsonPbp != null)
+				return false;
+		} else if (!jsonPbp.equals(other.jsonPbp))
+			return false;
+		if (players == null) {
+			if (other.players != null)
+				return false;
+		} else if (!players.equals(other.players))
+			return false;
+		return true;
 	}
 }

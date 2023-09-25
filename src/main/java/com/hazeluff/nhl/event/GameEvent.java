@@ -1,18 +1,20 @@
 package com.hazeluff.nhl.event;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.bson.BsonDocument;
 
 import com.hazeluff.nhl.game.EventType;
 
 public class GameEvent {
-	protected BsonDocument rawJson;
+	protected AtomicReference<BsonDocument> jsonEvent;
 
-	private GameEvent(BsonDocument rawJson) {
-		this.rawJson = rawJson;
+	private GameEvent(BsonDocument jsonEvent) {
+		this.jsonEvent = new AtomicReference<>(jsonEvent);
 	}
 
-	protected GameEvent(GameEvent gameEvent) {
-		this.rawJson = gameEvent.rawJson;
+	protected GameEvent(GameEvent jsonEvent) {
+		this.jsonEvent = jsonEvent.jsonEvent;
 	}
 
 	public static GameEvent parse(BsonDocument rawJson) {
@@ -30,20 +32,24 @@ public class GameEvent {
 		}
 	}
 
+	public BsonDocument getJson() {
+		return this.jsonEvent.get();
+	}
+
 	public EventType getType() {
-		return EventType.parse(rawJson.getString("typeDescKey").getValue());
+		return EventType.parse(getJson().getString("typeDescKey").getValue());
 	}
 
 	public int getId() {
-		return rawJson.getInt32("eventId").getValue();
+		return getJson().getInt32("eventId").getValue();
 	}
 
 	public int getPeriod() {
-		return rawJson.getInt32("period").getValue();
+		return getJson().getInt32("period").getValue();
 	}
 
 	public String getPeriodTime() {
-		return rawJson.getString("timeInPeriod").getValue();
+		return getJson().getString("timeInPeriod").getValue();
 	}
 
 	/**
@@ -58,14 +64,14 @@ public class GameEvent {
 	 *         </ul>
 	 */
 	public String getSituationCode() {
-		return rawJson.getString("situationCode").getValue();
+		return getJson().getString("situationCode").getValue();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((rawJson == null) ? 0 : rawJson.hashCode());
+		result = prime * result + ((jsonEvent == null) ? 0 : jsonEvent.hashCode());
 		return result;
 	}
 
@@ -78,10 +84,10 @@ public class GameEvent {
 		if (getClass() != obj.getClass())
 			return false;
 		GameEvent other = (GameEvent) obj;
-		if (rawJson == null) {
-			if (other.rawJson != null)
+		if (jsonEvent == null) {
+			if (other.jsonEvent != null)
 				return false;
-		} else if (!rawJson.equals(other.rawJson))
+		} else if (!jsonEvent.equals(other.jsonEvent))
 			return false;
 		return true;
 	}

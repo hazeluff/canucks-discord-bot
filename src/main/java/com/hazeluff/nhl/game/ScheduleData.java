@@ -86,4 +86,46 @@ public class ScheduleData {
 		return homeTeam;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((awayTeam == null) ? 0 : awayTeam.hashCode());
+		result = prime * result + gameId;
+		result = prime * result + ((gameType == null) ? 0 : gameType.hashCode());
+		result = prime * result + ((homeTeam == null) ? 0 : homeTeam.hashCode());
+		result = prime * result + ((jsonSchedule == null) ? 0 : jsonSchedule.hashCode());
+		result = prime * result + ((startTime == null) ? 0 : startTime.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ScheduleData other = (ScheduleData) obj;
+		if (awayTeam != other.awayTeam)
+			return false;
+		if (gameId != other.gameId)
+			return false;
+		if (gameType != other.gameType)
+			return false;
+		if (homeTeam != other.homeTeam)
+			return false;
+		if (jsonSchedule == null) {
+			if (other.jsonSchedule != null)
+				return false;
+		} else if (!jsonSchedule.equals(other.jsonSchedule))
+			return false;
+		if (startTime == null) {
+			if (other.startTime != null)
+				return false;
+		} else if (!startTime.equals(other.startTime))
+			return false;
+		return true;
+	}
 }

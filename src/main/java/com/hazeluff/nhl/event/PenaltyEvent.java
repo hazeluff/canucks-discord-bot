@@ -10,7 +10,7 @@ public class PenaltyEvent extends GameEvent {
 	}
 
 	public BsonDocument getDetails() {
-		return rawJson.getDocument("details");
+		return getJson().getDocument("details");
 	}
 
 	public Team getTeam() {

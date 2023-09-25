@@ -3,6 +3,7 @@ package com.hazeluff.nhl.game;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import org.bson.BsonArray;
@@ -17,7 +18,7 @@ import com.hazeluff.nhl.event.GameEvent;
 public class PlayByPlayData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayByPlayData.class);
 
-	private BsonDocument pbpJson;
+	private AtomicReference<BsonDocument> jsonPbp;
 
 	private final TeamStats homeStats;
 	private final TeamStats awayStats;
@@ -27,19 +28,19 @@ public class PlayByPlayData {
 	PlayByPlayData(BsonDocument pbpJson,
 			TeamStats homeStats, TeamStats awayStats,
 			Map<Integer, RosterPlayer> players) {
-		this.pbpJson = pbpJson;
+		this.jsonPbp = new AtomicReference<>(pbpJson);
 		this.homeStats = homeStats;
 		this.awayStats = awayStats;
 		this.players = players;
 	}
 
-	public static PlayByPlayData parse(BsonDocument pbpJson) {
+	public static PlayByPlayData parse(BsonDocument jsonPbp) {
 		try {
-			TeamStats homeStats = TeamStats.parse(pbpJson.getDocument("homeTeam"));
-			TeamStats awayStats = TeamStats.parse(pbpJson.getDocument("awayTeam"));
-			Map<Integer, RosterPlayer> players = parseRosterSpots(pbpJson.getArray("rosterSpots"));
+			TeamStats homeStats = TeamStats.parse(jsonPbp.getDocument("homeTeam"));
+			TeamStats awayStats = TeamStats.parse(jsonPbp.getDocument("awayTeam"));
+			Map<Integer, RosterPlayer> players = parseRosterSpots(jsonPbp.getArray("rosterSpots"));
 			return new PlayByPlayData(
-					pbpJson,
+					jsonPbp,
 					homeStats, awayStats, 
 					players);
 		} catch (Exception e) {
@@ -48,7 +49,7 @@ public class PlayByPlayData {
 		}
 	}
 
-	private static Map<Integer, RosterPlayer> parseRosterSpots(BsonArray array) {
+	static Map<Integer, RosterPlayer> parseRosterSpots(BsonArray array) {
 		Map<Integer, RosterPlayer> players = new HashMap<>();
 		for (BsonValue arrVal : array) {
 			BsonDocument player = arrVal.asDocument();
@@ -66,26 +67,30 @@ public class PlayByPlayData {
 	}
 
 	public void update(BsonDocument playByPlayJson) {
-		this.pbpJson = playByPlayJson;
+		this.jsonPbp.set(playByPlayJson);
 		this.homeStats.update(playByPlayJson.getDocument("homeTeam"));
 		this.homeStats.update(playByPlayJson.getDocument("awayTeam"));
 		// this.players - Player rosters do not need to be updated
 	}
 
+	public BsonDocument getJson() {
+		return jsonPbp.get();
+	}
+
 	public String getGameScheduleState() {
-		return pbpJson.getString("gameScheduleState").getValue();
+		return getJson().getString("gameScheduleState").getValue();
 	}
 
 	public GameState getGameState() {
-		return GameState.parse(pbpJson.getString("gameState").getValue());
+		return GameState.parse(getJson().getString("gameState").getValue());
 	}
 
 	public int getPeriod() {
-		return pbpJson.getInt32("period").getValue();
+		return getJson().getInt32("period").getValue();
 	}
 
 	public BsonDocument getClock() {
-		return pbpJson.getDocument("clock");
+		return getJson().getDocument("clock");
 	}
 
 	public boolean isInIntermission() {
@@ -105,31 +110,35 @@ public class PlayByPlayData {
 	}
 
 	static class TeamStats {
-		BsonDocument rawTeamStats;
+		AtomicReference<BsonDocument> jsonTeamStats;
 
-		TeamStats(BsonDocument rawTeamStats) {
-			this.rawTeamStats = rawTeamStats;
+		TeamStats(BsonDocument jsonTeamStats) {
+			this.jsonTeamStats = new AtomicReference<>(jsonTeamStats);
 		}
 
-		static TeamStats parse(BsonDocument rawTeamStats) {
-			return new TeamStats(rawTeamStats);
+		static TeamStats parse(BsonDocument jsonTeamStats) {
+			return new TeamStats(jsonTeamStats);
 		}
 
-		void update(BsonDocument rawTeamStats) {
-			this.rawTeamStats = rawTeamStats;
+		public BsonDocument getJson() {
+			return this.jsonTeamStats.get();
+		}
+
+		void update(BsonDocument jsonTeamStats) {
+			this.jsonTeamStats.set(jsonTeamStats);
 		}
 
 		public int getScore() {
-			return rawTeamStats.getInt32("score").getValue();
+			return getJson().getInt32("score").getValue();
 		}
 
 		public int getSOG() {
-			return rawTeamStats.getInt32("sog").getValue();
+			return getJson().getInt32("sog").getValue();
 		}
 	}
 
 	public List<GameEvent> getPlays() {
-		return pbpJson.getArray("plays")
+		return getJson().getArray("plays")
 			.getValues()
 			.stream()
 			.map(BsonValue::asDocument)

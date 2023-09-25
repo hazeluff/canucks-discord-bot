@@ -512,7 +512,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			.footer("Shootout", null)
 			.build();
 		} else {
-			String description = scorer.getFullName() + " goal!";
+			String description = event.getTeam().getFullName() + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()
 					.map(game::getPlayer)
 					.collect(Collectors.toList());

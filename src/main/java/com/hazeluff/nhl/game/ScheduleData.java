@@ -1,6 +1,7 @@
 package com.hazeluff.nhl.game;
 
 import java.time.ZonedDateTime;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.bson.BsonDocument;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import com.hazeluff.nhl.Team;
 public class ScheduleData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ScheduleData.class);
 
-	private BsonDocument rawJson;
+	private AtomicReference<BsonDocument> jsonSchedule;
 
 	private final GameType gameType;
 	private final ZonedDateTime startTime;
@@ -20,10 +21,10 @@ public class ScheduleData {
 	private final Team awayTeam;
 	private final Team homeTeam;
 
-	ScheduleData(BsonDocument rawJson, 
+	ScheduleData(BsonDocument jsonSchedule, 
 			GameType gameType, ZonedDateTime startTime, int gameId, 
 			Team awayTeam, Team homeTeam) {
-		this.rawJson = rawJson;
+		this.jsonSchedule = new AtomicReference<BsonDocument>(jsonSchedule);
 		this.gameType = gameType;
 		this.startTime = startTime;
 		this.gameId = gameId;
@@ -31,15 +32,15 @@ public class ScheduleData {
 		this.homeTeam = homeTeam;
 	}
 
-	public static ScheduleData parse(BsonDocument rawScheduleGameJson) {
+	public static ScheduleData parse(BsonDocument jsonSchedule) {
 		try {
-			GameType gameType = GameType.parse(rawScheduleGameJson.getInt32("gameType").getValue());
-			ZonedDateTime date = DateUtils.parseNHLDate(rawScheduleGameJson.getString("startTimeUTC").getValue());
-			int gameId = rawScheduleGameJson.getInt32("id").getValue();
-			Team awayTeam = Team.parse(rawScheduleGameJson.getDocument("awayTeam").getInt32("id").getValue());
-			Team homeTeam = Team.parse(rawScheduleGameJson.getDocument("homeTeam").getInt32("id").getValue());
+			GameType gameType = GameType.parse(jsonSchedule.getInt32("gameType").getValue());
+			ZonedDateTime date = DateUtils.parseNHLDate(jsonSchedule.getString("startTimeUTC").getValue());
+			int gameId = jsonSchedule.getInt32("id").getValue();
+			Team awayTeam = Team.parse(jsonSchedule.getDocument("awayTeam").getInt32("id").getValue());
+			Team homeTeam = Team.parse(jsonSchedule.getDocument("homeTeam").getInt32("id").getValue());
 			return new ScheduleData(
-					rawScheduleGameJson, 
+					jsonSchedule, 
 					gameType, date, gameId, 
 					awayTeam, homeTeam
 			);
@@ -50,15 +51,19 @@ public class ScheduleData {
 	}
 	
 	public void update(BsonDocument rawScheduleGameJson) {
-		this.rawJson = rawScheduleGameJson;
+		this.jsonSchedule.set(rawScheduleGameJson);
+	}
+
+	public BsonDocument getJson() {
+		return this.jsonSchedule.get();
 	}
 
 	public String getGameScheduleState() {
-		return rawJson.getString("gameScheduleState").getValue();
+		return getJson().getString("gameScheduleState").getValue();
 	}
 
 	public GameState getGameState() {
-		return GameState.parse(rawJson.getString("gameState").getValue());
+		return GameState.parse(getJson().getString("gameState").getValue());
 	}
 
 	public GameType getGameType() {

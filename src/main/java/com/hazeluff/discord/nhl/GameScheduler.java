@@ -136,7 +136,7 @@ public class GameScheduler extends Thread {
 	}
 
 	static Map<Integer, Game> initAllTeamGames() {
-		LOGGER.info("Initializing All Teama Games...");
+		LOGGER.info("Initializing All Team Games...");
 		return buildGames(NHLGateway.getAllTeamRawGames());
 	}
 

@@ -63,7 +63,13 @@ public class GDCStatusCommand extends GDCSubCommand {
 			} else {
 				int numOvertime = game.getPeriod() - 3;
 				if (numOvertime <= 0) {
-					fieldDescription += " Currently in " + game.getPeriod() + " period.";
+					if (!game.isInIntermission()) {
+						fieldDescription += " Currently in "
+								+ game.getPeriodOridnal() + " period.";						
+					} else {
+						fieldDescription += " Currently in intermission after the "
+								+ game.getPeriodOridnal() + " period.";
+					}
 				} else if (numOvertime == 1) {
 					fieldDescription += " Currently in overtime.";
 				} else {

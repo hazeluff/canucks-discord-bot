@@ -7,8 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum GameState {
-	FUTURE("FUT"), PREGAME("PRE"), LIVE("LIVE"), FINAL("FINAL"),
-	OFF("OFF"); // This should be filtered out. ("Outside of current season")
+	FUTURE("FUT"), PREGAME("PRE"), LIVE("LIVE"), CRIT("CRIT"), FINAL("FINAL"),
+	 OFF("OFF"); // This should be filtered out. ("Outside of current season")
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameState.class);
 

@@ -19,14 +19,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign;
-import com.hazeluff.discord.bot.database.predictions.campaigns.SeasonCampaign.Prediction;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
@@ -153,7 +150,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 				if (channel != null) {
 					// Send Messages to Initialize Channel
-					sendDetailsMessage(channel);
+					sendGDCHelpMessage(channel);
 				}
 			} else {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
@@ -262,7 +259,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Post Predictions poll
 		summaryMessage = getSummaryMessage();
-		sendHelpMessage();
 
 		if (!game.getGameState().isFinal()) {
 			// Wait until close to start of game
@@ -699,31 +695,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/*
-	 * Help Message
-	 */
-	private Message sendHelpMessage() {
-		Message message = null;
-		if (meta != null) {
-			Long messageId = meta.getVoteMessageId();
-			if (messageId == null) {
-				message = sendGDCHelpMessage(channel);
-			} else {
-				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
-				if (message == null) {
-					message = sendGDCHelpMessage(channel);
-				}
-			}
-
-			if (message != null) {
-				DiscordManager.pinMessage(message);
-				meta.setVoteMessageId(message.getId().asLong());
-				saveMetadata();
-			}
-		}
-		return message;
-	}
-
-	/*
 	 * End of game message
 	 */
 	/**
@@ -771,10 +742,23 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 			} else {
 				message += "\nThe next game is: "
-						+ getGameDayChannel(nextGames.get(0)).getDetailsMessage();
+						+ getGameDayChannel(nextGames.get(0)).buildDetailsMessage();
 			}
 		}
 		return message;
+	}
+
+	/**
+	 * Gets the message that NHLBot will respond with when queried about this game
+	 * 
+	 * @param timeZone
+	 *            the time zone to localize to
+	 * 
+	 * @return message in the format: "The next game is:\n<br>
+	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
+	 */
+	public String buildDetailsMessage() {
+		return getDetailsMessage(game);
 	}
 
 	private static String buildGameScore(Game game) {
@@ -905,20 +889,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 	*/
 
-	private Message sendDetailsMessage(TextChannel channel) {
-		preferences.getTimeZone();
-		String detailsMessage = getDetailsMessage();
-		Message message = DiscordManager.sendAndGetMessage(channel, detailsMessage);
-		DiscordManager.pinMessage(message);
-
-		return message;
-	}
-
 	private Message sendGDCHelpMessage(TextChannel channel) {
+		String.join("\n", 
+				buildDetailsMessage(),
+				getHelpMessageText()
+		);
 		Message message = DiscordManager.sendAndGetMessage(channel,
 				MessageCreateSpec.builder()
 					.content(getHelpMessageText())
-					.addEmbed(getVotingEmbedSpec())
 					.build());
 		DiscordManager.pinMessage(message);
 
@@ -928,45 +906,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private String getHelpMessageText() {
 		return "**This game/channel is interactable with Slash Commands!**"
 				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
-	}
-
-	private EmbedCreateSpec getVotingEmbedSpec() {
-		String campaignId = SeasonCampaign.buildCampaignId(Config.CURRENT_SEASON.getAbbreviation());
-		List<Prediction> predictions = SeasonCampaign.loadPredictions(nhlBot, campaignId).stream()
-				.filter(prediction -> prediction.getGamePk() == this.game.getGameId())
-				.collect(Collectors.toList());
-		long homeVotes = predictions.stream()
-				.filter(prediction -> prediction.getPrediction() == this.game.getHomeTeam().getId())
-				.count();
-		long awayVotes = predictions.stream()
-				.filter(prediction -> prediction.getPrediction() == this.game.getAwayTeam().getId())
-				.count();
-		Color color = Color.DISCORD_WHITE;
-		if (homeVotes > awayVotes) {
-			color = game.getHomeTeam().getColor();
-		} else if (homeVotes < awayVotes) {
-			color = game.getAwayTeam().getColor();
-		}
-		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
-		embedBuilder
-			.title("Current Votes")
-			.color(color)
-			.addField(
-				game.getHomeTeam().getName(),
-				String.valueOf(homeVotes),
-				true
-			)
-			.addField(
-				"vs",
-				"~~", // For formatting
-				true
-			)
-			.addField(
-				game.getAwayTeam().getName(),
-				String.valueOf(awayVotes),
-				true
-			);
-		return embedBuilder.build();
 	}
 
 	private void sendWordcloud() {
@@ -1107,19 +1046,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				game.getAwayTeam().getFullName(), 
 				game.getStartTime().toEpochSecond());
 		return message;
-	}
-
-	/**
-	 * Gets the message that NHLBot will respond with when queried about this game
-	 * 
-	 * @param timeZone
-	 *            the time zone to localize to
-	 * 
-	 * @return message in the format: "The next game is:\n<br>
-	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
-	 */
-	public String getDetailsMessage() {
-		return getDetailsMessage(game);
 	}
 
 	/**

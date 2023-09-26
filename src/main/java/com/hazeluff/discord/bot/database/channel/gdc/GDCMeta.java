@@ -15,14 +15,12 @@ import discord4j.core.object.entity.Message;
 
 public class GDCMeta {
 	private static final String CHANNEL_ID_KEY = "channelId";
-	private static final String VOTE_MESSAGE_ID_KEY = "vote-messageId";
 	private static final String SUMMARY_MESSAGE_ID_KEY = "summary-messageId";
 	private static final String GOAL_MESSAGE_IDS_KEY = "goal-messageIds";
 	private static final String PENALTY_MESSAGE_IDS_KEY = "penalty-messageIds";
 
 	private final long channelId;
 	private Long summaryMessageId;
-	private Long voteMessageId;
 
 	private String strGoalMessages;
 	private String strPenaltyMessages;
@@ -31,11 +29,11 @@ public class GDCMeta {
 		this.channelId = channelId;
 	}
 
-	GDCMeta(long channelId, Long summaryMessageId, Long voteMessageId, String strGoalMessages,
+	GDCMeta(long channelId, Long summaryMessageId,
+			String strGoalMessages,
 			String strPenaltyMessages) {
 		this(channelId);
 		this.summaryMessageId = summaryMessageId;
-		this.voteMessageId = voteMessageId;
 		this.strGoalMessages = strGoalMessages;
 		this.strPenaltyMessages = strPenaltyMessages;
 	}
@@ -53,11 +51,10 @@ public class GDCMeta {
 
 		long channelId = doc.getLong(CHANNEL_ID_KEY);
 		Long summaryMessageId = doc.getLong(SUMMARY_MESSAGE_ID_KEY);
-		Long voteMessageId = doc.containsKey(VOTE_MESSAGE_ID_KEY) ? doc.getLong(VOTE_MESSAGE_ID_KEY) : null;
 		String goalMessageIds = doc.getString(GOAL_MESSAGE_IDS_KEY);
 		String penaltyMessageIds = doc.getString(PENALTY_MESSAGE_IDS_KEY);
 
-		return new GDCMeta(channelId, summaryMessageId, voteMessageId, goalMessageIds, penaltyMessageIds);
+		return new GDCMeta(channelId, summaryMessageId, goalMessageIds, penaltyMessageIds);
 	}
 
 	static GDCMeta findFromCollection(MongoCollection<Document> collection, long channelId) {
@@ -73,7 +70,6 @@ public class GDCMeta {
 						channelId),
 				new Document("$set", new Document()
 						.append(SUMMARY_MESSAGE_ID_KEY, summaryMessageId)
-						.append(VOTE_MESSAGE_ID_KEY, voteMessageId)
 						.append(GOAL_MESSAGE_IDS_KEY, strGoalMessages)
 						.append(PENALTY_MESSAGE_IDS_KEY, strPenaltyMessages)
 				),
@@ -90,14 +86,6 @@ public class GDCMeta {
 
 	public void setSummaryMessageId(Long messageId) {
 		this.summaryMessageId = messageId;
-	}
-
-	public Long getVoteMessageId() {
-		return voteMessageId;
-	}
-
-	public void setVoteMessageId(Long messageId) {
-		this.voteMessageId = messageId;
 	}
 
 	public Map<Integer, Long> getGoalMessageIds() {

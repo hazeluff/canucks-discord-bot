@@ -150,7 +150,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 				if (channel != null) {
 					// Send Messages to Initialize Channel
-					sendGDCHelpMessage(channel);
+					sendStaticMessage(channel);
 				}
 			} else {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
@@ -787,7 +787,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Do Nothing
 	}
 
-	private Message sendGDCHelpMessage(TextChannel channel) {
+	private Message sendStaticMessage(TextChannel channel) {
 		String strMessage = buildDetailsMessage()
 				+ "\n\n"
 				+ getHelpMessageText();

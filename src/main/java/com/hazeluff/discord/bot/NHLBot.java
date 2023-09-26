@@ -3,8 +3,8 @@ package com.hazeluff.discord.bot;
 import static com.hazeluff.discord.utils.Utils.not;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -13,16 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
-import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.bot.command.GDCCommand;
-import com.hazeluff.discord.bot.command.HelpCommand;
-import com.hazeluff.discord.bot.command.NextGameCommand;
-import com.hazeluff.discord.bot.command.ScheduleCommand;
-import com.hazeluff.discord.bot.command.StatsCommand;
-import com.hazeluff.discord.bot.command.SubscribeCommand;
-import com.hazeluff.discord.bot.command.ThreadsCommand;
-import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
@@ -58,20 +49,6 @@ public class NHLBot extends Thread {
 	private GameDayChannelsManager gameDayChannelsManager;
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
-
-	public static List<Command> getSlashCommands(NHLBot nhlBot) {
-		return Arrays.asList(
-				new AboutCommand(nhlBot),
-				new GDCCommand(nhlBot),
-				new HelpCommand(nhlBot),
-				new NextGameCommand(nhlBot),
-				new SubscribeCommand(nhlBot),
-				new ScheduleCommand(nhlBot),
-				new StatsCommand(nhlBot),
-				new ThreadsCommand(nhlBot),
-				new UnsubscribeCommand(nhlBot)
-		);
-	}
 	
 	private NHLBot() {
 		persistantData = null;
@@ -316,5 +293,26 @@ public class NHLBot extends Thread {
 		long applicationId = getDiscordManager().getApplicationId();
 		return DiscordManager.block(getDiscordManager().getClient().getRestClient()
 				.getApplicationService().getGuildApplicationCommands(applicationId, guildId));
+	}
+
+	static List<Command> getSlashCommands(NHLBot nhlBot) {
+		return Config.getSlashCommands().stream()
+				.map(commandClass -> instantiateCommand(commandClass, nhlBot))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+	}
+
+	@SuppressWarnings("rawtypes")
+	static Command instantiateCommand(Class commandClass, NHLBot nhlBot) {
+		if (!Command.class.isAssignableFrom(commandClass)) {
+			LOGGER.warn("Non-Command class: " + commandClass.getSimpleName());
+			return null;
+		}
+		try {
+			return (Command) commandClass.getDeclaredConstructors()[0].newInstance(nhlBot);
+		} catch (Exception e) {
+			LOGGER.error("Could not load command: " + commandClass.getSimpleName());
+			return null;
+		}
 	}
 }

@@ -5,6 +5,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import com.hazeluff.discord.bot.command.AboutCommand;
+import com.hazeluff.discord.bot.command.GDCCommand;
+import com.hazeluff.discord.bot.command.HelpCommand;
+import com.hazeluff.discord.bot.command.NextGameCommand;
+import com.hazeluff.discord.bot.command.SubscribeCommand;
+import com.hazeluff.discord.bot.command.ScheduleCommand;
+import com.hazeluff.discord.bot.command.StatsCommand;
+import com.hazeluff.discord.bot.command.ThreadsCommand;
+import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.nhl.Seasons;
 import com.hazeluff.discord.nhl.Seasons.Season;
 
@@ -88,4 +97,32 @@ public class Config {
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
 	
 	public static final String STATUS_MESSAGE = "/help for commands";
+	
+	// Slash Commands
+	/**
+	 * <p>
+	 * Configures which Commands are used/added to discord as slash commands.
+	 * </p>
+	 * 
+	 * <p>
+	 * NEW COMMANDS NEED TO BE ADDED HERE!
+	 * </p>
+	 * 
+	 * @param nhlBot
+	 * @return
+	 */
+	@SuppressWarnings("rawtypes")
+	public static List<Class> getSlashCommands() {
+		return Arrays.asList(
+				AboutCommand.class,
+				GDCCommand.class,
+				HelpCommand.class,
+				NextGameCommand.class,
+				SubscribeCommand.class,
+				ScheduleCommand.class,
+				StatsCommand.class,
+				ThreadsCommand.class,
+				UnsubscribeCommand.class
+		);
+	}
 }

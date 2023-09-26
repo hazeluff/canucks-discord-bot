@@ -149,7 +149,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 				if (channel != null) {
 					// Send Messages to Initialize Channel
-					sendDetailsMessage(channel);
 					sendGDCHelpMessage(channel);
 				}
 			} else {
@@ -762,21 +761,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	/*
-	 * Predictions
-	 */
 	@Override
 	public void process(Event event) {
 		// Do Nothing
-	}
-
-	private Message sendDetailsMessage(TextChannel channel) {
-		preferences.getTimeZone();
-		String detailsMessage = buildDetailsMessage();
-		Message message = DiscordManager.sendAndGetMessage(channel, detailsMessage);
-		DiscordManager.pinMessage(message);
-
-		return message;
 	}
 
 	/**
@@ -793,16 +780,22 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private Message sendGDCHelpMessage(TextChannel channel) {
-		String strMessage = "**This game/channel is interactable with Slash Commands!**"
-				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
+		String.join("\n", 
+				buildDetailsMessage(),
+				getHelpMessageText()
+		);
 		Message message = DiscordManager.sendAndGetMessage(channel,
 				MessageCreateSpec.builder()
-					.content(strMessage)
-					.build()
-		);
+					.content(getHelpMessageText())
+					.build());
 		DiscordManager.pinMessage(message);
 
 		return message;
+	}
+
+	private String getHelpMessageText() {
+		return "**This game/channel is interactable with Slash Commands!**"
+				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
 	}
 
 	boolean isBotSelf(User user) {

@@ -4,6 +4,7 @@ import static com.hazeluff.discord.utils.Utils.not;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -186,7 +187,7 @@ public class NHLBot extends Thread {
 
 		DiscordManager discordManager = getDiscordManager();
 
-		List<Command> commands = Config.getSlashCommands(this);
+		List<Command> commands = getSlashCommands(this);
 
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
@@ -211,7 +212,7 @@ public class NHLBot extends Thread {
 
 	private static void attachSlashCommandListeners(NHLBot nhlBot) {
 		// Register Listeners
-		for (Command command : Config.getSlashCommands(nhlBot)) {
+		for (Command command : getSlashCommands(nhlBot)) {
 			LOGGER.debug("Registering Command listeners with client: " + command.getName());
 			nhlBot.getDiscordManager().getClient().on(
 					command)
@@ -322,5 +323,26 @@ public class NHLBot extends Thread {
 		long applicationId = getDiscordManager().getApplicationId();
 		return DiscordManager.block(getDiscordManager().getClient().getRestClient()
 				.getApplicationService().getGuildApplicationCommands(applicationId, guildId));
+	}
+
+	static List<Command> getSlashCommands(NHLBot nhlBot) {
+		return Config.getSlashCommands().stream()
+				.map(commandClass -> instantiateCommand(commandClass, nhlBot))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
+	}
+
+	@SuppressWarnings("rawtypes")
+	static Command instantiateCommand(Class commandClass, NHLBot nhlBot) {
+		if (!Command.class.isAssignableFrom(commandClass)) {
+			LOGGER.warn("Non-Command class: " + commandClass.getSimpleName());
+			return null;
+		}
+		try {
+			return (Command) commandClass.getDeclaredConstructors()[0].newInstance(nhlBot);
+		} catch (Exception e) {
+			LOGGER.error("Could not load command: " + commandClass.getSimpleName());
+			return null;
+		}
 	}
 }

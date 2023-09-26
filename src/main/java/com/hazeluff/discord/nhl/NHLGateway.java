@@ -38,7 +38,7 @@ public class NHLGateway {
 	// Fetchers
 	static String fetchRawGames(Team team, Season season) throws HttpException {
 		URI uri = HttpUtils.buildUri(getClubScheduleSeasonUrl(team, season.getStartYear()));
-		return HttpUtils.getAndRetry(uri, 2, 10000l, "Get Raw Games: team=" + team + ", season=" + season);
+		return HttpUtils.getAndRetry(uri, 3, 10000l, "Get Raw Games: team=" + team + ", season=" + season);
 	}
 
 	static String fetchRawPlayByPlay(int gameId) throws HttpException {

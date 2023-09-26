@@ -68,7 +68,7 @@ public class Config {
 	/*
 	 *  Technical Config
 	 */
-	public static final int HTTP_REQUEST_RETRIES = 5;
+	public static final int HTTP_REQUEST_RETRIES = 3;
 	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";	
 	
 	/*
@@ -119,18 +119,19 @@ public class Config {
 	 * @param nhlBot
 	 * @return
 	 */
-	public static List<Command> getSlashCommands(NHLBot nhlBot) {
+	@SuppressWarnings("rawtypes")
+	public static List<Class> getSlashCommands() {
 		return Arrays.asList(
-				new AboutCommand(nhlBot),
-				new GDCCommand(nhlBot),
-				new HelpCommand(nhlBot),
-				new NextGameCommand(nhlBot),
-				new SubscribeCommand(nhlBot),
-				new ScheduleCommand(nhlBot),
-				new StatsCommand(nhlBot),
-				new ThreadsCommand(nhlBot),
-				new UnsubscribeCommand(nhlBot),
-				new WordcloudCommand(nhlBot)
+				AboutCommand.class,
+				GDCCommand.class,
+				HelpCommand.class,
+				NextGameCommand.class,
+				SubscribeCommand.class,
+				ScheduleCommand.class,
+				StatsCommand.class,
+				ThreadsCommand.class,
+				UnsubscribeCommand.class,
+				WordcloudCommand.class
 		);
 	}
 }

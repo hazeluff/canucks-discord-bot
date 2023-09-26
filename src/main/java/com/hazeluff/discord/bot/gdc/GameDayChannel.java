@@ -150,6 +150,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				if (channel != null) {
 					// Send Messages to Initialize Channel
 					sendDetailsMessage(channel);
+					sendGDCHelpMessage(channel);
 				}
 			} else {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
@@ -258,7 +259,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Post Predictions poll
 		summaryMessage = getSummaryMessage();
-		sendHelpMessage();
 
 		if (!game.getGameState().isFinal()) {
 			// Wait until close to start of game
@@ -688,21 +688,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/*
-	 * Voting Message
-	 */
-	private Message sendHelpMessage() {
-		Message message = null;
-		if (meta != null) {
-			message = sendGDCHelpMessage(channel);
-			if (message != null) {
-				DiscordManager.pinMessage(message);
-				saveMetadata();
-			}
-		}
-		return message;
-	}
-
-	/*
 	 * End of game message
 	 */
 	/**
@@ -750,7 +735,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 			} else {
 				message += "\nThe next game is: "
-						+ getGameDayChannel(nextGames.get(0)).getDetailsMessage();
+						+ getGameDayChannel(nextGames.get(0)).buildDetailsMessage();
 			}
 		}
 		return message;
@@ -787,27 +772,37 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private Message sendDetailsMessage(TextChannel channel) {
 		preferences.getTimeZone();
-		String detailsMessage = getDetailsMessage();
+		String detailsMessage = buildDetailsMessage();
 		Message message = DiscordManager.sendAndGetMessage(channel, detailsMessage);
 		DiscordManager.pinMessage(message);
 
 		return message;
 	}
 
+	/**
+	 * Gets the message that NHLBot will respond with when queried about this game
+	 * 
+	 * @param timeZone
+	 *            the time zone to localize to
+	 * 
+	 * @return message in the format: "The next game is:\n<br>
+	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
+	 */
+	public String buildDetailsMessage() {
+		return getDetailsMessage(game);
+	}
+
 	private Message sendGDCHelpMessage(TextChannel channel) {
+		String strMessage = "**This game/channel is interactable with Slash Commands!**"
+				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
 		Message message = DiscordManager.sendAndGetMessage(channel,
 				MessageCreateSpec.builder()
-					.content(getHelpMessageText())
+					.content(strMessage)
 					.build()
 		);
 		DiscordManager.pinMessage(message);
 
 		return message;
-	}
-
-	private String getHelpMessageText() {
-		return "**This game/channel is interactable with Slash Commands!**"
-				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
 	}
 
 	boolean isBotSelf(User user) {
@@ -944,19 +939,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				game.getAwayTeam().getFullName(), 
 				game.getStartTime().toEpochSecond());
 		return message;
-	}
-
-	/**
-	 * Gets the message that NHLBot will respond with when queried about this game
-	 * 
-	 * @param timeZone
-	 *            the time zone to localize to
-	 * 
-	 * @return message in the format: "The next game is:\n<br>
-	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
-	 */
-	public String getDetailsMessage() {
-		return getDetailsMessage(game);
 	}
 
 	/**

@@ -5,17 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.command.AboutCommand;
-import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.bot.command.GDCCommand;
-import com.hazeluff.discord.bot.command.HelpCommand;
-import com.hazeluff.discord.bot.command.NextGameCommand;
-import com.hazeluff.discord.bot.command.ScheduleCommand;
-import com.hazeluff.discord.bot.command.StatsCommand;
-import com.hazeluff.discord.bot.command.SubscribeCommand;
-import com.hazeluff.discord.bot.command.ThreadsCommand;
-import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.nhl.Seasons;
 import com.hazeluff.discord.nhl.Seasons.Season;
 
@@ -51,24 +40,19 @@ public class Config {
 	/* 
 	 * Season Config
 	 */
-	public static final Season CURRENT_SEASON = Seasons.S22_23;
+	public static final Season CURRENT_SEASON = Seasons.S23_24;
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
 	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
 			268247727400419329l, 
 			276953120964083713l
 	);
-
-	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList( 
-			238870084003561472l // /r/canucks
-	);
 	
 	/*
 	 *  Technical Config
 	 */
 	public static final int HTTP_REQUEST_RETRIES = 5;
-	public static final String NHL_API_URL = "https://statsapi.web.nhl.com/api/v1";	
+	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";	
 	
 	/*
 	 *  About
@@ -104,31 +88,4 @@ public class Config {
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
 	
 	public static final String STATUS_MESSAGE = "/help for commands";
-	
-	// Slash Commands
-	/**
-	 * <p>
-	 * Configures which Commands are used/added to discord as slash commands.
-	 * </p>
-	 * 
-	 * <p>
-	 * NEW COMMANDS NEED TO BE ADDED HERE!
-	 * </p>
-	 * 
-	 * @param nhlBot
-	 * @return
-	 */
-	public static List<Command> getSlashCommands(NHLBot nhlBot) {
-		return Arrays.asList(
-				new AboutCommand(nhlBot),
-				new GDCCommand(nhlBot),
-				new HelpCommand(nhlBot),
-				new NextGameCommand(nhlBot),
-				new SubscribeCommand(nhlBot),
-				new ScheduleCommand(nhlBot),
-				new StatsCommand(nhlBot),
-				new ThreadsCommand(nhlBot),
-				new UnsubscribeCommand(nhlBot)
-		);
-	}
 }

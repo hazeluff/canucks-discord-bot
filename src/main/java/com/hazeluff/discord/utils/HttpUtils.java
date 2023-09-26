@@ -4,10 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +59,18 @@ public class HttpUtils {
 			return Utils.getAndRetry(() -> get(uri), retries, sleepMs, description);
 		} catch (TimeoutException e) {
 			throw new HttpException(e);
+		}
+	}
+
+	public static URI buildUri(String url) throws HttpException {
+		try {
+			URIBuilder uriBuilder = new URIBuilder(url);
+			return uriBuilder.build();
+		} catch (URISyntaxException e) {
+			String message = "Error building URI";
+			HttpException runtimeException = new HttpException(message, e);
+			LOGGER.error(message, runtimeException);
+			throw runtimeException;
 		}
 	}
 }

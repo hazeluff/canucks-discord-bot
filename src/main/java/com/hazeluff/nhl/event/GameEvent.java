@@ -1,33 +1,26 @@
 package com.hazeluff.nhl.event;
 
-import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.bson.BsonDocument;
-import org.bson.BsonValue;
 
-import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.Player;
-import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.EventType;
-import com.hazeluff.nhl.game.Period;
 
 public class GameEvent {
-	protected BsonDocument rawJson;
+	protected AtomicReference<BsonDocument> jsonEvent;
 
-	private GameEvent(BsonDocument rawJson) {
-		this.rawJson = rawJson;
+	private GameEvent(BsonDocument jsonEvent) {
+		this.jsonEvent = new AtomicReference<>(jsonEvent);
 	}
 
-	protected GameEvent(GameEvent gameEvent) {
-		this.rawJson = gameEvent.rawJson;
+	protected GameEvent(GameEvent jsonEvent) {
+		this.jsonEvent = jsonEvent.jsonEvent;
 	}
 
-	public static GameEvent of(BsonDocument rawJson) {
+	public static GameEvent parse(BsonDocument rawJson) {
 		GameEvent event = new GameEvent(rawJson);
 		if (event.getType() == null) {
-			return null;
+			return event;
 		}
 		switch (event.getType()) {
 		case GOAL:
@@ -39,57 +32,46 @@ public class GameEvent {
 		}
 	}
 
-	protected BsonDocument getResultJson() {
-		return rawJson.getDocument("result");
+	public BsonDocument getJson() {
+		return this.jsonEvent.get();
 	}
 
 	public EventType getType() {
-		return EventType.parse(getResultJson().getString("eventTypeId").getValue());
-	}
-
-	protected BsonDocument getAboutJson() {
-		return rawJson.getDocument("about");
+		return EventType.parse(getJson().getString("typeDescKey").getValue());
 	}
 
 	public int getId() {
-		return getAboutJson().getInt32("eventId").getValue();
+		return getJson().getInt32("eventId").getValue();
 	}
 
-	public int getIdx() {
-		return getAboutJson().getInt32("eventIdx").getValue();
-	}
-
-	public ZonedDateTime getDate() {
-		return DateUtils.parseNHLDate(getAboutJson().getString("dateTime").getValue());
-	}
-
-	public Period getPeriod() {
-		return new Period(
-				getAboutJson().getInt32("period").getValue(), 
-				Period.Type.parse(getAboutJson().getString("periodType").getValue()),
-				getAboutJson().getString("ordinalNum").getValue());
+	public int getPeriod() {
+		return getJson().getInt32("period").getValue();
 	}
 
 	public String getPeriodTime() {
-		return getAboutJson().getString("periodTime").getValue();
+		return getJson().getString("timeInPeriod").getValue();
 	}
 
-	public Team getTeam() {
-		return Team.parse(rawJson.getDocument("team").getInt32("id").getValue());
-	}
-
-	public List<Player> getPlayers() {
-		return rawJson.getArray("players").getValues().stream()
-				.map(BsonValue::asDocument)
-				.map(Player::parse)
-				.collect(Collectors.toList());
+	/**
+	 * Situation on ice. i.e. number of skaters and goalies for each team.
+	 * 
+	 * @return Format: "ABYZ"
+	 *         <ul>
+	 *         <li>A: Home Goalie (1 in, 0 pulled)</li>
+	 *         <li>B: # of Home Skaters</li>
+	 *         <li>Y: # of Away Skaters</li>
+	 *         <li>Z: Away Goalie (1 in, 0 pulled)</li>
+	 *         </ul>
+	 */
+	public String getSituationCode() {
+		return getJson().getString("situationCode").getValue();
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((rawJson == null) ? 0 : rawJson.hashCode());
+		result = prime * result + ((jsonEvent == null) ? 0 : jsonEvent.hashCode());
 		return result;
 	}
 
@@ -102,10 +84,10 @@ public class GameEvent {
 		if (getClass() != obj.getClass())
 			return false;
 		GameEvent other = (GameEvent) obj;
-		if (rawJson == null) {
-			if (other.rawJson != null)
+		if (jsonEvent == null) {
+			if (other.jsonEvent != null)
 				return false;
-		} else if (!rawJson.equals(other.rawJson))
+		} else if (!jsonEvent.equals(other.jsonEvent))
 			return false;
 		return true;
 	}

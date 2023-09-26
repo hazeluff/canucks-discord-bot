@@ -46,36 +46,38 @@ public class CustomMessage {
 	/*
 	 * Convenient Instance Creators
 	 */
-
 	public static CustomMessage hatTrick(String message, int playerId) {
 		return new CustomMessage(
 				message, 
 				null, 
 				goalEvents -> {
-					long numGoals = goalEvents.stream().filter(goal -> goal.getPlayers().get(0).getId() == playerId).count();
+					long numGoals = goalEvents.stream().filter(goal -> goal.getScorerId() == playerId).count();
 					return numGoals == 3;
 				}, 
 				3);
 	}
 	
-	public static CustomMessage scorer(String message, int playerId) {
+	public static CustomMessage scorer(String message, int scoringPlayerId) {
 		return new CustomMessage(
 				message, 
-				goalEvent -> goalEvent.getPlayers().get(0).getId() == playerId, 
+				goalEvent -> goalEvent
+						.getScorerId() == scoringPlayerId,
 				2);
 	}
 
-	public static CustomMessage involved(String message, int playerId) {
+	public static CustomMessage involved(String message, int involvedPlayerId) {
 		return new CustomMessage(
 				message, 
-				goalEvent -> goalEvent.getPlayers().stream().anyMatch(player -> player.getId() == playerId), 
+				goalEvent -> goalEvent.getPlayerIds().stream().anyMatch(
+						playerId -> playerId == involvedPlayerId),
 				2);
 	}
 
 	public static CustomMessage involved(String message, Integer... playerIds) {
-		List<Integer> playerIdList = Arrays.asList(playerIds);
+		List<Integer> involvedPlayerIdList = Arrays.asList(playerIds);
 		return new CustomMessage(message,
-				goalEvent -> goalEvent.getPlayers().stream().allMatch(player -> playerIdList.contains(player.getId())),
+				goalEvent -> goalEvent.getPlayerIds().stream()
+						.allMatch(playerId -> involvedPlayerIdList.contains(playerId)),
 				2);
 	}
 

@@ -10,7 +10,6 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.nhl.Team;
-import com.hazeluff.nhl.game.DetailedGameState;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.common.util.Snowflake;
@@ -88,7 +87,7 @@ public class ScheduleCommand extends Command {
 		Game currentGame = gameScheduler.getCurrentLiveGame(team);
 
 		if (currentGame != null) {
-			appendGameToEmbed(embedBuilder, currentGame, team, GameState.CURRENT);
+			appendGameToEmbed(embedBuilder, currentGame, team, GameState.RECENT);
 		}
 		
 		int numFutureGames = currentGame == null ? 4 : 3;
@@ -122,7 +121,7 @@ public class ScheduleCommand extends Command {
 			Game currentGame = gameScheduler.getCurrentLiveGame(team);
 
 			if (currentGame != null) {
-				appendGameToEmbed(embedBuilder, currentGame, team, GameState.CURRENT);
+				appendGameToEmbed(embedBuilder, currentGame, team, GameState.RECENT);
 			}
 
 			int numFutureGames = currentGame == null ? 2 : 1;
@@ -145,7 +144,7 @@ public class ScheduleCommand extends Command {
 	}
 
 	enum GameState {
-		PAST, CURRENT, NEXT, FUTURE;
+		PAST, RECENT, NEXT, FUTURE;
 	}
 
 	EmbedCreateSpec.Builder appendGameToEmbed(EmbedCreateSpec.Builder builder, Game game, Team preferedTeam,
@@ -166,28 +165,19 @@ public class ScheduleCommand extends Command {
 		case PAST:
 			message = buildGameScore(game);
 			break;
-		case CURRENT:
-			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
-				date.append(" (postponed)");
-			} else if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
+		case RECENT:
+			if (game.getGameState().isLive()) {
 				date.append(" **(LIVE)**");
 			} else {
-				date.append(" (current game)");
+				date.append(" (most recent game)");
 			}
 			message = buildGameScore(game);
 			break;
 		case NEXT:
-			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
-				date.append(" (postponed)");
-			} else {
-				date.append(" (next game)");
-			}
+			date.append(" (next game)");
 			message = preferedTeam.getFullName() + " " + getAgainstTeamMessage.apply(game);
 			break;
 		case FUTURE:
-			if (game.getStatus().getDetailedState() == DetailedGameState.POSTPONED) {
-				date.append(" (postponed)");
-			}
 			message = preferedTeam.getFullName() + " " + getAgainstTeamMessage.apply(game);
 			break;
 		default:

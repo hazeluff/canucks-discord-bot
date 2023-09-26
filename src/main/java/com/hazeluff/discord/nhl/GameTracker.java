@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,10 +64,22 @@ public class GameTracker extends Thread {
 		return gameTracker;
 	}
 
+	public void initGamePlayByPlay() {
+		BsonDocument playByPlayJson = NHLGateway.getPlayByPlay(this.game.getGameId());
+		this.game.initPlayByPlayInfo(playByPlayJson);
+	}
+
+	public void updateGame() {
+		BsonDocument pbpJson = NHLGateway.getPlayByPlay(this.game.getGameId());
+		if (pbpJson != null) {
+			this.game.updatePlayByPlay(pbpJson);
+		}
+	}
+
 	@Override
 	public void start() {
 		if (started.compareAndSet(false, true)) {
-			LOGGER.info("Started thread for [" + game.getGamePk() + "]");
+			LOGGER.info("Started thread for [" + game.getGameId() + "]");
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");
@@ -81,17 +94,18 @@ public class GameTracker extends Thread {
 	public void run() {
 		try {
 			setName(GameDayChannel.getChannelName(game));
-			game.updateLiveData();
-			if (!game.getStatus().isFinal()) {
+			initGamePlayByPlay();
+
+			if (!game.getGameState().isFinal()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
 				boolean closeToStart;
 				long timeTillGameMs = Long.MAX_VALUE;
-				ZonedDateTime gameStart = game.getDate();
+				ZonedDateTime gameStart = game.getStartTime();
 				do {
 					timeTillGameMs = DateUtils.diffMs(ZonedDateTime.now(), gameStart);
 					closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;
-					game.updateLiveData();
+					updateGame();
 					if (!closeToStart) {
 						LOGGER.trace("Idling until near game start. Sleeping for [" + IDLE_POLL_RATE_MS + "]");
 						Utils.sleep(IDLE_POLL_RATE_MS);
@@ -102,9 +116,9 @@ public class GameTracker extends Thread {
 				
 				// Wait for start of game
 				boolean started = false;
-				do {					
-					game.updateLiveData();
-					started = game.getStatus().isStarted();
+				do {
+					updateGame();
+					started = game.getGameState().isStarted();
 					if (!started) {
 						Utils.sleep(ACTIVE_POLL_RATE_MS);
 					}
@@ -118,10 +132,10 @@ public class GameTracker extends Thread {
 				ZonedDateTime lastFinal = null;
 				boolean stopUpdates = false;
 				do {
-					game.updateLiveData();
+					updateGame();
 
 					// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
-					if (game.getStatus().isFinal()) {
+					if (game.getGameState().isFinal()) {
 						if (lastFinal == null) {
 							LOGGER.debug("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();

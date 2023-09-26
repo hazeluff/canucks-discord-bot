@@ -12,8 +12,7 @@ public class CustomMessages {
 
 	private static final List<CustomMessage> customMessages = 
 			Stream.of(
-					new CanucksCollection(), 
-					new CanucksAlumniCollection()
+				new CustomCollection()
 			)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());;

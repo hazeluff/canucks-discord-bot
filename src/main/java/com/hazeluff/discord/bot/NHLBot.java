@@ -1,6 +1,9 @@
 package com.hazeluff.discord.bot;
 
+import static com.hazeluff.discord.utils.Utils.not;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -10,7 +13,16 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
+import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.bot.command.GDCCommand;
+import com.hazeluff.discord.bot.command.HelpCommand;
+import com.hazeluff.discord.bot.command.NextGameCommand;
+import com.hazeluff.discord.bot.command.ScheduleCommand;
+import com.hazeluff.discord.bot.command.StatsCommand;
+import com.hazeluff.discord.bot.command.SubscribeCommand;
+import com.hazeluff.discord.bot.command.ThreadsCommand;
+import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
@@ -47,6 +59,20 @@ public class NHLBot extends Thread {
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 
+	public static List<Command> getSlashCommands(NHLBot nhlBot) {
+		return Arrays.asList(
+				new AboutCommand(nhlBot),
+				new GDCCommand(nhlBot),
+				new HelpCommand(nhlBot),
+				new NextGameCommand(nhlBot),
+				new SubscribeCommand(nhlBot),
+				new ScheduleCommand(nhlBot),
+				new StatsCommand(nhlBot),
+				new ThreadsCommand(nhlBot),
+				new UnsubscribeCommand(nhlBot)
+		);
+	}
+	
 	private NHLBot() {
 		persistantData = null;
 		gameScheduler = null;
@@ -169,46 +195,40 @@ public class NHLBot extends Thread {
 
 		DiscordManager discordManager = getDiscordManager();
 
-		List<Command> commands = Config.getSlashCommands(this);
+		List<Command> commands = getSlashCommands(this);
 
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
 
-		// Dev Commands
-		List<ApplicationCommandRequest> devCommands = commands
-				.stream()
+		List<ApplicationCommandRequest> allCommands = commands.stream()
 				.filter(cmd -> cmd.getACR() != null)
-				.filter(Command::isDevOnly)
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-		LOGGER.info("Registering Dev Commands : " + devCommands);
-		for (Long guildId : Config.DEV_GUILD_LIST) {
-			LOGGER.info("Registering Dev Commands with guild: " + guildId);
-			List<ApplicationCommandData> registeredGuildCommands = DiscordManager.block(
-				restClient.getApplicationService()
-					.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devCommands)
-			);
-			LOGGER.info("Registered: " + registeredGuildCommands);
-		}
 
-		// Common Commands
-		/*
 		List<ApplicationCommandRequest> commonCommands = commands.stream()
 				.filter(cmd -> cmd.getACR() != null)
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-		LOGGER.info("Registering Global Commands: " + commonCommands);
-		List<ApplicationCommandData> registeredGlobalCommands = DiscordManager.block(
+
+		// Dev Guilds
+		for (Long guildId : Config.DEV_GUILD_LIST) {
+			DiscordManager.block(
+				restClient.getApplicationService()
+					.bulkOverwriteGuildApplicationCommand(applicationId, guildId, allCommands)
+			);
+		}
+
+		// All Guilds
+		DiscordManager.block(
 			restClient.getApplicationService()
-						.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands));
-		LOGGER.info("Registered: " + registeredGlobalCommands);
-		*/
+				.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands)
+		);
 	}
 
 	private static void attachSlashCommandListeners(NHLBot nhlBot) {
 		// Register Listeners
-		for (Command command : Config.getSlashCommands(nhlBot)) {
+		for (Command command : getSlashCommands(nhlBot)) {
 			LOGGER.debug("Registering Command listeners with client: " + command.getName());
 			nhlBot.getDiscordManager().getClient().on(
 					command)

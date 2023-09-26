@@ -34,10 +34,6 @@ public class StatsCommand extends Command {
 		return NAME;
 	}
 
-	public boolean isDevOnly() {
-		return true;
-	}
-
 	public ApplicationCommandRequest getACR() {
 		return null;
 	}

@@ -1,33 +1,54 @@
 package com.hazeluff.nhl.event;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import com.hazeluff.nhl.Player;
-import com.hazeluff.nhl.game.EventStrength;
-import com.hazeluff.nhl.game.Period;
+import org.bson.BsonDocument;
+
+import com.hazeluff.nhl.Team;
 
 public class GoalEvent extends GameEvent {
 	protected GoalEvent(GameEvent gameEvent) {
 		super(gameEvent);
 	}
 
-	@Override
-	public List<Player> getPlayers() {
-		List<Player> players = super.getPlayers();
-		return getPeriod().getType() == Period.Type.SHOOTOUT ? players.subList(0, 1) : players;
+	public BsonDocument getDetails() {
+		return getJson().getDocument("details");
 	}
 
-	public EventStrength getStrength() {
-		return EventStrength.parse(getResultJson().getDocument("strength").getString("code").getValue());
+	public List<Integer> getPlayerIds() {
+		List<Integer> playerIds = new ArrayList<>(getScorerId());
+		playerIds.addAll(getAssistIds());
+		return playerIds;
 	}
 
-	@Override
-	public String toString() {
-		return "GoalEvent [getStrength()=" + getStrength() + ", getResultJson()=" + getResultJson() + ", getType()="
-				+ getType() + ", getAboutJson()=" + getAboutJson() + ", getId()=" + getId() + ", getIdx()=" + getIdx()
-				+ ", getDate()=" + getDate() + ", getPeriod()=" + getPeriod() + ", getPeriodTime()=" + getPeriodTime()
-				+ ", getTeam()=" + getTeam() + ", getPlayers()=" + getPlayers()
-				+ "]";
+	public int getScorerId() {
+		return getDetails().getInt32("scoringPlayerId").getValue();
+	}
+
+	public List<Integer> getAssistIds() {
+		List<Integer> players = new ArrayList<>();
+		if (getDetails().containsKey("assist1PlayerId")) {
+			players.add(getDetails().getInt32("assist1PlayerId").getValue());
+		}
+		if (getDetails().containsKey("assist2PlayerId")) {
+			players.add(getDetails().getInt32("assist2PlayerId").getValue());
+		}
+		return players;
+	}
+
+	public int getGoalieId() {
+		return getDetails().getInt32("goalieInNetId").getValue();
+	}
+
+	public Team getTeam() {
+		return Team.parse(getDetails().getInt32("eventOwnerTeamId").getValue());
+	}
+
+	public boolean isUpdated(GoalEvent event) {
+		return !getSituationCode().equals(event.getSituationCode())
+				|| getScorerId() != event.getScorerId()
+				|| !getAssistIds().equals(event.getAssistIds());
 	}
 
 }

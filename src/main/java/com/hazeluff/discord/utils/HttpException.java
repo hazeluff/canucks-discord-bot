@@ -10,4 +10,8 @@ public class HttpException extends Exception {
 	public HttpException(Throwable t) {
 		super(t);
 	}
+
+	public HttpException(String message, Throwable t) {
+		super(message, t);
+	}
 }

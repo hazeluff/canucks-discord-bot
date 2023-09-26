@@ -935,15 +935,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private String getHelpMessageText() {
-		return String.format(
-				"**This game/channel is interactable with Slash Commands!**"
-				+ "\nUse `/gdc subcommand:help` to bring up a list of commands."
-				+ "\n"
-				+ "\n**Predict the outcome of this game!**"
-				+ "\n%s: `/gdc subcommand:votehome`"
-				+ "\n%s: `/gdc subcommand:voteaway`",
-				game.getHomeTeam().getName(), 
-				game.getAwayTeam().getName());
+		return "**This game/channel is interactable with Slash Commands!**"
+				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
 	}
 
 	private EmbedCreateSpec getVotingEmbedSpec() {

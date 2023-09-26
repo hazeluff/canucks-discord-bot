@@ -788,13 +788,13 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private Message sendGDCHelpMessage(TextChannel channel) {
-		String.join("\n", 
+		String strMessage = String.join("\n", 
 				buildDetailsMessage(),
 				getHelpMessageText()
 		);
 		Message message = DiscordManager.sendAndGetMessage(channel,
 				MessageCreateSpec.builder()
-					.content(getHelpMessageText())
+					.content(strMessage)
 					.build());
 		DiscordManager.pinMessage(message);
 

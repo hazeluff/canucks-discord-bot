@@ -5,9 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.AboutCommand;
-import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
@@ -74,7 +72,7 @@ public class Config {
 	/*
 	 *  About
 	 */
-	public static final String APPLICATION_NAME = "${project.name}";
+	public static final String APPLICATION_NAME = ProjectInfo.APPLICATION_NAME;
 	public static final String GIT_URL = "http://canucks-discord.hazeluff.com/";
 	
 	public static final String DONATION_URL = "https://paypal.me/hazeluff";
@@ -86,7 +84,7 @@ public class Config {
 	public static final String HAZELUFF_EMAIL = "me@hazeluff.com";
 	public static final String HAZELUFF_TWITTER = "@Hazeluff";
 	
-	public static final String VERSION = "${project.version}";
+	public static final String VERSION = ProjectInfo.VERSION;
 
 	
 	private static final String MONGO_HOST_KEY = "mongo.host";

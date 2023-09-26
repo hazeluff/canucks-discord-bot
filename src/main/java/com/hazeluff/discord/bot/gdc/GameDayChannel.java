@@ -780,10 +780,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private Message sendGDCHelpMessage(TextChannel channel) {
-		String strMessage = String.join("\n", 
-				buildDetailsMessage(),
-				getHelpMessageText()
-		);
+		String strMessage = buildDetailsMessage() 
+				+ "\n\n" 
+				+  getHelpMessageText();
 		Message message = DiscordManager.sendAndGetMessage(channel,
 				MessageCreateSpec.builder()
 					.content(strMessage)
@@ -794,7 +793,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private String getHelpMessageText() {
-		return "**This game/channel is interactable with Slash Commands!**"
+		return "This game/channel is interactable with Slash Commands!"
 				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
 	}
 

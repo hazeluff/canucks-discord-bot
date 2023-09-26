@@ -106,7 +106,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final Map<Integer, Message> penaltyEventMessages = new HashMap<>();
 
 	private Message summaryMessage;
-	private Message votingMessage;
 	private EmbedCreateSpec summaryMessageEmbed; // Used to determine if message needs updating.
 	private Message endOfGameMessage;
 
@@ -263,7 +262,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Post Predictions poll
 		summaryMessage = getSummaryMessage();
-		votingMessage = getVotingMessage();
+		sendHelpMessage();
 
 		if (!game.getGameState().isFinal()) {
 			// Wait until close to start of game
@@ -700,9 +699,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/*
-	 * Voting Message
+	 * Help Message
 	 */
-	private Message getVotingMessage() {
+	private Message sendHelpMessage() {
 		Message message = null;
 		if (meta != null) {
 			Long messageId = meta.getVoteMessageId();
@@ -924,14 +923,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		DiscordManager.pinMessage(message);
 
 		return message;
-	}
-
-	public void updateVotingMessage() {
-		DiscordManager.updateMessage(votingMessage, 
-				MessageEditSpec.builder()
-					.contentOrNull(getHelpMessageText())
-					.addEmbed(getVotingEmbedSpec())
-					.build());
 	}
 
 	private String getHelpMessageText() {

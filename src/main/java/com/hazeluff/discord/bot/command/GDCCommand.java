@@ -13,8 +13,6 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
-import com.hazeluff.discord.bot.command.gdc.GDCVoteAwayCommand;
-import com.hazeluff.discord.bot.command.gdc.GDCVoteHomeCommand;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.game.Game;
 
@@ -37,8 +35,6 @@ public class GDCCommand extends Command {
 			Arrays.asList(
 				new GDCScoreCommand(),
 				new GDCGoalsCommand(),
-				new GDCVoteHomeCommand(),
-				new GDCVoteAwayCommand(),
 				new GDCStatusCommand()
 			)
 			.stream()

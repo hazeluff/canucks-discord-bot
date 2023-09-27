@@ -437,13 +437,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Remove Messages that do not have a corresponding event in the game's data.
 		goalEventMessages.entrySet().removeIf(entry -> {
-			int eventId = entry.getKey().intValue();
-			if (goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-				GoalEvent cachedEvent = getCachedGoalEvent(eventId);
-				sendRescindedGoalMessage(cachedEvent);
-				return true;
-			}
-			return false;
+			return goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue());
 		});
 	}
 	
@@ -474,14 +468,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					.addEmbed(buildGoalMessageEmbed(this.game, event))
 					.build();
 			DiscordManager.updateMessage(message, messageSpec);
-		}
-	}
-
-	void sendRescindedGoalMessage(GoalEvent event) {
-		LOGGER.debug("Sending rescinded message for goal event [" + event + "].");
-		if (event != null) {
-			String player = game.getPlayer(event.getScorerId()).getFullName();
-			sendMessage(String.format("Goal by %s has been rescinded.", player));
 		}
 	}
 
@@ -576,13 +562,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Remove Messages that do not have a corresponding event in the game's data.
 		penaltyEventMessages.entrySet().removeIf(entry -> {
-			int eventId = entry.getKey().intValue();
-			if (penalties.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-				PenaltyEvent cachedEvent = getCachedPenaltyEvent(eventId);
-				sendRescindedPenaltyMessage(cachedEvent);
-				return true;
-			}
-			return false;
+			return penalties.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue());
 		});
 	}
 	
@@ -611,11 +591,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					.build();
 			DiscordManager.updateMessage(message, messageSpec);
 		}
-	}
-
-	private void sendRescindedPenaltyMessage(PenaltyEvent event) {
-		LOGGER.debug("Sending rescinded message for penalty event [" + event + "].");
-		sendMessage(String.format("Penalty has been rescinded. event=", event.toString()));
 	}
 
 	private boolean isPenaltyEventUpdated(PenaltyEvent event) {

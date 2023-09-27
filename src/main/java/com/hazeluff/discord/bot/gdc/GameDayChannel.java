@@ -433,15 +433,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		});
 
 		// Remove Messages that do not have a corresponding event in the game's data.
-		goalEventMessages.entrySet().removeIf(entry -> {
-			int eventId = entry.getKey().intValue();
-			if (goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-				GoalEvent cachedEvent = getCachedGoalEvent(eventId);
-				sendRescindedGoalMessage(cachedEvent);
-				return true;
-			}
-			return false;
-		});
+		goalEventMessages.entrySet().removeIf(
+				entry -> goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue()));
 	}
 	
 	void sendGoalMessage(GoalEvent event) {
@@ -569,15 +562,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		});
 
 		// Remove Messages that do not have a corresponding event in the game's data.
-		penaltyEventMessages.entrySet().removeIf(entry -> {
-			int eventId = entry.getKey().intValue();
-			if (penalties.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())) {
-				PenaltyEvent cachedEvent = getCachedPenaltyEvent(eventId);
-				sendRescindedPenaltyMessage(cachedEvent);
-				return true;
-			}
-			return false;
-		});
+		penaltyEventMessages.entrySet().removeIf(entry -> penalties.stream()
+				.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue()));
 	}
 	
 	private void sendPenaltyMessage(PenaltyEvent event) {
@@ -605,11 +591,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					.build();
 			DiscordManager.updateMessage(message, messageSpec);
 		}
-	}
-
-	private void sendRescindedPenaltyMessage(PenaltyEvent event) {
-		LOGGER.debug("Sending rescinded message for penalty event [" + event + "].");
-		sendMessage(String.format("Penalty has been rescinded. event=", event.toString()));
 	}
 
 	private boolean isPenaltyEventUpdated(PenaltyEvent event) {

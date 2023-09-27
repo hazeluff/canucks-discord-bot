@@ -197,7 +197,7 @@ public class GameDayChannelsManager extends Thread {
 				.collect(Collectors.toList());
 
 		devGuilds.stream().forEach(devGuild -> {
-			LOGGER.info("Updating channels dev guilds: " + devGuild.getId().asLong());
+			LOGGER.info("Updating channels of dev guilds: " + devGuild.getId().asLong());
 			updateChannels(devGuild);
 		});
 
@@ -207,7 +207,7 @@ public class GameDayChannelsManager extends Thread {
 				.collect(Collectors.toList());
 
 		otherGuilds.stream().forEach(guild -> {
-			LOGGER.info("Updating channels other guilds: " + guild.getId().asLong());
+			LOGGER.info("Updating channels of other guilds: " + guild.getId().asLong());
 			updateChannels(guild);
 			Utils.sleep(1000);
 		});

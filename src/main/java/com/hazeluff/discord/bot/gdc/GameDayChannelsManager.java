@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
@@ -181,9 +182,34 @@ public class GameDayChannelsManager extends Thread {
 	 */
 	void updateChannels() {
 		LOGGER.info("Updating channels for all guilds.");
-		for (Guild guild : nhlBot.getDiscordManager().getGuilds()) {
+		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds().stream()
+				.filter(guild -> !nhlBot.getPersistentData().getPreferencesData()
+						.getGuildPreferences(guild.getId().asLong())
+						.getTeams()
+						.isEmpty()
+				)
+				.collect(Collectors.toList());
+
+		// Update Dev Guilds
+		List<Guild> devGuilds = guilds.stream()
+				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+				.collect(Collectors.toList());
+
+		devGuilds.stream().forEach(devGuild -> {
+			LOGGER.info("Updating channels dev guilds: " + devGuild.getId().asLong());
+			updateChannels(devGuild);
+		});
+
+		// Update Other Guilds
+		List<Guild> otherGuilds = guilds.stream()
+				.filter(guild -> !Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+				.collect(Collectors.toList());
+
+		otherGuilds.stream().forEach(guild -> {
+			LOGGER.info("Updating channels other guilds: " + guild.getId().asLong());
 			updateChannels(guild);
-		}
+			Utils.sleep(1000);
+		});
 	}
 
 	/**
@@ -199,27 +225,32 @@ public class GameDayChannelsManager extends Thread {
 	 * @param guild
 	 */
 	public void updateChannels(Guild guild) {
-		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
-		List<Team> teams = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong())
-				.getTeams();
+		try {
+			GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
+					.getGuildPreferences(guild.getId().asLong());
+			List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
+					.getGuildPreferences(guild.getId().asLong())
+					.getTeams();
 
-		LOGGER.info("Updating Channels for [{}]: activeGames={}", 
-				guild.getName(),
-				nhlBot.getGameScheduler().getActiveGames(teams).stream()
-						.map(GameDayChannel::getChannelName)
-						.collect(Collectors.toList()));
+			LOGGER.info("Updating Channels for [{}]: activeGames={}", 
+					guild.getId().asLong(),
+					nhlBot.getGameScheduler().getActiveGames(teams).stream()
+							.map(GameDayChannel::getChannelName)
+							.collect(Collectors.toList()));
 
-		// Remove channels of outdated/unsubscribed games
-		for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
-			if (isRemoveChannel(channel, preferences)) {
-				deleteChannel(channel, preferences);
+			// Remove channels of outdated/unsubscribed games
+			for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
+				if (isRemoveChannel(channel, preferences)) {
+					deleteChannel(channel, preferences);
+				}
 			}
-		}
 
-		// Create game channels of latest game for current subscribed team
-		for (Game game : nhlBot.getGameScheduler().getActiveGames(teams)) {
-			createChannel(game, guild);
+			// Create game channels of latest game for current subscribed team
+			for (Game game : nhlBot.getGameScheduler().getActiveGames(teams)) {
+				createChannel(game, guild);
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Issue updating guild: " + guild.getId().asLong());
 		}
 	}
 

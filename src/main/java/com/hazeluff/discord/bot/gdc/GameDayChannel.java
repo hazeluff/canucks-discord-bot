@@ -277,18 +277,23 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 
 			while (!gameTracker.isFinished()) {
-				updateMessages();
+				try {
+					updateMessages();
 
-				EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
-				boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
-				if (summaryMessage != null && updatedSummary) {
-					updateSummaryMessage(newSummaryMessageEmbed);
-				}
+					EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
+					boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
+					if (summaryMessage != null && updatedSummary) {
+						updateSummaryMessage(newSummaryMessageEmbed);
+					}
 
-				if (game.getGameState().isFinal()) {
-					updateEndOfGameMessage();
+					if (game.getGameState().isFinal()) {
+						updateEndOfGameMessage();
+					}
+				} catch (Exception e) {
+					LOGGER.error("Exception occured while running.", e);
+				} finally {
+					Utils.sleep(ACTIVE_POLL_RATE_MS);
 				}
-				Utils.sleep(ACTIVE_POLL_RATE_MS);
 			}
 		} else {
 			LOGGER.info("Game is already finished");
@@ -301,18 +306,26 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @throws LiveDataException
 	 */
 	public void refresh() {
-		gameTracker.updateGame();
-		updateMessages();
-		updateSummaryMessage(getSummaryEmbedSpec());
+		try {
+			gameTracker.updateGame();
+			updateMessages();
+			updateSummaryMessage(getSummaryEmbedSpec());
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while refreshing.", e);
+		}
 	}
 
 	private void updateMessages() {
-		List<GoalEvent> goalEvents = game.getScoringEvents();
-		List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
-		updateGoalMessages(goalEvents);
-		updatePenaltyMessages(penaltyEvents);
-		this.cachedGoalEvents = goalEvents;
-		this.cachedPenaltyEvents = penaltyEvents;
+		try {
+			List<GoalEvent> goalEvents = game.getScoringEvents();
+			List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
+			updateGoalMessages(goalEvents);
+			updatePenaltyMessages(penaltyEvents);
+			this.cachedGoalEvents = goalEvents;
+			this.cachedPenaltyEvents = penaltyEvents;
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while updating messages.", e);
+		}
 	}
 
 	/**
@@ -433,8 +446,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		});
 
 		// Remove Messages that do not have a corresponding event in the game's data.
-		goalEventMessages.entrySet().removeIf(
-				entry -> goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue()));
+		goalEventMessages.entrySet().removeIf(entry -> goals.stream()
+				.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())
+		);
 	}
 	
 	void sendGoalMessage(GoalEvent event) {
@@ -469,14 +483,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		}
 	}
 
-	void sendRescindedGoalMessage(GoalEvent event) {
-		LOGGER.debug("Sending rescinded message for goal event [" + event + "].");
-		if (event != null) {
-			String player = game.getPlayer(event.getScorerId()).getFullName();
-			sendMessage(String.format("Goal by %s has been rescinded.", player));
-		}
-	}
-
 	private boolean isGoalEventUpdated(GoalEvent event) {
 		GoalEvent cachedEvent = getCachedGoalEvent(event.getId());
 		
@@ -497,10 +503,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					.footer("Shootout", null).build();
 		} else {
 			String description = event.getTeam().getFullName() + " goal!";
-			List<RosterPlayer> assistPlayers = event.getAssistIds().stream().map(game::getPlayer)
+			List<RosterPlayer> assistPlayers = event.getAssistIds().stream().map(
+					game::getPlayer)
 					.collect(Collectors.toList());
 
-			String assists = assistPlayers.size() > 0 ? " Assists: " + assistPlayers.get(0).getFullName()
+			String assists = assistPlayers.size() > 0
+					? " Assists: " + assistPlayers.get(0).getFullName()
 					: "(Unassisted)";
 
 			if (assistPlayers.size() > 1) {
@@ -510,8 +518,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
 			return builder
 					.description(description)
-					.color(scorer.getTeam().getColor()).addField(scorer.getFullName(), fAssists,
-							false)
+					.color(scorer.getTeam().getColor()).addField(scorer.getFullName(), fAssists, false)
 					.footer(time, null)
 					.build();
 		}
@@ -563,7 +570,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Remove Messages that do not have a corresponding event in the game's data.
 		penaltyEventMessages.entrySet().removeIf(entry -> penalties.stream()
-				.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue()));
+				.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())
+		);
 	}
 	
 	private void sendPenaltyMessage(PenaltyEvent event) {
@@ -587,7 +595,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		} else {
 			Message message = penaltyEventMessages.get(event.getId());
 
-			MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(buildPenaltyMessageEmbed(this.game, event))
+			MessageEditSpec messageSpec = MessageEditSpec.builder()
+					.addEmbed(buildPenaltyMessageEmbed(this.game, event))
 					.build();
 			DiscordManager.updateMessage(message, messageSpec);
 		}
@@ -721,6 +730,19 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		return message;
 	}
 
+	/**
+	 * Gets the message that NHLBot will respond with when queried about this game
+	 * 
+	 * @param timeZone
+	 *            the time zone to localize to
+	 * 
+	 * @return message in the format: "The next game is:\n<br>
+	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
+	 */
+	public String buildDetailsMessage() {
+		return getDetailsMessage(game);
+	}
+
 	private static String buildGameScore(Game game) {
 		return String.format("%s **%s** - **%s** %s", 
 				game.getHomeTeam().getName(), game.getHomeScore(),
@@ -747,23 +769,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Do Nothing
 	}
 
-	/**
-	 * Gets the message that NHLBot will respond with when queried about this game
-	 * 
-	 * @param timeZone
-	 *            the time zone to localize to
-	 * 
-	 * @return message in the format: "The next game is:\n<br>
-	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
-	 */
-	public String buildDetailsMessage() {
-		return getDetailsMessage(game);
-	}
-
 	private Message sendStaticMessage(TextChannel channel) {
-		String strMessage = buildDetailsMessage() 
-				+ "\n\n" 
-				+  getHelpMessageText();
+		String strMessage = buildDetailsMessage()
+				+ "\n\n"
+				+ getHelpMessageText();
 		Message message = DiscordManager.sendAndGetMessage(channel,
 				MessageCreateSpec.builder()
 					.content(strMessage)

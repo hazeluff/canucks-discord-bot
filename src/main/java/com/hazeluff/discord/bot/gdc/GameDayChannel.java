@@ -278,18 +278,23 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 
 			while (!gameTracker.isFinished()) {
-				updateMessages();
-
-				EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
-				boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
-				if (summaryMessage != null && updatedSummary) {
-					updateSummaryMessage(newSummaryMessageEmbed);
+				try {
+					updateMessages();
+	
+					EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
+					boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
+					if (summaryMessage != null && updatedSummary) {
+						updateSummaryMessage(newSummaryMessageEmbed);
+					}
+	
+					if (game.getGameState().isFinal()) {
+						updateEndOfGameMessage();
+					}
+				} catch (Exception e) {
+					LOGGER.error("Exception occured while running.", e);
+				} finally {
+					Utils.sleep(ACTIVE_POLL_RATE_MS);
 				}
-
-				if (game.getGameState().isFinal()) {
-					updateEndOfGameMessage();
-				}
-				Utils.sleep(ACTIVE_POLL_RATE_MS);
 			}
 
 			sendWordcloud();
@@ -304,18 +309,26 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @throws LiveDataException
 	 */
 	public void refresh() {
-		gameTracker.updateGame();
-		updateMessages();
-		updateSummaryMessage(getSummaryEmbedSpec());
+		try {
+			gameTracker.updateGame();
+			updateMessages();
+			updateSummaryMessage(getSummaryEmbedSpec());
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while refreshing.", e);
+		}
 	}
 
 	private void updateMessages() {
-		List<GoalEvent> goalEvents = game.getScoringEvents();
-		List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
-		updateGoalMessages(goalEvents);
-		updatePenaltyMessages(penaltyEvents);
-		this.cachedGoalEvents = goalEvents;
-		this.cachedPenaltyEvents = penaltyEvents;
+		try {
+			List<GoalEvent> goalEvents = game.getScoringEvents();
+			List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
+			updateGoalMessages(goalEvents);
+			updatePenaltyMessages(penaltyEvents);
+			this.cachedGoalEvents = goalEvents;
+			this.cachedPenaltyEvents = penaltyEvents;
+		} catch (Exception e) {
+			LOGGER.error("Exception occured while updating messages.", e);
+		}
 	}
 
 	/**

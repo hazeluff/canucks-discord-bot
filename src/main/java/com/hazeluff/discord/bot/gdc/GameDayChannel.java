@@ -280,13 +280,13 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			while (!gameTracker.isFinished()) {
 				try {
 					updateMessages();
-	
+
 					EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
 					boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
 					if (summaryMessage != null && updatedSummary) {
 						updateSummaryMessage(newSummaryMessageEmbed);
 					}
-	
+
 					if (game.getGameState().isFinal()) {
 						updateEndOfGameMessage();
 					}
@@ -449,9 +449,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		});
 
 		// Remove Messages that do not have a corresponding event in the game's data.
-		goalEventMessages.entrySet().removeIf(entry -> {
-			return goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue());
-		});
+		goalEventMessages.entrySet().removeIf(entry -> goals.stream()
+				.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())
+		);
 	}
 	
 	void sendGoalMessage(GoalEvent event) {
@@ -501,20 +501,20 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		if (game.getGameType().isShootout(event.getPeriod())) {
 			return builder
-			.color(scorer.getTeam().getColor())
-			.addField(scorer.getFullName(), "Shootout goal", false)
-			.footer("Shootout", null)
-			.build();
+					.color(scorer.getTeam().getColor())
+					.addField(scorer.getFullName(), "Shootout goal", false)
+					.footer("Shootout", null)
+					.build();
 		} else {
 			String description = event.getTeam().getFullName() + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()
 					.map(game::getPlayer)
 					.collect(Collectors.toList());
 
-			String assists = assistPlayers.size() > 0 
+			String assists = assistPlayers.size() > 0
 					? " Assists: " + assistPlayers.get(0).getFullName()
 					: "(Unassisted)";
-					
+
 			if (assistPlayers.size() > 1) {
 				assists += ", " + assistPlayers.get(1).getFullName();
 			}
@@ -574,9 +574,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		});
 
 		// Remove Messages that do not have a corresponding event in the game's data.
-		penaltyEventMessages.entrySet().removeIf(entry -> {
-			return penalties.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue());
-		});
+		penaltyEventMessages.entrySet().removeIf(entry -> penalties.stream()
+				.noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue())
+		);
 	}
 	
 	private void sendPenaltyMessage(PenaltyEvent event) {
@@ -621,12 +621,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				event.getTeam().getLocation(), 
 				event.getSeverity());
 		StringBuilder description = new StringBuilder();
-		
+
 		RosterPlayer committedByPlayer = game.getPlayer(event.getCommittedByPlayerId());
 		if (committedByPlayer != null) {
 			description.append(committedByPlayer.getFullName());
 		}
-		
+
 		description.append(String.format("\n**%s** - **%s** minutes",
 				StringUtils.capitalize(event.getDescription()), event.getDuration()));
 		
@@ -796,6 +796,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private void sendWordcloud() {
 		new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
 	}
+
 
 	boolean isBotSelf(User user) {
 		return user.getId().equals(nhlBot.getDiscordManager().getId());

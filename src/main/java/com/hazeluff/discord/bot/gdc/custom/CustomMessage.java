@@ -68,16 +68,14 @@ public class CustomMessage {
 	public static CustomMessage involved(String message, int involvedPlayerId) {
 		return new CustomMessage(
 				message, 
-				goalEvent -> goalEvent.getPlayerIds().stream().anyMatch(
-						playerId -> playerId == involvedPlayerId),
+				goalEvent -> goalEvent.getPlayerIds().contains(involvedPlayerId),
 				2);
 	}
 
 	public static CustomMessage involved(String message, Integer... playerIds) {
 		List<Integer> involvedPlayerIdList = Arrays.asList(playerIds);
 		return new CustomMessage(message,
-				goalEvent -> goalEvent.getPlayerIds().stream()
-						.allMatch(playerId -> involvedPlayerIdList.contains(playerId)),
+				goalEvent -> goalEvent.getPlayerIds().containsAll(involvedPlayerIdList),
 				2);
 	}
 

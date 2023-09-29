@@ -36,15 +36,6 @@ public class Game {
 		}
 	}
 
-	public void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
-		PlayByPlayData newPbpInfo = PlayByPlayData.parse(jsonPlayByPlay);
-		if (newPbpInfo != null) {
-			this.pbpData = newPbpInfo;
-		} else {
-			throw new RuntimeException("Could not initialize play by play data. jsonPlayByPlay=" + jsonPlayByPlay);
-		}
-	}
-
 	// Schedule
 	public GameType getGameType() {
 		return scheduleData.getGameType();
@@ -91,13 +82,26 @@ public class Game {
 	}
 
 	// PlayByPlay (Status)
-	public void updatePlayByPlay(BsonDocument playByPlayJson) {
+	public void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
+		PlayByPlayData newPbpInfo = PlayByPlayData.parse(jsonPlayByPlay);
+		if (newPbpInfo != null) {
+			this.pbpData = newPbpInfo;
+		} else {
+			LOGGER.error("Could not parse json: jsonPlayByPlay=" + jsonPlayByPlay);
+		}
+	}
+
+	public void updatePlayByPlay(BsonDocument jsonPlayByPlay) {
 		LOGGER.debug("Updating Game Boxscore Data. [" + getGameId() + "]");
-		this.pbpData.update(playByPlayJson);
+		if (this.pbpData != null) {
+			this.pbpData.update(jsonPlayByPlay);
+		} else {
+			initPlayByPlayInfo(jsonPlayByPlay);
+		}
 	}
 
 	public GameState getGameState() {
-		if(pbpData != null) {
+		if (pbpData != null) {
 			return this.pbpData.getGameState();
 		}
 		return this.scheduleData.getGameState();

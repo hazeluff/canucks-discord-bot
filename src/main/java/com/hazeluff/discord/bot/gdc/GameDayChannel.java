@@ -160,6 +160,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					DiscordManager.moveChannel(category, channel);
 				}
 			}
+			
+			
 		} catch (Exception e) {
 			LOGGER.error("Failed to create channel.", e);
 		}

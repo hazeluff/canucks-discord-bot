@@ -51,4 +51,11 @@ public class GoalEvent extends GameEvent {
 				|| !getAssistIds().equals(event.getAssistIds());
 	}
 
+	@Override
+	public String toString() {
+		return "GoalEvent [jsonEvent=" + jsonEvent + ", getDetails()=" + getDetails() + ", getPlayerIds()="
+				+ getPlayerIds() + ", getScorerId()=" + getScorerId() + ", getAssistIds()=" + getAssistIds()
+				+ ", getGoalieId()=" + getGoalieId() + ", getTeam()=" + getTeam() + "]";
+	}
+
 }

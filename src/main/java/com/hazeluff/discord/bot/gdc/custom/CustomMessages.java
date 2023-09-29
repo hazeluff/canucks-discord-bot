@@ -28,7 +28,6 @@ public class CustomMessages {
 		List<CustomMessage> applicableMessages = customMessages.stream()
 				.filter(customMsg -> customMsg.isApplicable(previousEvents, currentEvent))
 				.collect(Collectors.toList());
-
 		if (applicableMessages.isEmpty()) {
 			return null;
 		}

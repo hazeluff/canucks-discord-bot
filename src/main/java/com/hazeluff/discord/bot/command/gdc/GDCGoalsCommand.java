@@ -106,24 +106,30 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 	private static String buildGoalLine(Game game, GoalEvent goalEvent) {
 		StringBuilder details = new StringBuilder();
 		RosterPlayer scorer = game.getPlayer(goalEvent.getScorerId());
-		if (!game.getGameType().isShootout(goalEvent.getPeriod())) {
-			List<RosterPlayer> assists = goalEvent.getAssistIds().stream()
-					.map(game::getPlayer)
-					.collect(Collectors.toList());
-			details.append(String.format("**%s** @ %s - **%-18s**", 
-					scorer.getTeam().getCode(), goalEvent.getPeriodTime(), scorer.getFullName()));
-			if (assists.size() > 0) {
-				details.append("  Assists: ");
-				details.append(assists.get(0).getFullName());
-			}
-			if (assists.size() > 1) {
-				details.append(", ");
-				details.append(assists.get(1).getFullName());
+		if(scorer != null) {
+			if (!game.getGameType().isShootout(goalEvent.getPeriod())) {
+				List<RosterPlayer> assists = goalEvent.getAssistIds().stream()
+						.map(game::getPlayer)
+						.collect(Collectors.toList());
+				details.append(String.format("**%s** @ %s - **%-18s**", 
+						scorer.getTeam().getCode(), goalEvent.getPeriodTime(), scorer.getFullName()));
+				if (assists.size() > 0) {
+					details.append("  Assists: ");
+					details.append(assists.get(0).getFullName());
+				}
+				if (assists.size() > 1) {
+					details.append(", ");
+					details.append(assists.get(1).getFullName());
+				}
+			} else {
+				details.append(String.format("**%s** - **%-18s**", 
+						scorer.getTeam().getCode(), scorer.getFullName()));
 			}
 		} else {
-			details.append(String.format("**%s** - **%-18s**", 
-					scorer.getTeam().getCode(), scorer.getFullName()));
+			details.append(String.format("**%s** - (%-18s)", 
+					goalEvent.getTeam().getCode(), goalEvent.getScorerId()));
 		}
+		
 		return details.toString();
 	}
 }

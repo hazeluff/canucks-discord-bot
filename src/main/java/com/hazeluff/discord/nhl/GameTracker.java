@@ -64,13 +64,6 @@ public class GameTracker extends Thread {
 		return gameTracker;
 	}
 
-	public void initGamePlayByPlay() {
-		BsonDocument playByPlayJson = NHLGateway.getPlayByPlay(this.game.getGameId());
-		if (playByPlayJson != null) {
-			this.game.initPlayByPlayInfo(playByPlayJson);
-		}
-	}
-
 	public void updateGame() {
 		BsonDocument playByPlayJson = NHLGateway.getPlayByPlay(this.game.getGameId());
 		if (playByPlayJson != null) {
@@ -96,7 +89,7 @@ public class GameTracker extends Thread {
 	public void run() {
 		try {
 			setName(GameDayChannel.getChannelName(game));
-			initGamePlayByPlay();
+			updateGame();
 
 			if (!game.getGameState().isFinal()) {
 				// Wait until close to start of game

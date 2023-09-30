@@ -23,26 +23,17 @@ public class PlayByPlayData {
 	private final TeamStats homeStats;
 	private final TeamStats awayStats;
 
-	private final Map<Integer, RosterPlayer> players;
-
-	PlayByPlayData(BsonDocument pbpJson,
-			TeamStats homeStats, TeamStats awayStats,
-			Map<Integer, RosterPlayer> players) {
+	PlayByPlayData(BsonDocument pbpJson, TeamStats homeStats, TeamStats awayStats) {
 		this.jsonPbp = new AtomicReference<>(pbpJson);
 		this.homeStats = homeStats;
 		this.awayStats = awayStats;
-		this.players = players;
 	}
 
 	public static PlayByPlayData parse(BsonDocument jsonPbp) {
 		try {
 			TeamStats homeStats = TeamStats.parse(jsonPbp.getDocument("homeTeam"));
 			TeamStats awayStats = TeamStats.parse(jsonPbp.getDocument("awayTeam"));
-			Map<Integer, RosterPlayer> players = parseRosterSpots(jsonPbp.getArray("rosterSpots"));
-			return new PlayByPlayData(
-					jsonPbp,
-					homeStats, awayStats, 
-					players);
+			return new PlayByPlayData(jsonPbp, homeStats, awayStats);
 		} catch (Exception e) {
 			LOGGER.error("Could not parse json.", e);
 			return null;
@@ -173,7 +164,7 @@ public class PlayByPlayData {
 	}
 
 	public Map<Integer, RosterPlayer> getPlayers() {
-		return players;
+		return parseRosterSpots(this.jsonPbp.get().getArray("rosterSpots"));
 	}
 
 	@Override
@@ -183,7 +174,6 @@ public class PlayByPlayData {
 		result = prime * result + ((awayStats == null) ? 0 : awayStats.hashCode());
 		result = prime * result + ((homeStats == null) ? 0 : homeStats.hashCode());
 		result = prime * result + ((jsonPbp == null) ? 0 : jsonPbp.hashCode());
-		result = prime * result + ((players == null) ? 0 : players.hashCode());
 		return result;
 	}
 
@@ -210,11 +200,6 @@ public class PlayByPlayData {
 			if (other.jsonPbp != null)
 				return false;
 		} else if (!jsonPbp.equals(other.jsonPbp))
-			return false;
-		if (players == null) {
-			if (other.players != null)
-				return false;
-		} else if (!players.equals(other.players))
 			return false;
 		return true;
 	}

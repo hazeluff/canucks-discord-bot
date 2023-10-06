@@ -34,7 +34,7 @@ public class AboutCommand extends Command {
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		return deferReply(event, EMBED_SPEC);
+		return reply(event, EMBED_SPEC);
 	}
 
 	public static final EmbedCreateSpec EMBED_SPEC = EmbedCreateSpec.builder()

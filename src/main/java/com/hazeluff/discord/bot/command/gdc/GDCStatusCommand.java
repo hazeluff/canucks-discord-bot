@@ -27,7 +27,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 			return event.reply(GAME_NOT_STARTED_MESSAGE);
 		}
 
-		return Command.deferReply(event, buildEmbed(game));
+		return Command.reply(event, buildEmbed(game));
 	}
 
 	public static EmbedCreateSpec buildEmbed(Game game) {

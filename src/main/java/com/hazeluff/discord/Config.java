@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Properties;
 
 import com.hazeluff.discord.bot.command.AboutCommand;
-import com.hazeluff.discord.bot.command.StatsCommand;
+import com.hazeluff.discord.bot.command.NHLStatsCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
@@ -122,7 +122,7 @@ public class Config {
 	public static List<Class> getSlashCommands() {
 		return Arrays.asList(
 				AboutCommand.class,
-				StatsCommand.class,
+				NHLStatsCommand.class,
 				GDCCommand.class,
 				HelpCommand.class,
 				NextGameCommand.class,

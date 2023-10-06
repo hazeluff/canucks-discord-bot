@@ -44,6 +44,13 @@ public class Utils {
 		}
 		return s;
 	}
+	
+	public static <T> T getFromList(List<T> list, Predicate<T> test) {
+		return list.stream()
+		  .filter(test)
+		  .findAny()
+		  .orElse(null);
+	}
 
 	/**
 	 * Gets a random int value.

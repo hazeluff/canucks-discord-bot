@@ -10,11 +10,11 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.stats.NHLDefenderStatsCommand;
+import com.hazeluff.discord.bot.command.stats.NHLDivisionStatsCommand;
 import com.hazeluff.discord.bot.command.stats.NHLForwardStatsCommand;
 import com.hazeluff.discord.bot.command.stats.NHLGoalieStatsCommand;
 import com.hazeluff.discord.bot.command.stats.NHLStatsSubCommand;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.discord.bot.command.stats.NHLWildcardStatsCommand;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -27,19 +27,21 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
 /**
  * Displays the score of a game in a Game Day Channel.
  */
-public class StatsCommand extends Command {
+public class NHLStatsCommand extends Command {
 	static final String NAME = "stats";
 
 	private static Map<String, NHLStatsSubCommand> PUBLIC_COMMANDS = 
 			Arrays.asList(
 					new NHLForwardStatsCommand(),
 					new NHLDefenderStatsCommand(),
-					new NHLGoalieStatsCommand()
+					new NHLGoalieStatsCommand(),
+					new NHLDivisionStatsCommand(),
+					new NHLWildcardStatsCommand()
 			)
 			.stream()
 			.collect(Collectors.toMap(NHLStatsSubCommand::getName, UnaryOperator.identity()));
 
-	public StatsCommand(NHLBot nhlBot) {
+	public NHLStatsCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 
@@ -117,15 +119,11 @@ public class StatsCommand extends Command {
 		// List the subcommands
 		PUBLIC_COMMANDS.entrySet()
 				.forEach(subCmd -> builder.addField(
-					subCmd.getKey(), 
-					subCmd.getValue().getDescription(), 
-					false)
+						subCmd.getKey(), 
+						subCmd.getValue().getDescription(), 
+						false
+					)
 				);
 		return builder.build();
-	}
-
-	public static GameDayChannel getGameDayChannel(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
-		long guildId = event.getInteraction().getGuildId().get().asLong();
-		return nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGameId());
 	}
 }

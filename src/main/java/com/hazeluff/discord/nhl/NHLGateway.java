@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.bson.BsonArray;
@@ -20,6 +21,7 @@ import com.hazeluff.discord.nhl.Seasons.Season;
 import com.hazeluff.discord.nhl.stats.GoalieStats;
 import com.hazeluff.discord.nhl.stats.SkaterStats;
 import com.hazeluff.discord.nhl.stats.TeamPlayerStats;
+import com.hazeluff.discord.nhl.stats.TeamStandings;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.HttpUtils;
 import com.hazeluff.nhl.Team;
@@ -47,6 +49,14 @@ public class NHLGateway {
 		return Config.NHL_API_URL + "/club-stats/" + teamCode.toLowerCase() + "/" + season + "/2";
 	}
 
+	static String getStandingsSeasonsUrl() {
+		return Config.NHL_API_URL + "/standings-season/";
+	}
+
+	static String getStandingsUrl(String seasonEnd) {
+		return Config.NHL_API_URL + "/standings/" + seasonEnd;
+	}
+
 	// Fetchers
 	static String fetchRawGames(Team team, Season season) throws HttpException {
 		URI uri = HttpUtils.buildUri(getClubScheduleSeasonUrl(team.getCode(), season.getStartYear()));
@@ -60,6 +70,16 @@ public class NHLGateway {
 
 	static String fetchTeamPlayerStats(Team team, Season season) throws HttpException {
 		URI uri = HttpUtils.buildUri(getTeamPlayerStatsUrl(team.getCode(), season.getStartYear()));
+		return HttpUtils.get(uri);
+	}
+
+	static String fetchStandingsSeasons() throws HttpException {
+		URI uri = HttpUtils.buildUri(getStandingsSeasonsUrl());
+		return HttpUtils.get(uri);
+	}
+
+	static String fetchStandings(String seasonEnd) throws HttpException {
+		URI uri = HttpUtils.buildUri(getStandingsUrl(seasonEnd));
 		return HttpUtils.get(uri);
 	}
 
@@ -124,7 +144,44 @@ public class NHLGateway {
 		}
 	}
 
-	public static void main(String[] argv) throws HttpException {
-		System.out.println(getTeamPlayerStats(Team.VANCOUVER_CANUCKS, Seasons.S22_23));
+	public static Map<Integer, String> getStandingsSeasonsEnds() {
+		try {
+			String strJsonSeasons = fetchStandingsSeasons();
+			BsonArray jsonSeasons = BsonDocument.parse(strJsonSeasons).getArray("seasons");
+			return jsonSeasons.stream()
+					.map(BsonValue::asDocument)
+					.map(jsonSeason -> jsonSeason.getString("standingsEnd").getValue())
+					.collect(Collectors.toMap(
+							standingsEnd -> mapStandingsEndToStartYear(standingsEnd),
+							UnaryOperator.identity()));
+		} catch (HttpException e) {
+			LOGGER.error("Exception occured fetching game schedule.", e);
+			return null;
+		}
+	}
+
+	public static List<TeamStandings> getStandings(String endDate) {
+		try {
+			String strJsonStandings = fetchStandings(endDate);
+			BsonArray jsonStandings = BsonDocument.parse(strJsonStandings).getArray("standings");
+			return jsonStandings.stream()
+					.map(BsonValue::asDocument)
+					.map(TeamStandings::parse)
+					.collect(Collectors.toList());
+		} catch (HttpException e) {
+			LOGGER.error("Exception occured fetching game schedule.", e);
+			return null;
+		}
+	}
+
+	/**
+	 * Maps the standingsEnd date to the correct start year.
+	 * 
+	 * @param standingsStart
+	 * @return
+	 */
+	static int mapStandingsEndToStartYear(String standingsEnd) {
+		// Extrapolate from end date. Lockout and Covid seasons delayed the start.
+		return Integer.parseInt(standingsEnd.split("-")[0]) - 1;
 	}
 }

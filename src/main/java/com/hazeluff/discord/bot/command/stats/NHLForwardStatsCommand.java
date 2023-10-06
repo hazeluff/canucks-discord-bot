@@ -21,6 +21,10 @@ public class NHLForwardStatsCommand extends NHLSkaterStatsCommand {
 
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot) {
-		return reply(event, nhlBot, SkaterStats::isForward, "Forward");
+		return reply(event, nhlBot, 
+				"Forward",
+				SkaterStats::isForward,
+				(SkaterStats s1, SkaterStats s2) -> s1.getPoints() - s2.getPoints()
+		);
 	}
 }

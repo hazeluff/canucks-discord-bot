@@ -8,7 +8,6 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.nhl.NHLGateway;
-import com.hazeluff.discord.nhl.Seasons;
 import com.hazeluff.discord.nhl.Seasons.Season;
 import com.hazeluff.discord.nhl.stats.GoalieStats;
 import com.hazeluff.discord.nhl.stats.TeamPlayerStats;
@@ -39,14 +38,14 @@ public class NHLGoalieStatsCommand extends NHLStatsSubCommand {
 		Long startYear = DiscordUtils.getOptionAsLong(event, "season");
 		Season season = getSeason(startYear);
 		if (season.getStartYear() > Config.CURRENT_SEASON.getStartYear() || season.getStartYear() < 1917) {
-			return Command.deferReply(event, "Season is out of range.");
+			return Command.reply(event, "Season is out of range.");
 		}
 
 		TeamPlayerStats playerStats = NHLGateway.getTeamPlayerStats(team, season);
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("**Goalie Stats**\n");
 		stringBuilder.append(buildGoalieStatsTable(playerStats.getGoalies()));
-		return Command.deferReply(event, stringBuilder.toString());
+		return Command.reply(event, stringBuilder.toString());
 	}
 
 	private static final String GOALIE_TABLE_HEADERS = 
@@ -78,35 +77,5 @@ public class NHLGoalieStatsCommand extends NHLStatsSubCommand {
 		}
 		stringBuilder.append("\n```");
 		return stringBuilder.toString();
-	}
-
-	/**
-	 * Gets a season given a season code or value.
-	 * e.g.
-	 * 99 -> 1999,
-	 * 20 -> 2020
-	 * 
-	 * @param startYear
-	 * @return
-	 */
-	static Season getSeason(Long startYear) {
-		if (startYear != null) {
-			int year = startYear.intValue();
-			if (year >= 0 && year < (Config.CURRENT_SEASON.getStartYear() - 2000)) {
-				year = year + 2000;
-			} else if (year >= (Config.CURRENT_SEASON.getStartYear() - 2000) && year < 100) {
-				year = year + 1900;
-			}
-			return Season.mock(year);
-		}
-		return Config.CURRENT_SEASON;
-	}
-
-	public static void main(String[] argv) {
-		TeamPlayerStats playerStats = NHLGateway.getTeamPlayerStats(Team.VANCOUVER_CANUCKS, Seasons.S22_23);
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("**Goalie Stats**\n");
-		stringBuilder.append(buildGoalieStatsTable(playerStats.getGoalies()));
-		System.out.println(stringBuilder.toString().length());
 	}
 }

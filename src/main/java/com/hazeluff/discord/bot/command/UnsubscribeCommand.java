@@ -49,7 +49,7 @@ public class UnsubscribeCommand extends Command {
 		Guild guild = getGuild(event);
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!hasPrivilege(guild, user)) {
-			return deferReply(event, MUST_HAVE_PERMISSIONS_MESSAGE);
+			return reply(event, MUST_HAVE_PERMISSIONS_MESSAGE);
 		}
 
 		String strTeam = getOptionAsString(event, "team");
@@ -58,11 +58,11 @@ public class UnsubscribeCommand extends Command {
 			// Unsubscribe from all teams
 			nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), null);
 			nhlBot.getGameDayChannelsManager().updateChannels(guild);
-			return deferReply(event, UNSUBSCRIBED_FROM_ALL_MESSAGE);
+			return reply(event, UNSUBSCRIBED_FROM_ALL_MESSAGE);
 		}
 
 		if (!Team.isValid(strTeam)) {
-			return deferReply(event, getInvalidTeamCodeMessage(strTeam), true);
+			return reply(event, getInvalidTeamCodeMessage(strTeam), true);
 		}
 
 		Team team = Team.parse(strTeam);

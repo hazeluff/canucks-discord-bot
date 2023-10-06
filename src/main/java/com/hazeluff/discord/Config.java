@@ -6,11 +6,12 @@ import java.util.List;
 import java.util.Properties;
 
 import com.hazeluff.discord.bot.command.AboutCommand;
+import com.hazeluff.discord.bot.command.StatsCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
-import com.hazeluff.discord.bot.command.StatsCommand;
+import com.hazeluff.discord.bot.command.BotStatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
@@ -121,12 +122,13 @@ public class Config {
 	public static List<Class> getSlashCommands() {
 		return Arrays.asList(
 				AboutCommand.class,
+				StatsCommand.class,
 				GDCCommand.class,
 				HelpCommand.class,
 				NextGameCommand.class,
 				SubscribeCommand.class,
 				ScheduleCommand.class,
-				StatsCommand.class,
+				BotStatsCommand.class,
 				ThreadsCommand.class,
 				UnsubscribeCommand.class,
 				WordcloudCommand.class

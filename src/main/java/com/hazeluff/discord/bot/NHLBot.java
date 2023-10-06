@@ -199,10 +199,12 @@ public class NHLBot extends Thread {
 				.filter(not(Command::isDevOnly)).map(Command::getACR).collect(Collectors.toList());
 
 		// Dev Guilds
+		LOGGER.info("Writing Dev Application Commands");
 		for (Long guildId : Config.DEV_GUILD_LIST) {
 			DiscordManager.block(restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,
 					guildId, allCommands));
 		}
+
 		// Canucks Guild
 		for (Long guildId : Config.SERVICED_GUILD_LIST) {
 			DiscordManager.block(restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,

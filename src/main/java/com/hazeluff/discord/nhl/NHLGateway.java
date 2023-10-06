@@ -4,16 +4,22 @@ import static com.hazeluff.discord.Config.CURRENT_SEASON;
 
 import java.net.URI;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
+import org.bson.BsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.nhl.Seasons.Season;
+import com.hazeluff.discord.nhl.stats.GoalieStats;
+import com.hazeluff.discord.nhl.stats.SkaterStats;
+import com.hazeluff.discord.nhl.stats.TeamPlayerStats;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.HttpUtils;
 import com.hazeluff.nhl.Team;
@@ -25,24 +31,35 @@ public class NHLGateway {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGateway.class);
 
 	// Paths/URLs
-	static String getClubScheduleSeasonUrl(Team team, int startYear) {
+	static String getClubScheduleSeasonUrl(String teamCode, int startYear) {
 		int endYear = startYear + 1;
 		String season = startYear + "" + endYear;
-		return Config.NHL_API_URL + "/club-schedule-season/" + team.getCode().toLowerCase() + "/" + season;
+		return Config.NHL_API_URL + "/club-schedule-season/" + teamCode.toLowerCase() + "/" + season;
 	}
 
 	static String getPlayByPlayUrl(int gameId) {
 		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/play-by-play";
 	}
+	
+	static String getTeamPlayerStatsUrl(String teamCode, int startYear) {
+		int endYear = startYear + 1;
+		String season = startYear + "" + endYear;
+		return Config.NHL_API_URL + "/club-stats/" + teamCode.toLowerCase() + "/" + season + "/2";
+	}
 
 	// Fetchers
 	static String fetchRawGames(Team team, Season season) throws HttpException {
-		URI uri = HttpUtils.buildUri(getClubScheduleSeasonUrl(team, season.getStartYear()));
-		return HttpUtils.getAndRetry(uri, 3, 10000l, "Get Raw Games: team=" + team + ", season=" + season);
+		URI uri = HttpUtils.buildUri(getClubScheduleSeasonUrl(team.getCode(), season.getStartYear()));
+		return HttpUtils.getAndRetry(uri, 2, 10000l, "Get Raw Games: team=" + team + ", season=" + season);
 	}
 
 	static String fetchRawPlayByPlay(int gameId) throws HttpException {
 		URI uri = HttpUtils.buildUri(getPlayByPlayUrl(gameId));
+		return HttpUtils.get(uri);
+	}
+
+	static String fetchTeamPlayerStats(Team team, Season season) throws HttpException {
+		URI uri = HttpUtils.buildUri(getTeamPlayerStatsUrl(team.getCode(), season.getStartYear()));
 		return HttpUtils.get(uri);
 	}
 
@@ -88,7 +105,26 @@ public class NHLGateway {
 		}
 	}
 
+	public static TeamPlayerStats getTeamPlayerStats(Team team, Season season) {
+		try {
+			String strBoxscore = fetchTeamPlayerStats(team, season);
+			BsonDocument jsonPlayerStats = BsonDocument.parse(strBoxscore);
+			List<GoalieStats> goalies = jsonPlayerStats.getArray("goalies").stream()
+					.map(BsonValue::asDocument)
+					.map(GoalieStats::parse)
+					.collect(Collectors.toList());
+			List<SkaterStats> skaters = jsonPlayerStats.getArray("skaters").stream()
+					.map(BsonValue::asDocument)
+					.map(SkaterStats::parse)
+					.collect(Collectors.toList());
+			return new TeamPlayerStats(goalies, skaters);
+		} catch (HttpException e) {
+			LOGGER.error("Failed to get team stats: team=" + team + ", season=" + season);
+			return null;
+		}
+	}
+
 	public static void main(String[] argv) throws HttpException {
-		System.out.println(fetchRawPlayByPlay(2023010002));
+		System.out.println(getTeamPlayerStats(Team.VANCOUVER_CANUCKS, Seasons.S22_23));
 	}
 }

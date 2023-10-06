@@ -1,10 +1,12 @@
 package com.hazeluff.discord.bot.command;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
@@ -22,6 +24,7 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
@@ -63,10 +66,19 @@ public class GDCCommand extends Command {
                         .name("subcommand")
 						.description("Subcommand to execute. Help: `/gdc subcommand:help`")
 						.type(ApplicationCommandOption.Type.STRING.getValue())
+						.addAllChoices(CHOICES)
 						.required(false)
                         .build())
 				.build();
 	}
+	
+	public static List<ApplicationCommandOptionChoiceData> CHOICES = PUBLIC_COMMANDS.entrySet().stream()
+			.map(entry -> entry.getValue().getName())
+			.map(name -> ApplicationCommandOptionChoiceData.builder()
+					.name(StringUtils.capitalize(name))
+					.value(name)
+					.build())
+			.collect(Collectors.toList());
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {

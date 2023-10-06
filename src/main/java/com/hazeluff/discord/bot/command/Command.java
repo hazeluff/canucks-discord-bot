@@ -12,6 +12,7 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.utils.DiscordUtils;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
 
@@ -19,8 +20,6 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.event.ReactiveEventAdapter;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.command.ApplicationCommandInteractionOption;
-import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
@@ -29,6 +28,7 @@ import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
@@ -65,6 +65,13 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	public boolean isDevOnly() {
 		return false;
+	}
+
+	static ApplicationCommandOptionChoiceData buildChoice(String value) {
+		return ApplicationCommandOptionChoiceData.builder()
+			.name(StringUtils.capitalize(value))
+			.value(value)
+			.build();
 	}
 
 	public abstract Publisher<?> onChatCommandInput(ChatInputInteractionEvent event);
@@ -242,24 +249,11 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {
-		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asString)
-				.orElse(null);
-	}
-
-	protected static String getOptionAsString2(ChatInputInteractionEvent event, String option) {
-		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::getRaw)
-				.orElse(null);
+		return DiscordUtils.getOptionAsString(event, option);
 	}
 
 	protected static Long getOptionAsLong(ChatInputInteractionEvent event, String option) {
-		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asLong)
-				.orElse(null);
+		return DiscordUtils.getOptionAsLong(event, option);
 	}
 
 	public static Mono<Message> deferReply(ChatInputInteractionEvent event, String message) {

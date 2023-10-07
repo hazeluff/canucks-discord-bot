@@ -44,6 +44,10 @@ public class Seasons {
 			this.abbreviation = abbreviation;
 		}
 
+		public static Season mock(int startYear) {
+			return new Season(null, null, startYear, startYear + 1, null);
+		}
+
 		public ZonedDateTime getStartDate() {
 			return startDate;
 		}

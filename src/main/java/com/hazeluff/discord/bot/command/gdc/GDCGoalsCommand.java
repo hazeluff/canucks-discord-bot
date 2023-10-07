@@ -33,7 +33,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		if (!game.getGameState().isStarted()) {
-			return Command.deferReply(event, GAME_NOT_STARTED_MESSAGE, true);
+			return Command.reply(event, GAME_NOT_STARTED_MESSAGE, true);
 		}
 
 		Builder embedBuilder = EmbedCreateSpec.builder();
@@ -41,7 +41,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		// Add Goals
 		buildEmbed(embedBuilder, game);
-		return Command.deferReply(event, embedBuilder.build());
+		return Command.reply(event, embedBuilder.build());
 	}
 
 	public static EmbedCreateSpec getEmbed(Game game) {

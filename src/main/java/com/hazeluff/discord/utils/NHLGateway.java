@@ -1,4 +1,4 @@
-package com.hazeluff.discord.nhl;
+package com.hazeluff.discord.utils;
 
 import static com.hazeluff.discord.Config.CURRENT_SEASON;
 
@@ -22,8 +22,6 @@ import com.hazeluff.discord.nhl.stats.GoalieStats;
 import com.hazeluff.discord.nhl.stats.SkaterStats;
 import com.hazeluff.discord.nhl.stats.TeamPlayerStats;
 import com.hazeluff.discord.nhl.stats.TeamStandings;
-import com.hazeluff.discord.utils.HttpException;
-import com.hazeluff.discord.utils.HttpUtils;
 import com.hazeluff.nhl.Team;
 
 /**
@@ -42,7 +40,7 @@ public class NHLGateway {
 	static String getPlayByPlayUrl(int gameId) {
 		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/play-by-play";
 	}
-
+	
 	static String getTeamPlayerStatsUrl(String teamCode, int startYear) {
 		int endYear = startYear + 1;
 		String season = startYear + "" + endYear;
@@ -129,10 +127,14 @@ public class NHLGateway {
 		try {
 			String strBoxscore = fetchTeamPlayerStats(team, season);
 			BsonDocument jsonPlayerStats = BsonDocument.parse(strBoxscore);
-			List<GoalieStats> goalies = jsonPlayerStats.getArray("goalies").stream().map(BsonValue::asDocument)
-					.map(GoalieStats::parse).collect(Collectors.toList());
-			List<SkaterStats> skaters = jsonPlayerStats.getArray("skaters").stream().map(BsonValue::asDocument)
-					.map(SkaterStats::parse).collect(Collectors.toList());
+			List<GoalieStats> goalies = jsonPlayerStats.getArray("goalies").stream()
+					.map(BsonValue::asDocument)
+					.map(GoalieStats::parse)
+					.collect(Collectors.toList());
+			List<SkaterStats> skaters = jsonPlayerStats.getArray("skaters").stream()
+					.map(BsonValue::asDocument)
+					.map(SkaterStats::parse)
+					.collect(Collectors.toList());
 			return new TeamPlayerStats(goalies, skaters);
 		} catch (HttpException e) {
 			LOGGER.error("Failed to get team stats: team=" + team + ", season=" + season);
@@ -144,9 +146,12 @@ public class NHLGateway {
 		try {
 			String strJsonSeasons = fetchStandingsSeasons();
 			BsonArray jsonSeasons = BsonDocument.parse(strJsonSeasons).getArray("seasons");
-			return jsonSeasons.stream().map(BsonValue::asDocument)
-					.map(jsonSeason -> jsonSeason.getString("standingsEnd").getValue()).collect(Collectors
-							.toMap(standingsEnd -> mapStandingsEndToStartYear(standingsEnd), UnaryOperator.identity()));
+			return jsonSeasons.stream()
+					.map(BsonValue::asDocument)
+					.map(jsonSeason -> jsonSeason.getString("standingsEnd").getValue())
+					.collect(Collectors.toMap(
+							standingsEnd -> mapStandingsEndToStartYear(standingsEnd),
+							UnaryOperator.identity()));
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
 			return null;
@@ -157,7 +162,9 @@ public class NHLGateway {
 		try {
 			String strJsonStandings = fetchStandings(endDate);
 			BsonArray jsonStandings = BsonDocument.parse(strJsonStandings).getArray("standings");
-			return jsonStandings.stream().map(BsonValue::asDocument).map(TeamStandings::parse)
+			return jsonStandings.stream()
+					.map(BsonValue::asDocument)
+					.map(TeamStandings::parse)
 					.collect(Collectors.toList());
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);

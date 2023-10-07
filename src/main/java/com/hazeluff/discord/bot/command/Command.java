@@ -3,6 +3,7 @@ package com.hazeluff.discord.bot.command;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
@@ -12,6 +13,7 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.utils.DiscordUtils;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
 
@@ -19,16 +21,16 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.event.ReactiveEventAdapter;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.message.MessageCreateEvent;
-import discord4j.core.object.command.ApplicationCommandInteractionOption;
-import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.util.Permission;
 import discord4j.rest.util.PermissionSet;
@@ -65,6 +67,10 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	public boolean isDevOnly() {
 		return false;
+	}
+
+	static ApplicationCommandOptionChoiceData buildChoice(String value) {
+		return ApplicationCommandOptionChoiceData.builder().name(StringUtils.capitalize(value)).value(value).build();
 	}
 
 	public abstract Publisher<?> onChatCommandInput(ChatInputInteractionEvent event);
@@ -242,49 +248,65 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {
-		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asString)
-				.orElse(null);
-	}
-
-	protected static String getOptionAsString2(ChatInputInteractionEvent event, String option) {
-		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::getRaw)
-				.orElse(null);
+		return DiscordUtils.getOptionAsString(event, option);
 	}
 
 	protected static Long getOptionAsLong(ChatInputInteractionEvent event, String option) {
-		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asLong)
-				.orElse(null);
+		return DiscordUtils.getOptionAsLong(event, option);
 	}
 
-	public static Mono<Message> deferReply(ChatInputInteractionEvent event, String message) {
-		return deferReply(event, message, false);
+	public static Mono<Void> reply(ChatInputInteractionEvent event, String message) {
+		return reply(event, message, null, false);
 	}
 
-	public static Mono<Message> deferReply(ChatInputInteractionEvent event, String message, boolean ephermeral) {
-		InteractionFollowupCreateSpec spec = InteractionFollowupCreateSpec.builder()
-				.content(message)
-				.ephemeral(ephermeral)
-				.build();
-		return event.deferReply().withEphemeral(ephermeral).then(event.createFollowup(spec));
+	public static Mono<Void> reply(ChatInputInteractionEvent event, String message, boolean ephermeral) {
+		return reply(event, message, null, ephermeral);
 	}
 
-	public static Mono<Message> deferReply(ChatInputInteractionEvent event, EmbedCreateSpec embedCreateSpec) {
-		return deferReply(event, embedCreateSpec, false);
+	public static Mono<Void> reply(ChatInputInteractionEvent event, EmbedCreateSpec embedCreateSpec) {
+		return reply(event, null, embedCreateSpec, false);
 	}
 
-	public static Mono<Message> deferReply(ChatInputInteractionEvent event,
+	public static Mono<Void> reply(ChatInputInteractionEvent event, EmbedCreateSpec embedCreateSpec,
+			boolean ephermeral) {
+		return reply(event, null, embedCreateSpec, ephermeral);
+	}
+
+	public static Mono<Void> reply(ChatInputInteractionEvent event, String message, EmbedCreateSpec embedCreateSpec,
+			boolean ephermeral) {
+		InteractionApplicationCommandCallbackSpec spec = buildReplySpec(message, embedCreateSpec, ephermeral);
+		return event.reply(spec);
+	}
+
+	static InteractionApplicationCommandCallbackSpec buildReplySpec(String message,
 			EmbedCreateSpec embedCreateSpec,
 			boolean ephermeral) {
-		InteractionFollowupCreateSpec spec = InteractionFollowupCreateSpec.builder()
-				.addEmbed(embedCreateSpec)
-				.ephemeral(ephermeral)
-				.build();
-		return event.deferReply().withEphemeral(ephermeral).then(event.createFollowup(spec));
+		InteractionApplicationCommandCallbackSpec.Builder builder = InteractionApplicationCommandCallbackSpec.builder();
+		if (message != null) {
+			builder.content(message);
+		}
+		builder.ephemeral(ephermeral);
+		if (embedCreateSpec != null) {
+			builder.addEmbed(embedCreateSpec);
+		}
+		return builder.build();
+	}
+
+	public static Mono<Message> replyAndDefer(ChatInputInteractionEvent event, String initialReply,
+			Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
+		return event.reply(buildReplySpec(initialReply, null, true))
+				.then(createSlowFollowUp(event, defferedReplySupplier));
+	}
+
+	/**
+	 * 
+	 * @param event
+	 * @param specSupplier
+	 *            Specification that takes time to create.
+	 * @return
+	 */
+	private static Mono<Message> createSlowFollowUp(ChatInputInteractionEvent event,
+			Supplier<InteractionFollowupCreateSpec> specSupplier) {
+		return event.createFollowup(specSupplier.get());
 	}
 }

@@ -25,7 +25,7 @@ public class GDCSyncCommand extends GDCSubCommand {
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		GameDayChannel gameDayChannel = getGameDayChannel(event, nhlBot, game);
 		gameDayChannel.refresh();
-		return Command.deferReply(event, "Game synced.");
+		return Command.reply(event, "Game synced.");
 	}
 
 }

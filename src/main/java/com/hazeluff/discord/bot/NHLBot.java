@@ -173,6 +173,7 @@ public class NHLBot extends Thread {
 		DiscordManager discordManager = getDiscordManager();
 
 		List<Command> commands = getSlashCommands(this);
+		LOGGER.info("Commands" + commands);
 
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
@@ -189,6 +190,7 @@ public class NHLBot extends Thread {
 				.collect(Collectors.toList());
 
 		// Dev Guilds
+		LOGGER.info("Writing Dev Application Commands");
 		for (Long guildId : Config.DEV_GUILD_LIST) {
 			DiscordManager.block(
 				restClient.getApplicationService()
@@ -197,6 +199,7 @@ public class NHLBot extends Thread {
 		}
 
 		// All Guilds
+		LOGGER.info("Writing Global Application Commands");
 		DiscordManager.block(
 			restClient.getApplicationService()
 				.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands)
@@ -267,9 +270,7 @@ public class NHLBot extends Thread {
 	 */
 	public void deployScript() {
 		LOGGER.info("Deploy scripts executing...");
-		List<ApplicationCommandData> commands = DiscordManager.block(getDiscordManager().getClient().getRestClient()
-				.getApplicationService().getGlobalApplicationCommands(getDiscordManager().getApplicationId()));
-		LOGGER.info("Commands" + commands);
+		registerSlashCommands();
 		LOGGER.info("Deploy scripts completed.");
 	}
 

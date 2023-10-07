@@ -16,17 +16,17 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
 /**
  * Displays information about NHLBot and the author
  */
-public class StatsCommand extends Command {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StatsCommand.class);
+public class BotStatsCommand extends Command {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BotStatsCommand.class);
 
-	static final String NAME = "stats";
+	static final String NAME = "svcstats";
 
 	List<Long> excludedGuilds = Arrays.asList(
 			264445053596991498l, // https://discordbots.org/
 			110373943822540800l  // https://bots.discord.pw/
 	);
 
-	public StatsCommand(NHLBot nhlBot) {
+	public BotStatsCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 

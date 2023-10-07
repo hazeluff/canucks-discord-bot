@@ -91,8 +91,8 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 	}
 	
 	static String buildReplyMessage(String conference, List<TeamStandings> conferenceStandings) {
-		StringBuilder stringBuilder = new StringBuilder();	
-		stringBuilder.append("**Wildcard Standings " + StringUtils.capitalize(conference) + "**\n");
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("**" + StringUtils.capitalize(conference) + " Wildcard Standings**\n");
 		Map<String, List<TeamStandings>> divisions = getDivisionTeams(conferenceStandings);
 		for (Entry<String, List<TeamStandings>> entry : divisions.entrySet()) {
 			String confName = entry.getKey();

@@ -81,16 +81,18 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 					.filter(standing -> division.equals(standing.getDivisionName()))
 					.sorted((TeamStandings s1, TeamStandings s2) -> s1.getDivisionSequence() - s2.getDivisionSequence())
 					.collect(Collectors.toList());
-					
-
-			StringBuilder stringBuilder = new StringBuilder();	
-			stringBuilder.append("**Division Standings**\n");
-			stringBuilder.append(buildStandingsTable(divisionStandings));
 
 			return InteractionFollowupCreateSpec.builder()
-					.content(stringBuilder.toString())
+					.content(buildReplyMessage(division, divisionStandings))
 					.build();
 		};
+	}
+
+	static String buildReplyMessage(String division, List<TeamStandings> divisionStandings) {
+		StringBuilder stringBuilder = new StringBuilder();
+		stringBuilder.append("**" + division + "Division Standings**\n");
+		stringBuilder.append(buildStandingsTable(divisionStandings));
+		return stringBuilder.toString();
 	}
 
 	static String buildStandingsTable(List<TeamStandings> standings) {

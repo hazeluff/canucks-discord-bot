@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
@@ -119,7 +120,7 @@ public class NHLStatsCommand extends Command {
 		// List the subcommands
 		PUBLIC_COMMANDS.entrySet()
 				.forEach(subCmd -> builder.addField(
-						subCmd.getKey(), 
+						StringUtils.capitalize(subCmd.getKey()), 
 						subCmd.getValue().getDescription(), 
 						false
 					)

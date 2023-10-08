@@ -90,7 +90,7 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 
 	static String buildReplyMessage(String division, List<TeamStandings> divisionStandings) {
 		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append("**" + division + "Division Standings**\n");
+		stringBuilder.append("**" + division + " Division Standings**\n");
 		stringBuilder.append(buildStandingsTable(divisionStandings));
 		return stringBuilder.toString();
 	}

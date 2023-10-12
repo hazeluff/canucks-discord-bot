@@ -38,9 +38,13 @@ public class CustomMessage {
 		if (currentEvent == null || previousEvents == null) {
 			return false;
 		}
-		boolean testEvent = goalApplicable == null ? false : goalApplicable.test(currentEvent);
-		boolean testEvents = goalsApplicable == null ? false : goalsApplicable.test(previousEvents);
-		return testEvent || testEvents;
+		if (goalApplicable != null && !goalApplicable.test(currentEvent)) {
+			return false;
+		}
+		if (goalsApplicable != null && !goalsApplicable.test(previousEvents)) {
+			return false;
+		}
+		return true;
 	}
 
 	/*
@@ -49,7 +53,7 @@ public class CustomMessage {
 	public static CustomMessage hatTrick(String message, int playerId) {
 		return new CustomMessage(
 				message, 
-				null, 
+				goalEvent -> goalEvent.getScorerId() == playerId, 
 				goalEvents -> {
 					long numGoals = goalEvents.stream().filter(goal -> goal.getScorerId() == playerId).count();
 					return numGoals == 3;

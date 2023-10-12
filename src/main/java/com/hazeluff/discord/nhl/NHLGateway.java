@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.bson.BsonArray;
@@ -42,7 +41,7 @@ public class NHLGateway {
 	static String getPlayByPlayUrl(int gameId) {
 		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/play-by-play";
 	}
-
+	
 	static String getTeamPlayerStatsUrl(String teamCode, int startYear) {
 		int endYear = startYear + 1;
 		String season = startYear + "" + endYear;
@@ -129,10 +128,14 @@ public class NHLGateway {
 		try {
 			String strBoxscore = fetchTeamPlayerStats(team, season);
 			BsonDocument jsonPlayerStats = BsonDocument.parse(strBoxscore);
-			List<GoalieStats> goalies = jsonPlayerStats.getArray("goalies").stream().map(BsonValue::asDocument)
-					.map(GoalieStats::parse).collect(Collectors.toList());
-			List<SkaterStats> skaters = jsonPlayerStats.getArray("skaters").stream().map(BsonValue::asDocument)
-					.map(SkaterStats::parse).collect(Collectors.toList());
+			List<GoalieStats> goalies = jsonPlayerStats.getArray("goalies").stream()
+					.map(BsonValue::asDocument)
+					.map(GoalieStats::parse)
+					.collect(Collectors.toList());
+			List<SkaterStats> skaters = jsonPlayerStats.getArray("skaters").stream()
+					.map(BsonValue::asDocument)
+					.map(SkaterStats::parse)
+					.collect(Collectors.toList());
 			return new TeamPlayerStats(goalies, skaters);
 		} catch (HttpException e) {
 			LOGGER.error("Failed to get team stats: team=" + team + ", season=" + season);
@@ -144,9 +147,11 @@ public class NHLGateway {
 		try {
 			String strJsonSeasons = fetchStandingsSeasons();
 			BsonArray jsonSeasons = BsonDocument.parse(strJsonSeasons).getArray("seasons");
-			return jsonSeasons.stream().map(BsonValue::asDocument)
-					.map(jsonSeason -> jsonSeason.getString("standingsEnd").getValue()).collect(Collectors
-							.toMap(standingsEnd -> mapStandingsEndToStartYear(standingsEnd), UnaryOperator.identity()));
+			return jsonSeasons.stream()
+					.map(BsonValue::asDocument)
+					.collect(Collectors.toMap(
+							jsonSeason -> mapStandingsEndToStartYear(jsonSeason.getString("standingsStart").getValue()),
+							jsonSeason -> jsonSeason.getString("standingsEnd").getValue()));
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
 			return null;
@@ -157,7 +162,9 @@ public class NHLGateway {
 		try {
 			String strJsonStandings = fetchStandings(endDate);
 			BsonArray jsonStandings = BsonDocument.parse(strJsonStandings).getArray("standings");
-			return jsonStandings.stream().map(BsonValue::asDocument).map(TeamStandings::parse)
+			return jsonStandings.stream()
+					.map(BsonValue::asDocument)
+					.map(TeamStandings::parse)
 					.collect(Collectors.toList());
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
@@ -171,8 +178,17 @@ public class NHLGateway {
 	 * @param standingsStart
 	 * @return
 	 */
-	static int mapStandingsEndToStartYear(String standingsEnd) {
-		// Extrapolate from end date. Lockout and Covid seasons delayed the start.
-		return Integer.parseInt(standingsEnd.split("-")[0]) - 1;
+	static int mapStandingsEndToStartYear(String standingsStart) {
+		switch (standingsStart) {
+		case "1995-01-20": // Lockout
+			return 1994;
+		case "2013-01-19": // Lockout
+			return 2012;
+		case "2021-01-13": // Covid
+			return 2020;
+		default:
+			// Extrapolate from start date. Lockout and Covid seasons delayed the start.
+			return Integer.parseInt(standingsStart.split("-")[0]);
+		}
 	}
 }

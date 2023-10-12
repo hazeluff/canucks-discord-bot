@@ -24,7 +24,7 @@ public class NHLForwardStatsCommand extends NHLSkaterStatsCommand {
 		return reply(event, nhlBot, 
 				"Forward",
 				SkaterStats::isForward,
-				(SkaterStats s1, SkaterStats s2) -> s1.getPoints() - s2.getPoints()
+				(SkaterStats s1, SkaterStats s2) -> s2.getPoints() - s1.getPoints()
 		);
 	}
 }

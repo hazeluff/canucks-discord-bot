@@ -21,9 +21,10 @@ public class NHLDefenderStatsCommand extends NHLSkaterStatsCommand {
 
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot) {
-		return reply(event, nhlBot, "Defender",
+		return reply(event, nhlBot,
+				"Defender",
 				SkaterStats::isDefender,
-				(SkaterStats s1, SkaterStats s2) -> (int) (s1.getAvgTimeOnIcePerGame() - s2.getAvgTimeOnIcePerGame())
+				(SkaterStats s1, SkaterStats s2) -> (int) (s2.getPlusMinus() - s1.getPlusMinus())
 		);
 	}
 }

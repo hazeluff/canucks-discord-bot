@@ -1,6 +1,7 @@
 package com.hazeluff.discord.nhl.stats;
 
 import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 import org.bson.BsonString;
 
 import com.hazeluff.nhl.Team;
@@ -124,8 +125,8 @@ public class TeamStandings {
 		int l10Losses = jsonStandings.getInt32("l10Losses").getValue();
 		int l10OtLosses = jsonStandings.getInt32("l10OtLosses").getValue();
 
-		String streakCode = jsonStandings.getString("streakCode").getValue();
-		int streakCount = jsonStandings.getInt32("streakCount").getValue();
+		String streakCode = jsonStandings.getString("streakCode", new BsonString("")).getValue();
+		int streakCount = jsonStandings.getInt32("streakCount", new BsonInt32(0)).getValue();
 
 		int waiversSequence = jsonStandings.getInt32("waiversSequence").getValue();
 		return new TeamStandings(

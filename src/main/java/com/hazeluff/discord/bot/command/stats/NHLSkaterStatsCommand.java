@@ -35,13 +35,13 @@ public abstract class NHLSkaterStatsCommand extends NHLStatsSubCommand {
 		}
 
 		TeamPlayerStats playerStats = NHLGateway.getTeamPlayerStats(team, season);
-		List<SkaterStats> forwards = playerStats.getSkaters().stream()
+		List<SkaterStats> skaters = playerStats.getSkaters().stream()
 				.filter(filter)
 				.sorted(order)
 				.collect(Collectors.toList());
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("**" + label + " Stats**\n");
-		stringBuilder.append(buildSkaterStatsTable(forwards));
+		stringBuilder.append(buildSkaterStatsTable(skaters));
 		return Command.reply(event, stringBuilder.toString());
 	}
 	

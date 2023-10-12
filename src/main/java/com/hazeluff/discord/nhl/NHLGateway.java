@@ -6,7 +6,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.bson.BsonArray;
@@ -150,10 +149,9 @@ public class NHLGateway {
 			BsonArray jsonSeasons = BsonDocument.parse(strJsonSeasons).getArray("seasons");
 			return jsonSeasons.stream()
 					.map(BsonValue::asDocument)
-					.map(jsonSeason -> jsonSeason.getString("standingsEnd").getValue())
 					.collect(Collectors.toMap(
-							standingsEnd -> mapStandingsEndToStartYear(standingsEnd),
-							UnaryOperator.identity()));
+							jsonSeason -> mapStandingsEndToStartYear(jsonSeason.getString("standingsStart").getValue()),
+							jsonSeason -> jsonSeason.getString("standingsEnd").getValue()));
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
 			return null;
@@ -180,8 +178,17 @@ public class NHLGateway {
 	 * @param standingsStart
 	 * @return
 	 */
-	static int mapStandingsEndToStartYear(String standingsEnd) {
-		// Extrapolate from end date. Lockout and Covid seasons delayed the start.
-		return Integer.parseInt(standingsEnd.split("-")[0]) - 1;
+	static int mapStandingsEndToStartYear(String standingsStart) {
+		switch (standingsStart) {
+		case "1995-01-20": // Lockout
+			return 1994;
+		case "2013-01-19": // Lockout
+			return 2012;
+		case "2021-01-13": // Covid
+			return 2020;
+		default:
+			// Extrapolate from start date. Lockout and Covid seasons delayed the start.
+			return Integer.parseInt(standingsStart.split("-")[0]);
+		}
 	}
 }

@@ -187,7 +187,7 @@ public class NHLGateway {
 		case "2021-01-13": // Covid
 			return 2020;
 		default:
-			// Extrapolate from start date. Lockout and Covid seasons delayed the start.
+			// Strip from start date
 			return Integer.parseInt(standingsStart.split("-")[0]);
 		}
 	}

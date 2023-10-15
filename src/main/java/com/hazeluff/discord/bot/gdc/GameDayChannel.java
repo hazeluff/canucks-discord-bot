@@ -262,7 +262,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		// Post Predictions poll
 		summaryMessage = getSummaryMessage();
 
-		if (!game.getGameState().isFinal()) {
+		if (!game.getGameState().isFinished()) {
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
 			sendReminders();
@@ -289,7 +289,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 						updateSummaryMessage(newSummaryMessageEmbed);
 					}
 
-					if (game.getGameState().isFinal()) {
+					if (game.getGameState().isFinished()) {
 						updateEndOfGameMessage();
 					}
 				} catch (Exception e) {

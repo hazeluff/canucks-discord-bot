@@ -9,6 +9,7 @@ import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
@@ -132,7 +133,7 @@ public class Game {
 	}
 
 	public Team getWinningTeam() {
-		if (!getGameState().isFinal()) {
+		if (!getGameState().isFinished()) {
 			return null;
 		}
 		if (getHomeScore() > getAwayScore()) {
@@ -172,4 +173,10 @@ public class Game {
 		}
 		return getGameId() == other.getGameId();
 	}
+
+	@Override
+	public String toString() {
+		return "Game [name()=" + GameDayChannel.getChannelName(this) + ", getGameState()=" + getGameState() + "]";
+	}
+
 }

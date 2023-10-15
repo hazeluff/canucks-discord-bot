@@ -252,7 +252,6 @@ public class GameScheduler extends Thread {
 		} else {
 			games.addAll(getFutureGames(team, 1));
 		}
-
 		return games;
 	}
 
@@ -303,7 +302,7 @@ public class GameScheduler extends Thread {
 				.map(Entry::getValue)
 				.sorted(GAME_COMPARATOR.reversed())
 				.filter(game -> team == null || game.containsTeam(team))
-				.filter(game -> game.getGameState().isFinal())
+				.filter(game -> game.getGameState().isFinished())
 				.collect(Collectors.toList());
 	}
 

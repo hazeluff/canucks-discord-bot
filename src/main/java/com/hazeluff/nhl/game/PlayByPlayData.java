@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import org.bson.BsonArray;
 import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 import org.bson.BsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +78,7 @@ public class PlayByPlayData {
 	}
 
 	public int getPeriod() {
-		return getJson().getInt32("period").getValue();
+		return getJson().getInt32("period", new BsonInt32(0)).getValue();
 	}
 
 	public BsonDocument getClock() {

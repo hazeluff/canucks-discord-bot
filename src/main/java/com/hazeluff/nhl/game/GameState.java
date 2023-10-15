@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public enum GameState {
 	FUTURE("FUT"), PREGAME("PRE"), LIVE("LIVE"), CRIT("CRIT"), FINAL("FINAL"),
-	 OFF("OFF"); // This should be filtered out. ("Outside of current season")
+	OFF("OFF"); // "Official"?.
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameState.class);
 
@@ -47,7 +47,13 @@ public enum GameState {
 		return LIVE.equals(this);
 	}
 
-	public boolean isFinal() {
-		return FINAL.equals(this);
+	public boolean isFinished() {
+		switch (this) {
+		case FINAL:
+		case OFF:
+			return true;
+		default:
+			return false;
+		}
 	}
 }

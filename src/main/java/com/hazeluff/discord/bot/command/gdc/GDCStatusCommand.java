@@ -38,7 +38,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 		embedBuilder.footer("Status: " + game.getGameState(), null);
 
 		String fieldDescription;
-		if (game.getGameState().isFinal()) {
+		if (game.getGameState().isFinished()) {
 			fieldDescription = "Game has finished";
 			if (game.hasShootout()) {
 				fieldDescription += " in shootout.";

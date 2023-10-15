@@ -91,7 +91,7 @@ public class GameTracker extends Thread {
 			setName(GameDayChannel.getChannelName(game));
 			updateGame();
 
-			if (!game.getGameState().isFinal()) {
+			if (!game.getGameState().isFinished()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
 				boolean closeToStart;
@@ -130,7 +130,7 @@ public class GameTracker extends Thread {
 					updateGame();
 
 					// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
-					if (game.getGameState().isFinal()) {
+					if (game.getGameState().isFinished()) {
 						if (lastFinal == null) {
 							LOGGER.debug("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();

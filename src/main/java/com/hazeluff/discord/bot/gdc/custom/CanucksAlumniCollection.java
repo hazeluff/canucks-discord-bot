@@ -20,7 +20,8 @@ public class CanucksAlumniCollection extends CustomMessageCollection {
 		add(scorer("Big MAC 🍔", 8479772));
 		// Tyler Motte
 		add(scorer("**Tyler Fucking Motte.**"
-				+ "\nhttps://www.reddit.com/r/canucks/"
-				+ "comments/idz52h/gameday_hype_featuring_tyler_fucking_motte/", 8477353));
+				+ "\nhttps://cdn.discordapp.com/attachments/276953120964083713/1167936423849103491/"
+				+ "tyler_fucking_motte.mp4",
+				8477353));
 	}
 }

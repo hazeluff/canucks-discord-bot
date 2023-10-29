@@ -121,7 +121,7 @@ public class WordcloudCommand extends Command {
 	 * @param fontScaler
 	 */
 	public void sendWordcloud(TextChannel channel, Game game, FontScalar fontScaler) {
-		String title = GameDayChannel.getDetailsMessage(game);
+		String title = GameDayChannel.buildDetailsMessage(game);
 		new Thread(() -> {
 			Message generatingMessage = DiscordManager.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
 

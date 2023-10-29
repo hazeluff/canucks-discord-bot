@@ -13,10 +13,9 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
-import discord4j.core.object.entity.Message;
+import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import reactor.core.publisher.Mono;
 
 /**
  * Subscribes guilds to a team.
@@ -61,7 +60,7 @@ public class SubscribeCommand extends Command {
 		}
 
 		Team team = Team.parse(strTeam);
-		return event.deferReply().then(subscribeGuildAndFollowup(event, guild, team));
+		return Command.replyAndDefer(event, "Subscribing...", () -> buildFollowUp(event, guild, team));
 	}
 
 	static final String HELP_MESSAGE = "Subscribe to create Game Day Channels of the most recent games for that team."
@@ -70,14 +69,16 @@ public class SubscribeCommand extends Command {
 			+ HelpCommand.listOfTeams()
 			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
 
+	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
+		subscribeGuild(guild, team);
+		return InteractionFollowupCreateSpec.builder()
+				.content(buildSubscribedMessage(guild, team))
+				.build();
+	}
+
 	private void subscribeGuild(Guild guild, Team team) {
 		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guild.getId().asLong(), team);
 		nhlBot.getGameDayChannelsManager().updateChannels(guild);
-	}
-	
-	private Mono<Message> subscribeGuildAndFollowup(ChatInputInteractionEvent event, Guild guild, Team team) {
-		subscribeGuild(guild, team);
-		return event.createFollowup(buildSubscribedMessage(guild, team));
 	}
 
 	String buildSubscribedMessage(Guild guild, Team team) {

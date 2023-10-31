@@ -11,10 +11,9 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
-import discord4j.core.object.entity.Message;
+import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import reactor.core.publisher.Mono;
 
 /**
  * Unsubscribes guilds from a team.
@@ -56,9 +55,7 @@ public class UnsubscribeCommand extends Command {
 
 		if (strTeam.equalsIgnoreCase("all")) {
 			// Unsubscribe from all teams
-			nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), null);
-			nhlBot.getGameDayChannelsManager().updateChannels(guild);
-			return reply(event, UNSUBSCRIBED_FROM_ALL_MESSAGE);
+			return replyAndDefer(event, "Unsubscribing...", () -> buildUnsubscribeAllFollowUp(event, guild));
 		}
 
 		if (!Team.isValid(strTeam)) {
@@ -66,7 +63,17 @@ public class UnsubscribeCommand extends Command {
 		}
 
 		Team team = Team.parse(strTeam);
-		return event.deferReply().then(unsubscribeGuildAndFollowup(event, guild, team));
+		return replyAndDefer(event, "Unsubscribing...", () -> buildUnsubscribeFollowUp(event, guild, team));
+	}
+
+	InteractionFollowupCreateSpec buildUnsubscribeAllFollowUp(ChatInputInteractionEvent event, Guild guild) {
+		unsubscribeGuild(guild, null);
+		return InteractionFollowupCreateSpec.builder().content(UNSUBSCRIBED_FROM_ALL_MESSAGE).build();
+	}
+
+	InteractionFollowupCreateSpec buildUnsubscribeFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
+		unsubscribeGuild(guild, team);
+		return InteractionFollowupCreateSpec.builder().content(buildUnsubscribeMessage(team)).build();
 	}
 
 	static final String HELP_MESSAGE = "Unsubscribe from Game Day Channels of the specified team."
@@ -100,11 +107,6 @@ public class UnsubscribeCommand extends Command {
 	private void unsubscribeGuild(Guild guild, Team team) {
 		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), team);
 		nhlBot.getGameDayChannelsManager().updateChannels(guild);
-	}
-
-	private Mono<Message> unsubscribeGuildAndFollowup(ChatInputInteractionEvent event, Guild guild, Team team) {
-		unsubscribeGuild(guild, team);
-		return event.createFollowup(buildUnsubscribeMessage(team));
 	}
 
 	static String buildUnsubscribeMessage(Team team) {

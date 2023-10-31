@@ -294,7 +294,8 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	public static Mono<Message> replyAndDefer(ChatInputInteractionEvent event, String initialReply,
 			Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
-		return event.reply(buildReplySpec(initialReply, null, true))
+		return event.reply(buildReplySpec(initialReply, null,
+				true))
 				.then(createSlowFollowUp(event, defferedReplySupplier));
 	}
 
@@ -305,7 +306,8 @@ public abstract class Command extends ReactiveEventAdapter {
 	 *            Specification that takes time to create.
 	 * @return
 	 */
-	private static Mono<Message> createSlowFollowUp(ChatInputInteractionEvent event,
+	private static Mono<Message> createSlowFollowUp(
+			ChatInputInteractionEvent event,
 			Supplier<InteractionFollowupCreateSpec> specSupplier) {
 		return event.createFollowup(specSupplier.get());
 	}

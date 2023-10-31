@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.bson.BsonDocument;
 
 import com.hazeluff.nhl.game.EventType;
+import com.hazeluff.nhl.game.PeriodType;
 
 public class GameEvent {
 	protected AtomicReference<BsonDocument> jsonEvent;
@@ -46,6 +47,10 @@ public class GameEvent {
 
 	public int getPeriod() {
 		return getJson().getInt32("period").getValue();
+	}
+
+	public PeriodType getPeriodType() {
+		return PeriodType.parse(getJson().getDocument("periodDescriptor").getString("period").getValue());
 	}
 
 	public String getPeriodTime() {

@@ -82,12 +82,12 @@ public class Game {
 	}
 
 	// PlayByPlay (Status)
-	void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
+	public void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
 		PlayByPlayData newPbpInfo = PlayByPlayData.parse(jsonPlayByPlay);
 		if (newPbpInfo != null) {
 			this.pbpData = newPbpInfo;
 		} else {
-			LOGGER.error("Could not initialize play by play data. jsonPlayByPlay=" + jsonPlayByPlay);
+			LOGGER.error("Could not parse json: jsonPlayByPlay=" + jsonPlayByPlay);
 		}
 	}
 

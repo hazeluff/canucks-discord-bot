@@ -70,13 +70,13 @@ public class NextGameCommand extends Command {
 	static final String NO_NEXT_GAMES_MESSAGE = "There may not be any games for any of your subscribed teams.";
 
 	String getNextGameDetailsMessage(Game game, GuildPreferences preferences) {
-		return "The next game is:\n" + GameDayChannel.getDetailsMessage(game);
+		return "The next game is:\n" + GameDayChannel.buildDetailsMessage(game);
 	}
 
 	String getNextGameDetailsMessage(Set<Game> games, GuildPreferences preferences) {
 		StringBuilder replyMessage = new StringBuilder("The following game(s) are upcomming:");
 		for (Game game : games) {
-			replyMessage.append("\n" + GameDayChannel.getDetailsMessage(game));
+			replyMessage.append("\n" + GameDayChannel.buildDetailsMessage(game));
 		}
 		return replyMessage.toString();
 	}

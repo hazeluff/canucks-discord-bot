@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 
 import com.hazeluff.nhl.Team;
 
@@ -17,13 +18,17 @@ public class GoalEvent extends GameEvent {
 	}
 
 	public List<Integer> getPlayerIds() {
-		List<Integer> playerIds = new ArrayList<>(getScorerId());
-		playerIds.addAll(getAssistIds());
+		List<Integer> playerIds = new ArrayList<>();
+		Integer scorerId = getScorerId();
+		if (scorerId > 0) {
+			playerIds.add(scorerId);
+			playerIds.addAll(getAssistIds());
+		}
 		return playerIds;
 	}
 
 	public int getScorerId() {
-		return getDetails().getInt32("scoringPlayerId").getValue();
+		return getDetails().getInt32("scoringPlayerId", new BsonInt32(-1)).getValue();
 	}
 
 	public List<Integer> getAssistIds() {
@@ -49,6 +54,18 @@ public class GoalEvent extends GameEvent {
 		return !getSituationCode().equals(event.getSituationCode())
 				|| getScorerId() != event.getScorerId()
 				|| !getAssistIds().equals(event.getAssistIds());
+	}
+
+	public boolean isSameTime(GoalEvent event) {
+		return getPeriod() == event.getPeriod()
+				&& getPeriodTime().equals(event.getPeriodTime());
+	}
+
+	@Override
+	public String toString() {
+		return "GoalEvent [jsonEvent=" + jsonEvent + ", getDetails()=" + getDetails() + ", getPlayerIds()="
+				+ getPlayerIds() + ", getScorerId()=" + getScorerId() + ", getAssistIds()=" + getAssistIds()
+				+ ", getGoalieId()=" + getGoalieId() + ", getTeam()=" + getTeam() + "]";
 	}
 
 }

@@ -7,7 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum GameState {
-	FUTURE("FUT"), PREGAME("PRE"), LIVE("LIVE"), CRIT("CRIT"), FINAL("FINAL"),
+	FUTURE("FUT"), PREGAME("PRE"), LIVE("LIVE"), 
+	CRIT("CRIT"), // OT/SO
+	FINAL("FINAL"),
 	OFF("OFF"); // "Official"?.
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameState.class);

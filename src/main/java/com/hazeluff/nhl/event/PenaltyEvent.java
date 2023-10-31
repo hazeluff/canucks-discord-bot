@@ -1,6 +1,7 @@
 package com.hazeluff.nhl.event;
 
 import org.bson.BsonDocument;
+import org.bson.BsonInt32;
 
 import com.hazeluff.nhl.Team;
 
@@ -18,7 +19,7 @@ public class PenaltyEvent extends GameEvent {
 	}
 
 	public int getCommittedByPlayerId() {
-		return getDetails().getInt32("committedByPlayerId").getValue();
+		return getDetails().getInt32("committedByPlayerId", new BsonInt32(-1)).getValue();
 	}
 
 	/**

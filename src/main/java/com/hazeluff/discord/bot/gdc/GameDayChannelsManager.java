@@ -129,10 +129,7 @@ public class GameDayChannelsManager extends Thread {
 	public List<Guild> getSubscribedGuilds(Team team) {
 		return nhlBot.getDiscordManager().getGuilds().stream().filter(guild -> {
 			long guildId = guild.getId().asLong();
-			return nhlBot.getPersistentData()
-					.getPreferencesData()
-					.getGuildPreferences(guildId)
-					.getTeams()
+			return nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId).getTeams()
 					.contains(team);
 		}).collect(Collectors.toList());
 	}
@@ -147,8 +144,7 @@ public class GameDayChannelsManager extends Thread {
 	public GameDayChannel createChannel(Game game, Guild guild) {
 		int gameId = game.getGameId();
 		long guildId = guild.getId().asLong();
-		LOGGER.info("Initializing for channel. channelName={}, guild={}",
-				GameDayChannel.getChannelName(game), guildId);
+		LOGGER.info("Initializing for channel. channelName={}, guild={}", GameDayChannel.getChannelName(game), guildId);
 
 		GameDayChannel gameDayChannel = getGameDayChannel(guildId, gameId);
 		if (gameDayChannel == null) {
@@ -183,17 +179,13 @@ public class GameDayChannelsManager extends Thread {
 	 */
 	void updateChannels() {
 		LOGGER.info("Updating channels for all guilds.");
-		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds().stream()
-				.filter(guild -> !nhlBot.getPersistentData().getPreferencesData()
-						.getGuildPreferences(guild.getId().asLong())
-						.getTeams()
-						.isEmpty()
-				)
+		List<Guild> guilds = nhlBot
+				.getDiscordManager().getGuilds().stream().filter(guild -> !nhlBot.getPersistentData()
+						.getPreferencesData().getGuildPreferences(guild.getId().asLong()).getTeams().isEmpty())
 				.collect(Collectors.toList());
 
 		// Update Dev Guilds
-		List<Guild> devGuilds = guilds.stream()
-				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+		List<Guild> devGuilds = guilds.stream().filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.collect(Collectors.toList());
 
 		devGuilds.stream().forEach(devGuild -> {
@@ -203,8 +195,7 @@ public class GameDayChannelsManager extends Thread {
 
 		// Update Other Guilds
 		List<Guild> otherGuilds = guilds.stream()
-				.filter(guild -> !Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-				.collect(Collectors.toList());
+				.filter(guild -> !Config.DEV_GUILD_LIST.contains(guild.getId().asLong())).collect(Collectors.toList());
 
 		otherGuilds.stream().forEach(guild -> {
 			LOGGER.info("Updating channels of other guilds: " + guild.getId().asLong());
@@ -229,14 +220,11 @@ public class GameDayChannelsManager extends Thread {
 		try {
 			GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 					.getGuildPreferences(guild.getId().asLong());
-			List<Team> teams = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guild.getId().asLong())
-					.getTeams();
+			List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
+					.getGuildPreferences(guild.getId().asLong()).getTeams();
 
-			LOGGER.info("Updating Channels for [{}]: activeGames={}", 
-					guild.getId().asLong(),
-					nhlBot.getGameScheduler().getActiveGames(teams).stream()
-							.map(GameDayChannel::getChannelName)
-							.collect(Collectors.toList()));
+			LOGGER.info("Updating Channels for [{}]: activeGames={}", guild.getId().asLong(), nhlBot.getGameScheduler()
+					.getActiveGames(teams).stream().map(GameDayChannel::getChannelName).collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
 			for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
@@ -270,10 +258,8 @@ public class GameDayChannelsManager extends Thread {
 	void deleteChannel(TextChannel channel, GuildPreferences preferences) {
 		LOGGER.info("Remove channel: " + channel.getName());
 		/*
-		 * Remove games that:
-		 * - are in the category
-		 * - have the correct name format for a gdc
-		 * - are not active
+		 * Remove games that: - are in the category - have the correct name format for a
+		 * gdc - are not active
 		 */
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game != null) {

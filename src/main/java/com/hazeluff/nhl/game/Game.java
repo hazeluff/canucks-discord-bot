@@ -9,6 +9,7 @@ import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
 import com.hazeluff.nhl.event.GoalEvent;
@@ -82,7 +83,7 @@ public class Game {
 	}
 
 	// PlayByPlay (Status)
-	public void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
+	void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
 		PlayByPlayData newPbpInfo = PlayByPlayData.parse(jsonPlayByPlay);
 		if (newPbpInfo != null) {
 			this.pbpData = newPbpInfo;
@@ -93,15 +94,15 @@ public class Game {
 
 	public void updatePlayByPlay(BsonDocument jsonPlayByPlay) {
 		LOGGER.debug("Updating Game Boxscore Data. [" + getGameId() + "]");
-		if (this.pbpData == null) {
-			initPlayByPlayInfo(jsonPlayByPlay);
-		} else {;
+		if (this.pbpData != null) {
 			this.pbpData.update(jsonPlayByPlay);
+		} else {
+			initPlayByPlayInfo(jsonPlayByPlay);
 		}
 	}
 
 	public GameState getGameState() {
-		if(pbpData != null) {
+		if (pbpData != null) {
 			return this.pbpData.getGameState();
 		}
 		return this.scheduleData.getGameState();
@@ -172,4 +173,10 @@ public class Game {
 		}
 		return getGameId() == other.getGameId();
 	}
+
+	@Override
+	public String toString() {
+		return "Game [name()=" + GameDayChannel.getChannelName(this) + ", getGameState()=" + getGameState() + "]";
+	}
+
 }

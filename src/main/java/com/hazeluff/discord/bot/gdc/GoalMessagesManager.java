@@ -19,6 +19,7 @@ import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.PeriodType;
 import com.hazeluff.nhl.game.RosterPlayer;
 
 import discord4j.core.object.entity.Message;
@@ -114,12 +115,6 @@ public class GoalMessagesManager {
 					return;
 				}
 
-				if (isSpam()) {
-					LOGGER.warn("Spam Event. event={}", currentEvent.getId());
-					eventMessages.put(currentEvent.getId(), null);
-					return;
-				}
-
 				// New event
 				sendMessage(currentEvent);
 			}
@@ -147,10 +142,23 @@ public class GoalMessagesManager {
 
 	void sendMessage(GoalEvent event) {
 		LOGGER.info("Sending message for event [" + event.getId() + "].");
-		String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
-		if (messageContent != null) {
-			sendMessage(messageContent);
+		if (event.getPeriodType() != PeriodType.SHOOTOUT && isSpam()) {
+			LOGGER.warn("Spam message avoided. eventId={}, periodType={}", event.getId(), event.getPeriodType());
+			eventMessages.put(event.getId(), Pair.with(event, null)); // Pretend to send the message
+			return;
 		}
+
+		if (!isSpam()) {
+			// Custom Message - only send when within the spam cooldown
+			String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
+			if (messageContent != null) {
+				Message customMessage = DiscordManager.sendAndGetMessage(channel, messageContent);
+				if (customMessage != null) {
+					updateLastMessageTime();
+				}
+			}
+		}
+
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
 				.addEmbed(buildGoalMessageEmbed(this.game, event))
 				.build();
@@ -169,16 +177,20 @@ public class GoalMessagesManager {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
 			Message message = eventMessages.get(event.getId()).getValue1();
-			MessageEditSpec messageSpec = MessageEditSpec.builder()
-					.addEmbed(buildGoalMessageEmbed(this.game, event))
-					.build();
-			DiscordManager.updateMessage(message, messageSpec);
+			if (message != null) {
+				MessageEditSpec messageSpec = MessageEditSpec.builder()
+						.addEmbed(buildGoalMessageEmbed(this.game, event)).build();
+				DiscordManager.updateMessage(message, messageSpec);
+				eventMessages.put(event.getId(), Pair.with(event, message));
+			}
 		}
 	}
 
 	boolean relinkEventMessage(GoalEvent event) {
 		Pair<GoalEvent, Message> eventMessage = eventMessages.entrySet().stream()
 			.map(entry -> entry.getValue())
+				.filter(em -> em
+						.getValue1() != null)
 			.filter(em -> em.getValue0() != null && em.getValue0().isSameTime(event))
 			.findAny()
 			.orElse(null);
@@ -247,7 +259,7 @@ public class GoalMessagesManager {
 	}
 
 	public void updateLastMessageTime() {
-		lastMessageTime = ZonedDateTime.now();
+		this.lastMessageTime = ZonedDateTime.now();
 	}
 
 	public boolean isSpam() {

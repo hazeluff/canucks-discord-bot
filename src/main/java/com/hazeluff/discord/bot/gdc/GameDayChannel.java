@@ -55,14 +55,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
 	// Polling time for when game is started/almost-started
-	static final long ACTIVE_POLL_RATE_MS = 5000l;
+	static final long ACTIVE_POLL_RATE_MS = 10000l;
 	// Time before game to poll faster
 	static final long CLOSE_TO_START_THRESHOLD_MS = 300000l;
 	// Time after game is final to continue updates
 	static final long POST_GAME_UPDATE_DURATION = 600000l;
 
 	// Message Managers
-	static final long SPAM_COOLDOWN_MS = GameTracker.ACTIVE_POLL_RATE_MS + ACTIVE_POLL_RATE_MS;
+	static final long SPAM_COOLDOWN_MS = 30000l; // Applies only to custom messages
 	private final GoalMessagesManager goalMessages;
 	private final PenaltyMessagesManager penaltyMessages;
 

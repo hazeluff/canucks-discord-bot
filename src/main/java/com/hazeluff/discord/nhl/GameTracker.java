@@ -64,18 +64,9 @@ public class GameTracker extends Thread {
 		return gameTracker;
 	}
 
-	void initGamePlayByPlay() {
-		BsonDocument playByPlayJson = NHLGateway.getPlayByPlay(this.game.getGameId());
-		if (playByPlayJson != null) {
-			this.game.initPlayByPlayInfo(playByPlayJson);
-		}
-	}
-
 	public void updateGame() {
 		BsonDocument playByPlayJson = NHLGateway.getPlayByPlay(this.game.getGameId());
-		if (playByPlayJson == null) {
-			initGamePlayByPlay();
-		} else {
+		if (playByPlayJson != null) {
 			this.game.updatePlayByPlay(playByPlayJson);
 		}
 	}

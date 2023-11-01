@@ -83,7 +83,7 @@ public class Game {
 	}
 
 	// PlayByPlay (Status)
-	public void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
+	void initPlayByPlayInfo(BsonDocument jsonPlayByPlay) {
 		PlayByPlayData newPbpInfo = PlayByPlayData.parse(jsonPlayByPlay);
 		if (newPbpInfo != null) {
 			this.pbpData = newPbpInfo;

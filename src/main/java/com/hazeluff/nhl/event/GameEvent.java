@@ -50,7 +50,7 @@ public class GameEvent {
 	}
 
 	public PeriodType getPeriodType() {
-		return PeriodType.parse(getJson().getDocument("periodDescriptor").getString("period").getValue());
+		return PeriodType.parse(getJson().getDocument("periodDescriptor").getString("periodType").getValue());
 	}
 
 	public String getPeriodTime() {

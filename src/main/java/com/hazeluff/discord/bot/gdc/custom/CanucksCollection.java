@@ -32,7 +32,8 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(hatTrick("https://giphy.com/gifs/nhl-canucks-vancouver-rookie-of-the-year-eMt84wERIUWJgw8T1w", 8480012)); // Calder Award
 		add(scorer("https://giphy.com/gifs/canucks-elias-pettersson-goal-petterson-2021-petersson-JAunSFtE0BN0z85Sod", 8480012)); // Canucks Graphic 2021
 		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1163968460007669760/peteypregamegif.gif", 8480012)); // Clean Visor
-		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950364893511681/petey_2023.gif", 8480012)); // Canucks Graphic 2021
+		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950364893511681/petey_2023.gif", 8480012)); // Canucks Graphic 2023
+		add(scorer("https://media.discordapp.net/attachments/1170084611422949396/1170094296549031946/ep_goal_skate_23.gif", 8480012)); // Canucks Graphic 2023
 
 		// Brock Boeser
 		add(scorer("Brock Hard", 8478444));
@@ -51,10 +52,13 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("**It's Miller Time!**", 8476468));
 		add(scorer("https://giphy.com/gifs/canucks-jt-miller-goal-2021-62XQNbTolaM9zokRAP", 8476468)); // Canucks Graphic 2021
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167944428615368826/jt_2023.gif", 8476468)); // Canucks Graphic 2023
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170085862114078780/miller_cele.gif", 8476468)); // Cele
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170094295953461381/miller_goal_skate_23.gif", 8476468)); // Canucks Graphic 2023- Skate
 
 		// Andrei Kuzmenko
 		add(scorer("https://tenor.com/view/vancouver-canucks-nhl-hockey-goal-andrei-kuzmenko-gif-27040696", 8483808));
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167944429231951984/kuz_2023.gif", 8483808)); // Canucks Graphic 2023
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170085861262631053/kuz_banana.gif", 8483808)); // Banana
 
 		// Nils Hoglander
 		add(scorer("https://tenor.com/view/lion-king-pumba-hunting-bugs-gif-8591753", 8481535));
@@ -80,12 +84,15 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://giphy.com/gifs/canucks-conor-garland-goal-2021-ZBOuVtS3f3WoZNFEJu", 8478856)); // Canucks Graphic 2021
 		add(scorer("https://tenor.com/view/vancouver-canucks-conor-garland-running-fast-skating-speed-gif-24103563", 8478856)); // Skating at camera
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950362905411655/garland_2023.gif", 8478856)); // Canucks Graphic 2023
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170085860117586061/garland_cele.gif", 8478856)); // Cele
 
 		// Quinn Hughes
 		add(scorer("**Huggy Bear!** 🧸", 8480800));
 		add(scorer("https://tenor.com/view/vancouver-canucks-quinn-hughes-canucks-canucks-goal-canucks-win-gif-18795481", 8480800)); // Fist bump bench
 		add(scorer("https://giphy.com/gifs/canucks-quinn-hughes-goal-2021-canucks-twJhUrLKMTCL4kxrfw", 8480800)); // Canucks Graphic 2021
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167942592412012615/huggy_2023.gif", 8480800)); // Canucks Graphic 2023
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170085860679614606/huggy_cele.gif", 8480800)); // Cele
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170094295328493568/huggy_goal_skate_23.gif", 8480800)); // Canucks Graphic 2023 - Skate
 
 		// Tyler Myers
 		add(scorer("🦒", 8474574));
@@ -109,6 +116,12 @@ public class CanucksCollection extends CustomMessageCollection {
 
 		// Carson Soucy
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950364193083453/soucy_2023.gif", 8477369));
+
+		// Anthony Beauvillier
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170087547284750406/beau_goal.gif", 8478463));
+
+		// Pius Suter
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170087547918102609/suter_goal.gif", 8480459));
 		
 		/*
 		 *  Combos
@@ -169,5 +182,7 @@ public class CanucksCollection extends CustomMessageCollection {
 				Team.VANCOUVER_CANUCKS)); // Green men
 		add(team("https://cdn.discordapp.com/attachments/276953120964083713/1167950362293063781/2023.gif",
 				Team.VANCOUVER_CANUCKS)); // Generic 2023
+		add(team("https://cdn.discordapp.com/attachments/1170084611422949396/1170085859450695810/ea_fin.gif",
+				Team.VANCOUVER_CANUCKS)); // EA Fin
 	}
 }

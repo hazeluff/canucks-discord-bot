@@ -100,7 +100,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.preferences = preferences;
 		this.meta = meta;
 		this.goalMessages = new GoalMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
-		this.penaltyMessages = new PenaltyMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
+		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
 	}
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {

@@ -34,7 +34,8 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1163968460007669760/peteypregamegif.gif", 8480012)); // Clean Visor
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950364893511681/petey_2023.gif", 8480012)); // Canucks Graphic 2023
 		add(scorer("https://media.discordapp.net/attachments/1170084611422949396/1170094296549031946/ep_goal_skate_23.gif", 8480012)); // Canucks Graphic 2023
-
+		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1171154905331925113/peteyglassestoss.gif", 8480012)); // Canucks 2023 - Black Skate Promo
+		
 		// Brock Boeser
 		add(scorer("Brock Hard", 8478444));
 		add(scorer("https://tenor.com/view/vancouver-canucks-brock-boeser-nhl-hockey-canucks-gif-16393197", 8478444)); // Allstar
@@ -46,7 +47,8 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(hatTrick("https://www.youtube.com/watch?v=vjheiAQbhQw", 8478444)); // Boeser....SCORES
 		add(scorer("https://giphy.com/gifs/canucks-brock-boeser-goal-2021-mn5mhmP5rNE9y8sxtC", 8478444)); // Canucks Graphic 2021
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167941191883563089/boeser_2023.gif", 8478444)); // Canucks Graphic 2023
-
+		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1171177026485501973/brockboeserlookup.gif", 8478444)); // Canucks 2023 - Black Skate Promo
+		
 		// J.T. Miller
 		add(scorer("**JONATHAN TONATHAN!**", 8476468));
 		add(scorer("**It's Miller Time!**", 8476468));
@@ -59,6 +61,7 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://tenor.com/view/vancouver-canucks-nhl-hockey-goal-andrei-kuzmenko-gif-27040696", 8483808));
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167944429231951984/kuz_2023.gif", 8483808)); // Canucks Graphic 2023
 		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170085861262631053/kuz_banana.gif", 8483808)); // Banana
+		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1171176999675514880/kuzmenkoturnaround.gif", 8483808)); // Canucks 2023 - Black Skate Promo
 
 		// Nils Hoglander
 		add(scorer("https://tenor.com/view/lion-king-pumba-hunting-bugs-gif-8591753", 8481535));
@@ -66,7 +69,6 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://giphy.com/gifs/nhl-nhl-prospect-2019-scouting-combine-nils-hoglander-H1HFy3uN2FNSb7jRiv", 8481535)); // Draft; Sign camera
 		add(scorer("https://giphy.com/gifs/nhl-sports-hockey-ice-1tNHEPNQwnUbNjfIJz", 8481535)); // Wooo
 		add(scorer("https://giphy.com/gifs/canucks-nils-hoglander-goal-2021-PPUGEWg40luejKqx8Z", 8481535)); // Canucks Graphic 2021
-		add(scorer("https://media.tenor.co/videos/07d387f34b87b40f7380ceb06deba795/mp4", 8481535)); // Cute Pig
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950365438779402/hog_2023.gif", 8481535)); // Canucks Graphic 2023
 		
 		// Vasily Podkolzin
@@ -93,7 +95,8 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167942592412012615/huggy_2023.gif", 8480800)); // Canucks Graphic 2023
 		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170085860679614606/huggy_cele.gif", 8480800)); // Cele
 		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170094295328493568/huggy_goal_skate_23.gif", 8480800)); // Canucks Graphic 2023 - Skate
-
+		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1171173832267137094/quinnhughespoint.gif", 8480800)); // Canucks 2023 - Black Skate Promo
+		
 		// Tyler Myers
 		add(scorer("🦒", 8474574));
 		add(scorer("https://cdn.discordapp.com/emojis/685700452826087457.png", 8474574));
@@ -110,6 +113,7 @@ public class CanucksCollection extends CustomMessageCollection {
 
 		// Ilya Mikheyev
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167944430381170749/mik_2023.gif", 8481624));
+		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1171178247900369018/mikheyevfingerguns.gif", 8481624)); // Canucks 2023 - Black Skate Promo
 
 		// Dakota Joshua
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950361735209040/joshua_2023.gif", 8478057));
@@ -122,6 +126,9 @@ public class CanucksCollection extends CustomMessageCollection {
 
 		// Pius Suter
 		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170087547918102609/suter_goal.gif", 8480459));
+
+		// Thatcher Demko
+		add(scorer("https://cdn.discordapp.com/attachments/240245066017406976/1171178501886447657/demkohattilt.gif", 8477967));
 		
 		/*
 		 *  Combos

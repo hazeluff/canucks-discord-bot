@@ -1,15 +1,15 @@
-package com.hazeluff.discord.bot.gdc.custom;
+package com.hazeluff.discord.bot.gdc.custom.goal;
 
-import static com.hazeluff.discord.bot.gdc.custom.CustomMessage.hatTrick;
-import static com.hazeluff.discord.bot.gdc.custom.CustomMessage.involved;
-import static com.hazeluff.discord.bot.gdc.custom.CustomMessage.scorer;
-import static com.hazeluff.discord.bot.gdc.custom.CustomMessage.team;
+import static com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessage.goals;
+import static com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessage.hatTrick;
+import static com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessage.involved;
+import static com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessage.scorer;
 
 import com.hazeluff.nhl.Team;
 
 @SuppressWarnings("serial")
-public class CanucksCollection extends CustomMessageCollection {
-	public CanucksCollection() {
+public class CanucksGoalCollection extends CustomGoalMessage.Collection {
+	public CanucksGoalCollection() {
 		super();
 
 		/*
@@ -35,6 +35,8 @@ public class CanucksCollection extends CustomMessageCollection {
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950364893511681/petey_2023.gif", 8480012)); // Canucks Graphic 2023
 		add(scorer("https://media.discordapp.net/attachments/1170084611422949396/1170094296549031946/ep_goal_skate_23.gif", 8480012)); // Canucks Graphic 2023
 		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1171154905331925113/peteyglassestoss.gif", 8480012)); // Canucks 2023 - Black Skate Promo
+		add(scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1171228720724459640/petey_point.gif", 8480012)); // Goal - Pointing at A
+		add(goals("https://cdn.discordapp.com/attachments/1170084611422949396/1171226312543850586/2018_mr_petey_sr.gif", 3, 8480012, 2)); // Dad - 2 fingers
 		
 		// Brock Boeser
 		add(scorer("Brock Hard", 8478444));
@@ -144,14 +146,16 @@ public class CanucksCollection extends CustomMessageCollection {
 		
 		// Brock, Petey
 		add(involved("https://tenor.com/view/brock-boeser-vancouver-canucks-canucks-canucks-goal-canucks-win-gif-18115227", 
-						8478444, 8480012));  // Goal celly hug
-		add(involved("You're fucked. That was fucked. Holy fuck."
-				+ "\nhttps://gfycat.com/imaginativewelltodohamadryad", 
-						8478444, 8480012)); 
+				8478444, 8480012)); // Goal celly hug
+		add(involved("https://cdn.discordapp.com/attachments/1170084611422949396/1171233918159163432/fucked_cut.gif", 
+				8478444, 8480012)); // Fucked
 		add(involved("https://giphy.com/gifs/nhl-goal-hug-pettersson-elias-OqAeJeUnA1S9n4XIk2", 
 				8478444, 8480012)); // Petey goal celly
 		add(involved("https://giphy.com/gifs/nhl-vancouver-canucks-elias-pettersson-brock-boeser-XGUFWnjdpfU7y2DEB5",
 				8478444, 8480012)); // Bench; Brock arm around Petey
+		add(involved("https://media.discordapp.net/attachments/1170084611422949396/1171226315089776761/2018_brock_petey.gif",
+				8478444, 8480012)); // Bench; Pat Knee
+		
 
 		// Huggy, Hronek
 		add(involved(
@@ -161,35 +165,25 @@ public class CanucksCollection extends CustomMessageCollection {
 		/*
 		 * Team
 		 */
-		add(team("https://tenor.com/view/vancouver-canucks-fin-the-whale-canucks-nhl-mascot-gif-16319829", 
-				Team.VANCOUVER_CANUCKS)); // Fin
-		add(team("https://tenor.com/view/vancouver-canucks-fin-the-whale-goal-canucks-goal-go-canucks-go-gif-16515260", 
-				Team.VANCOUVER_CANUCKS)); // Fin ref
-		add(team("https://tenor.com/view/vancouver-canucks-fin-the-whale-canucks-lets-go-canucks-go-canucks-go-gif-16279068", 
-				Team.VANCOUVER_CANUCKS)); // Fin flying v dance
-		add(team("https://tenor.com/view/vancouver-canucks-gif-18155387", 
-				Team.VANCOUVER_CANUCKS)); // Fin flying v dance
-		add(team("https://tenor.com/view/vancouver-canucks-nhl-hockey-canucks-win-dancing-gif-16364902",
-				Team.VANCOUVER_CANUCKS)); // The clapper
-		add(team("https://tenor.com/view/vancouver-canucks-canucks-goal-canucks-win-goal-score-gif-16300297",
-				Team.VANCOUVER_CANUCKS)); // Generic
-		add(team("https://giphy.com/gifs/canucks-vancouver-canucks-goal-VZidxu7DtmXARTVxgF",
-				Team.VANCOUVER_CANUCKS)); // Generic
-		add(team("https://giphy.com/gifs/NHLonNBCSports-hockey-nhl-bo-horvat-TIiEfU8urXasAaktqU",
-				Team.VANCOUVER_CANUCKS)); // Bo Candy Basket
-		add(team("https://giphy.com/gifs/goal-zack-kassian-p0vOT3eYQKAFO",
-				Team.VANCOUVER_CANUCKS)); // Kass; Fuck Yeah
-		add(team("https://www.youtube.com/watch?v=z9WeBV8O3ag",
-				Team.VANCOUVER_CANUCKS)); // 2019 horn - Holiday
-		add(team("https://www.youtube.com/watch?v=Jv7wN9a3u4M", 
-				Team.VANCOUVER_CANUCKS)); // 2020 horn - Ain't talking bout love
-		add(team("https://giphy.com/gifs/nhl-cute-baby-fan-MWdNeUQqWhe3k4jMX0",
-				Team.VANCOUVER_CANUCKS)); // Baby wave
-		add(team("https://gfycat.com/memorablehollowamericancicada-green-dance-man",
-				Team.VANCOUVER_CANUCKS)); // Green men
-		add(team("https://cdn.discordapp.com/attachments/276953120964083713/1167950362293063781/2023.gif",
-				Team.VANCOUVER_CANUCKS)); // Generic 2023
-		add(team("https://cdn.discordapp.com/attachments/1170084611422949396/1170085859450695810/ea_fin.gif",
-				Team.VANCOUVER_CANUCKS)); // EA Fin
+		add(team("https://tenor.com/view/vancouver-canucks-fin-the-whale-canucks-nhl-mascot-gif-16319829")); // Fin
+		add(team("https://tenor.com/view/vancouver-canucks-fin-the-whale-goal-canucks-goal-go-canucks-go-gif-16515260")); // Fin ref
+		add(team("https://tenor.com/view/vancouver-canucks-fin-the-whale-canucks-lets-go-canucks-go-canucks-go-gif-16279068")); // Fin flying v dance
+		add(team("https://tenor.com/view/vancouver-canucks-gif-18155387")); // Fin flying v dance
+		add(team("https://tenor.com/view/vancouver-canucks-nhl-hockey-canucks-win-dancing-gif-16364902")); // The clapper
+		add(team("https://tenor.com/view/vancouver-canucks-canucks-goal-canucks-win-goal-score-gif-16300297")); // Generic
+		add(team("https://giphy.com/gifs/canucks-vancouver-canucks-goal-VZidxu7DtmXARTVxgF")); // Generic
+		add(team("https://giphy.com/gifs/goal-zack-kassian-p0vOT3eYQKAFO")); // Kass; Fuck Yeah
+		add(team("https://www.youtube.com/watch?v=z9WeBV8O3ag")); // 2019 horn - Holiday
+		add(team("https://www.youtube.com/watch?v=Jv7wN9a3u4M")); // 2020 horn - Ain't talking bout love
+		add(team("https://giphy.com/gifs/nhl-cute-baby-fan-MWdNeUQqWhe3k4jMX0")); // Baby wave
+		add(team("https://gfycat.com/memorablehollowamericancicada-green-dance-man")); // Green men
+		add(team("https://cdn.discordapp.com/attachments/276953120964083713/1167950362293063781/2023.gif")); // Generic 2023
+		add(team("https://cdn.discordapp.com/attachments/1170084611422949396/1170085859450695810/ea_fin.gif")); // EA Fin
+		add(team("https://cdn.discordapp.com/attachments/1170084611422949396/1171226313307197450/2018_fan_pound_chest.gif")); // Fan Chest Pound
+		add(team("https://cdn.discordapp.com/attachments/1170084611422949396/1171226315970596915/2018_kid.gif")); // Fan Kid Impressed
+	}
+	
+	static CustomGoalMessage team(String message) {
+		return CustomGoalMessage.team(message, Team.VANCOUVER_CANUCKS);
 	}
 }

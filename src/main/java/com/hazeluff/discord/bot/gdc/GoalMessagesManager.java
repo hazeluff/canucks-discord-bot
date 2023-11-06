@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
+import com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessages;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.game.Game;
@@ -150,7 +150,7 @@ public class GoalMessagesManager {
 
 		if (!isSpam()) {
 			// Custom Message - only send when within the spam cooldown
-			String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
+			String messageContent = CustomGoalMessages.getMessage(game.getScoringEvents(), event);
 			if (messageContent != null) {
 				Message customMessage = DiscordManager.sendAndGetMessage(channel, messageContent);
 				if (customMessage != null) {

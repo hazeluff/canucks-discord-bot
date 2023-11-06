@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.custom;
+package com.hazeluff.discord.bot.gdc.custom.goal;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -8,25 +8,24 @@ import java.util.stream.Stream;
 
 import com.hazeluff.nhl.event.GoalEvent;
 
-public class CustomMessages {
+public class CustomGoalMessages {
 
-	private static final List<CustomMessage> customMessages = 
+	private static final List<CustomGoalMessage> customMessages = 
 			Stream.of(
-					new CanucksCollection(), 
-					new CanucksAlumniCollection()
+				new CanucksGoalCollection()
 			)
             .flatMap(Collection::stream)
-            .collect(Collectors.toList());;
+					.collect(Collectors.toList());
 
-	public static String getCustomMessage(List<GoalEvent> allGoalEvents, GoalEvent currentEvent) {
-		// Filter allGoalEvents down to events that are or were before currentEvent
+	public static String getMessage(List<GoalEvent> allGoalEvents, GoalEvent currentEvent) {
+		// Filter all GoalEvents down to events that are or were before currentEvent
 		List<GoalEvent> previousEvents = allGoalEvents.stream()
 				.filter(goalEvent -> goalEvent.getId() <= currentEvent.getId())
 				.collect(Collectors.toList());
 
 		// Get all applicable custom messages
-		List<CustomMessage> applicableMessages = customMessages.stream()
-				.filter(customMsg -> customMsg.isApplicable(previousEvents, currentEvent))
+		List<CustomGoalMessage> applicableMessages = customMessages.stream()
+				.filter(customMsg -> customMsg.applies(previousEvents, currentEvent))
 				.collect(Collectors.toList());
 		if (applicableMessages.isEmpty()) {
 			return null;
@@ -34,7 +33,7 @@ public class CustomMessages {
 
 		// Filter list down to only custom messages of highest priority
 		int highestMsgPrio = Collections
-				.max(applicableMessages.stream().map(CustomMessage::getPriority).collect(Collectors.toList()));
+				.max(applicableMessages.stream().map(CustomGoalMessage::getPriority).collect(Collectors.toList()));
 		applicableMessages = applicableMessages.stream()
 				.filter(msg -> msg.getPriority() == highestMsgPrio)
 				.collect(Collectors.toList());

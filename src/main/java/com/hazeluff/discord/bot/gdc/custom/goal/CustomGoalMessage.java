@@ -1,5 +1,6 @@
-package com.hazeluff.discord.bot.gdc.custom;
+package com.hazeluff.discord.bot.gdc.custom.goal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -7,14 +8,14 @@ import java.util.function.Predicate;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GoalEvent;
 
-public class CustomMessage {
+public class CustomGoalMessage {
 
 	private final String message;
 	private final Predicate<GoalEvent> goalApplicable;
 	private final Predicate<List<GoalEvent>> goalsApplicable;
 	private final int priority;
 
-	public CustomMessage(String message, Predicate<GoalEvent> goalApplicable,
+	public CustomGoalMessage(String message, Predicate<GoalEvent> goalApplicable,
 			Predicate<List<GoalEvent>> goalsApplicable, int priority) {
 		this.message = message;
 		this.goalApplicable = goalApplicable;
@@ -22,7 +23,7 @@ public class CustomMessage {
 		this.priority = priority;
 	}
 
-	public CustomMessage(String message, Predicate<GoalEvent> goalApplicable, int priority) {
+	public CustomGoalMessage(String message, Predicate<GoalEvent> goalApplicable, int priority) {
 		this(message, goalApplicable, null, priority);
 	}
 
@@ -34,7 +35,7 @@ public class CustomMessage {
 		return priority;
 	}
 
-	public boolean isApplicable(List<GoalEvent> previousEvents, GoalEvent currentEvent) {
+	public boolean applies(List<GoalEvent> previousEvents, GoalEvent currentEvent) {
 		if (currentEvent == null || previousEvents == null) {
 			return false;
 		}
@@ -50,41 +51,51 @@ public class CustomMessage {
 	/*
 	 * Convenient Instance Creators
 	 */
-	public static CustomMessage hatTrick(String message, int playerId) {
-		return new CustomMessage(
+	public static CustomGoalMessage goals(String message, int priority, int playerId, int numGoals) {
+		return new CustomGoalMessage(
 				message, 
 				goalEvent -> goalEvent.getScorerId() == playerId, 
 				goalEvents -> {
-					long numGoals = goalEvents.stream().filter(goal -> goal.getScorerId() == playerId).count();
-					return numGoals == 3;
+					long goals = goalEvents.stream().filter(goal -> goal.getScorerId() == playerId).count();
+					return goals == numGoals;
 				}, 
-				3);
+				priority);
 	}
 	
-	public static CustomMessage scorer(String message, int scoringPlayerId) {
-		return new CustomMessage(
+	public static CustomGoalMessage hatTrick(String message, int playerId) {
+		return goals(message, 3, playerId, 3);
+	}
+	
+	public static CustomGoalMessage scorer(String message, int scoringPlayerId) {
+		return new CustomGoalMessage(
 				message, 
 				goalEvent -> goalEvent.getScorerId() == scoringPlayerId, 
 				2);
 	}
 
-	public static CustomMessage involved(String message, int involvedPlayerId) {
-		return new CustomMessage(
+	public static CustomGoalMessage involved(String message, int involvedPlayerId) {
+		return new CustomGoalMessage(
 				message, 
 				goalEvent -> goalEvent.getPlayerIds().contains(involvedPlayerId), 
 				2);
 	}
 
-	public static CustomMessage involved(String message, Integer... playerIds) {
+	public static CustomGoalMessage involved(String message, Integer... playerIds) {
 		List<Integer> involvedPlayerIdList = Arrays.asList(playerIds);
-		return new CustomMessage(message,
+		return new CustomGoalMessage(message,
 				goalEvent -> goalEvent.getPlayerIds().containsAll(involvedPlayerIdList),
 				2);
 	}
 
-	public static CustomMessage team(String message, Team team) {
-		return new CustomMessage(message,
+	public static CustomGoalMessage team(String message, Team team) {
+		return new CustomGoalMessage(message,
 				goalEvent -> goalEvent.getTeam().equals(team),
 				1);
 	}
+
+	@SuppressWarnings("serial")
+	public static abstract class Collection extends ArrayList<CustomGoalMessage> {
+
+	}
+
 }

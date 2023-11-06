@@ -24,6 +24,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.custom.game.CustomGameMessages;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
@@ -245,6 +246,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 					if (game.getGameState().isFinished()) {
 						updateEndOfGameMessage();
+						sendCustomEndMessage();
 					}
 				} catch (Exception e) {
 					LOGGER.error("Exception occured while running.", e);
@@ -504,6 +506,13 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
 	}
 
+
+	private void sendCustomEndMessage() {
+		String message = CustomGameMessages.getMessage(getGame());
+		if (message != null) {
+			sendMessage(message);
+		}
+	}
 
 	boolean isBotSelf(User user) {
 		return user.getId().equals(nhlBot.getDiscordManager().getId());

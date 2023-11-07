@@ -236,6 +236,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 			while (!gameTracker.isFinished()) {
 				try {
+					Utils.sleep(ACTIVE_POLL_RATE_MS);
+
 					updateMessages();
 
 					EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
@@ -243,17 +245,11 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					if (summaryMessage != null && updatedSummary) {
 						updateSummaryMessage(newSummaryMessageEmbed);
 					}
-
-					if (game.getGameState().isFinished()) {
-						updateEndOfGameMessage();
-					}
 				} catch (Exception e) {
 					LOGGER.error("Exception occured while running.", e);
-				} finally {
-					Utils.sleep(ACTIVE_POLL_RATE_MS);
 				}
 			}
-			updateEndOfGameMessage();
+			sendEndOfGameMessage();
 			sendCustomEndMessage();
 			sendWordcloud();
 		} else {
@@ -408,25 +404,15 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * End of game message
 	 */
 	/**
-	 * Updates/Sends the end of game message.
+	 * Sends the end of game message.
 	 */
-	void updateEndOfGameMessage() {
-		if (endOfGameMessage == null) {
-			if (channel != null) {
-				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-			if (endOfGameMessage != null) {
-				LOGGER.debug("Sent end of game message for game. Pinning it...");
-				DiscordManager.pinMessage(endOfGameMessage);
-			}
-		} else {
-			LOGGER.trace("End of game message already sent.");
-			String newEndOfGameMessage = buildEndOfGameMessage();
-			Message updatedMessage = DiscordManager
-					.updateAndGetMessage(endOfGameMessage, newEndOfGameMessage);
-			if (updatedMessage != null) {
-				endOfGameMessage = updatedMessage;
-			}
+	void sendEndOfGameMessage() {
+		if (channel != null) {
+			DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
+		}
+		if (endOfGameMessage != null) {
+			LOGGER.debug("Sent end of game message for game. Pinning it...");
+			DiscordManager.pinMessage(endOfGameMessage);
 		}
 	}
 
@@ -509,7 +495,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private void sendCustomEndMessage() {
 		String message = CustomGameMessages.getMessage(getGame());
-		if (message != null) {
+		LOGGER.info("msg=" + message);
+		if (channel != null && message != null) {
 			sendMessage(message);
 		}
 	}

@@ -54,6 +54,9 @@ public class CustomGameMessage {
 		return new CustomGameMessage(
 				message, 
 				game -> {
+					if (!game.containsTeam(team)) {
+						return false;
+					}
 					Team winningTeam = game.getWinningTeam();
 					return winningTeam == null 
 							? false

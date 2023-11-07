@@ -246,7 +246,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 					if (game.getGameState().isFinished()) {
 						updateEndOfGameMessage();
-						sendCustomEndMessage();
 					}
 				} catch (Exception e) {
 					LOGGER.error("Exception occured while running.", e);
@@ -254,7 +253,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					Utils.sleep(ACTIVE_POLL_RATE_MS);
 				}
 			}
-
+			updateEndOfGameMessage();
+			sendCustomEndMessage();
 			sendWordcloud();
 		} else {
 			LOGGER.info("Game is already finished");

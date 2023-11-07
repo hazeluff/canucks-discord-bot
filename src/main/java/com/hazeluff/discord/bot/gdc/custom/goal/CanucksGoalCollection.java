@@ -50,6 +50,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		add(scorer("https://giphy.com/gifs/canucks-brock-boeser-goal-2021-mn5mhmP5rNE9y8sxtC", 8478444)); // Canucks Graphic 2021
 		add(scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167941191883563089/boeser_2023.gif", 8478444)); // Canucks Graphic 2023
 		add(scorer("https://media.discordapp.net/attachments/1159191596647075843/1171177026485501973/brockboeserlookup.gif", 8478444)); // Canucks 2023 - Black Skate Promo
+		add(scorer("https://cdn.discordapp.com/attachments/1170625431741935677/1171293394589466704/Boeser.MOV", 8478444)); // BOOOESSERRRRRRR
 		
 		// J.T. Miller
 		add(scorer("**JONATHAN TONATHAN!**", 8476468));

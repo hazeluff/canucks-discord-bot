@@ -495,7 +495,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private void sendCustomEndMessage() {
 		String message = CustomGameMessages.getMessage(getGame());
-		LOGGER.info("msg=" + message);
 		if (channel != null && message != null) {
 			sendMessage(message);
 		}

@@ -48,54 +48,57 @@ public class CustomGoalMessage {
 		return true;
 	}
 
-	/*
-	 * Convenient Instance Creators
-	 */
-	public static CustomGoalMessage goals(String message, int priority, int playerId, int numGoals) {
-		return new CustomGoalMessage(
-				message, 
-				goalEvent -> goalEvent.getScorerId() == playerId, 
-				goalEvents -> {
-					long goals = goalEvents.stream().filter(goal -> goal.getScorerId() == playerId).count();
-					return goals == numGoals;
-				}, 
-				priority);
-	}
-	
-	public static CustomGoalMessage hatTrick(String message, int playerId) {
-		return goals(message, 3, playerId, 3);
-	}
-	
-	public static CustomGoalMessage scorer(String message, int scoringPlayerId) {
-		return new CustomGoalMessage(
-				message, 
-				goalEvent -> goalEvent.getScorerId() == scoringPlayerId, 
-				2);
-	}
-
-	public static CustomGoalMessage involved(String message, int involvedPlayerId) {
-		return new CustomGoalMessage(
-				message, 
-				goalEvent -> goalEvent.getPlayerIds().contains(involvedPlayerId), 
-				2);
-	}
-
-	public static CustomGoalMessage involved(String message, Integer... playerIds) {
-		List<Integer> involvedPlayerIdList = Arrays.asList(playerIds);
-		return new CustomGoalMessage(message,
-				goalEvent -> goalEvent.getPlayerIds().containsAll(involvedPlayerIdList),
-				2);
-	}
-
-	public static CustomGoalMessage team(String message, Team team) {
-		return new CustomGoalMessage(message,
-				goalEvent -> goalEvent.getTeam().equals(team),
-				1);
-	}
-
 	@SuppressWarnings("serial")
 	public static abstract class Collection extends ArrayList<CustomGoalMessage> {
+		abstract Team getTeam();
 
+		/*
+		 * Convenient List Appenders
+		 */
+		void goals(String message, int priority, int playerId, int numGoals) {
+			CustomGoalMessage customMessage = new CustomGoalMessage(
+					message, 
+					goalEvent -> goalEvent.getScorerId() == playerId, 
+					goalEvents -> {
+						long goals = goalEvents.stream().filter(goal -> goal.getScorerId() == playerId).count();
+						return goals == numGoals;
+					}, 
+					priority);
+			add(customMessage);
+		}
+
+		void hatTrick(String message, int playerId) {
+			goals(message, 3, playerId, 3);
+		}
+		
+		void scorer(String message, int scoringPlayerId) {
+			CustomGoalMessage customMessage = new CustomGoalMessage(
+					message, 
+					goalEvent -> goalEvent.getScorerId() == scoringPlayerId, 
+					2);
+			add(customMessage);
+		}
+
+		void involved(String message, int involvedPlayerId) {
+			CustomGoalMessage customMessage = new CustomGoalMessage(message,
+					goalEvent -> goalEvent.getPlayerIds().contains(involvedPlayerId), 2);
+			add(customMessage);
+		}
+
+		void involved(String message, Integer... playerIds) {
+			List<Integer> involvedPlayerIdList = Arrays.asList(playerIds);
+			CustomGoalMessage customMessage =  new CustomGoalMessage(message,
+					goalEvent -> goalEvent.getPlayerIds().containsAll(involvedPlayerIdList),
+					2);
+			add(customMessage);
+		}
+
+		void team(String message) {
+			CustomGoalMessage customMessage =  new CustomGoalMessage(message,
+					goalEvent -> goalEvent.getTeam().equals(getTeam()),
+					1);
+			add(customMessage);
+		}
 	}
 
 }

@@ -47,8 +47,8 @@ public class PlayByPlayData {
 			BsonDocument player = arrVal.asDocument();
 			RosterPlayer rosterPlayer = new RosterPlayer(
 					player.getInt32("playerId").getValue(),
-					player.getString("firstName").getValue(),
-					player.getString("lastName").getValue(),
+					player.getDocument("firstName").getString("default").getValue(),
+					player.getDocument("lastName").getString("default").getValue(),
 					player.getString("positionCode").getValue(),
 					player.getInt32("sweaterNumber").getValue(), 
 					Team.parse(player.getInt32("teamId").getValue())

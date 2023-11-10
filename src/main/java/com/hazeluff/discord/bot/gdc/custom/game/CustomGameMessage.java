@@ -32,58 +32,61 @@ public class CustomGameMessage {
 
 	@SuppressWarnings("serial")
 	public static abstract class Collection extends ArrayList<CustomGameMessage> {
+		abstract Team getTeam();
 
-	}
-
-	/*
-	 * Convenient Instance Creators
-	 */
-	public static CustomGameMessage win(String message, Team team) {
-		return new CustomGameMessage(
-				message, 
-				game -> {
-					Team winningTeam = game.getWinningTeam();
-					return winningTeam == null 
-							? false
-							: winningTeam.equals(team);
-				}, 
-				1);
-	}
-
-	public static CustomGameMessage lose(String message, Team team) {
-		return new CustomGameMessage(
-				message, 
-				game -> {
-					if (!game.containsTeam(team)) {
+		/*
+		 * Convenient List Appenders
+		 */
+		public void win(String message) {
+			CustomGameMessage customMessage = new CustomGameMessage(
+					message, 
+					game -> {
+						Team winningTeam = game.getWinningTeam();
+						return winningTeam == null 
+								? false
+										: winningTeam.equals(getTeam());
+					}, 
+					1);
+			add(customMessage);
+		}
+		
+		public void lose(String message) {
+			CustomGameMessage customMessage = new CustomGameMessage(
+					message, 
+					game -> {
+						if (!game.containsTeam(getTeam())) {
+							return false;
+						}
+						Team winningTeam = game.getWinningTeam();
+						return winningTeam == null 
+								? false
+										: !winningTeam.equals(getTeam());
+					}, 
+					1);
+			add(customMessage);
+		}
+		
+		public void shutout(String message) {
+			CustomGameMessage customMessage = new CustomGameMessage(
+					message, 
+					game -> {
+						Team winningTeam = game.getWinningTeam();
+						if (winningTeam == null) {
+							return false;
+						}
+								if (!winningTeam.equals(getTeam())) {
+							return false;
+						}
+						if(winningTeam.equals(game.getAwayTeam()) && game.getHomeScore() == 0) {
+							return true;
+						}
+						if(winningTeam.equals(game.getHomeTeam()) && game.getAwayScore() == 0) {
+							return true;
+						}					
 						return false;
-					}
-					Team winningTeam = game.getWinningTeam();
-					return winningTeam == null 
-							? false
-							: !winningTeam.equals(team);
-				}, 
-				1);
-	}
-
-	public static CustomGameMessage shutout(String message, Team team) {
-		return new CustomGameMessage(
-				message, 
-				game -> {
-					Team winningTeam = game.getWinningTeam();
-					if (winningTeam == null) {
-						return false;
-					}
-					if (!winningTeam.equals(team)) {
-						return false;
-					}
-					if(winningTeam.equals(game.getAwayTeam()) && game.getHomeScore() == 0) {
-						return true;
-					}
-					if(winningTeam.equals(game.getHomeTeam()) && game.getAwayScore() == 0) {
-						return true;
-					}					
-					return false;
-				}, 
-				2);
+					}, 
+					2);
+			add(customMessage);
+		}
 	}
 }

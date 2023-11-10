@@ -99,7 +99,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.preferences = preferences;
 		this.meta = meta;
 		this.goalMessages = new GoalMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
-		this.penaltyMessages = new PenaltyMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
+		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
 	}
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
@@ -233,6 +233,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 			while (!gameTracker.isFinished()) {
 				try {
+					Utils.sleep(ACTIVE_POLL_RATE_MS);
+
 					updateMessages();
 
 					EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
@@ -240,16 +242,11 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					if (summaryMessage != null && updatedSummary) {
 						updateSummaryMessage(newSummaryMessageEmbed);
 					}
-
-					if (game.getGameState().isFinished()) {
-						updateEndOfGameMessage();
-					}
 				} catch (Exception e) {
 					LOGGER.error("Exception occured while running.", e);
-				} finally {
-					Utils.sleep(ACTIVE_POLL_RATE_MS);
 				}
 			}
+			sendEndOfGameMessage();
 		} else {
 			LOGGER.info("Game is already finished");
 		}
@@ -402,25 +399,15 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * End of game message
 	 */
 	/**
-	 * Updates/Sends the end of game message.
+	 * Sends the end of game message.
 	 */
-	void updateEndOfGameMessage() {
-		if (endOfGameMessage == null) {
-			if (channel != null) {
-				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-			if (endOfGameMessage != null) {
-				LOGGER.debug("Sent end of game message for game. Pinning it...");
-				DiscordManager.pinMessage(endOfGameMessage);
-			}
-		} else {
-			LOGGER.trace("End of game message already sent.");
-			String newEndOfGameMessage = buildEndOfGameMessage();
-			Message updatedMessage = DiscordManager
-					.updateAndGetMessage(endOfGameMessage, newEndOfGameMessage);
-			if (updatedMessage != null) {
-				endOfGameMessage = updatedMessage;
-			}
+	void sendEndOfGameMessage() {
+		if (channel != null) {
+			DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
+		}
+		if (endOfGameMessage != null) {
+			LOGGER.debug("Sent end of game message for game. Pinning it...");
+			DiscordManager.pinMessage(endOfGameMessage);
 		}
 	}
 
@@ -479,8 +466,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private static Message sendWelcomeMessage(TextChannel channel, Game game) {
-		String strMessage = buildDetailsMessage(
-				game)
+		String strMessage = buildDetailsMessage(game)
 				+ "\n\n"
 				+ getHelpMessageText();
 		Message message = DiscordManager.sendAndGetMessage(channel,

@@ -133,9 +133,6 @@ public class Game {
 	}
 
 	public Team getWinningTeam() {
-		if (!getGameState().isFinished()) {
-			return null;
-		}
 		if (getHomeScore() > getAwayScore()) {
 			return getHomeTeam();
 		}

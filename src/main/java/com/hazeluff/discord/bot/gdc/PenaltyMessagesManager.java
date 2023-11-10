@@ -30,7 +30,6 @@ import discord4j.rest.util.Color;
  */
 public class PenaltyMessagesManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PenaltyMessagesManager.class);
-	private final long cooldown;
 	private final NHLBot nhlBot;
 	private final Game game;
 	private final TextChannel channel;
@@ -40,8 +39,7 @@ public class PenaltyMessagesManager {
 	private List<PenaltyEvent> cachedEvents = new ArrayList<>(); // Last known state of events
 	private final Map<Integer, Message> eventMessages = new HashMap<>();
 
-	public PenaltyMessagesManager(long cooldown, NHLBot nhlBot, Game game, TextChannel channel, GDCMeta meta) {
-		this.cooldown = cooldown;
+	public PenaltyMessagesManager(NHLBot nhlBot, Game game, TextChannel channel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;

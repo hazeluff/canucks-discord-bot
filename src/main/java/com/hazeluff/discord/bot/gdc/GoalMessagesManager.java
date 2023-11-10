@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.custom.CustomMessages;
+import com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessages;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.game.Game;
@@ -150,7 +150,7 @@ public class GoalMessagesManager {
 
 		if (!isSpam()) {
 			// Custom Message - only send when within the spam cooldown
-			String messageContent = CustomMessages.getCustomMessage(game.getScoringEvents(), event);
+			String messageContent = CustomGoalMessages.getMessage(game.getScoringEvents(), event);
 			if (messageContent != null) {
 				Message customMessage = DiscordManager.sendAndGetMessage(channel, messageContent);
 				if (customMessage != null) {
@@ -179,7 +179,8 @@ public class GoalMessagesManager {
 			Message message = eventMessages.get(event.getId()).getValue1();
 			if (message != null) {
 				MessageEditSpec messageSpec = MessageEditSpec.builder()
-						.addEmbed(buildGoalMessageEmbed(this.game, event)).build();
+						.addEmbed(buildGoalMessageEmbed(this.game, event))
+						.build();
 				DiscordManager.updateMessage(message, messageSpec);
 				eventMessages.put(event.getId(), Pair.with(event, message));
 			}
@@ -189,8 +190,7 @@ public class GoalMessagesManager {
 	boolean relinkEventMessage(GoalEvent event) {
 		Pair<GoalEvent, Message> eventMessage = eventMessages.entrySet().stream()
 			.map(entry -> entry.getValue())
-				.filter(em -> em
-						.getValue1() != null)
+			.filter(em -> em.getValue1() != null)
 			.filter(em -> em.getValue0() != null && em.getValue0().isSameTime(event))
 			.findAny()
 			.orElse(null);

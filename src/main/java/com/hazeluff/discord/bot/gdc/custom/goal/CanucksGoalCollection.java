@@ -98,6 +98,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170085860679614606/huggy_cele.gif", 8480800); // Cele
 		scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1170094295328493568/huggy_goal_skate_23.gif", 8480800); // Canucks Graphic 2023 - Skate
 		scorer("https://media.discordapp.net/attachments/1159191596647075843/1171173832267137094/quinnhughespoint.gif", 8480800); // Canucks 2023 - Black Skate Promo
+		scorer("https://cdn.discordapp.com/attachments/1170084611422949396/1172771154281373798/hughes_skate_goal_ingame.gif", 8480800);
 		
 		// Tyler Myers
 		scorer("🦒", 8474574);
@@ -158,8 +159,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		
 
 		// Huggy, Hronek
-		involved(
-				"https://cdn.discordapp.com/attachments/276953120964083713/1167937724649590918/batman_and_robin.mp4",
+		involved("https://cdn.discordapp.com/attachments/276953120964083713/1167937724649590918/batman_and_robin.mp4",
 				8480800, 8479425);
 
 		/*

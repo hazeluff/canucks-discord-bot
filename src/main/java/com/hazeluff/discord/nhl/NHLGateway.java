@@ -175,11 +175,11 @@ public class NHLGateway {
 	/**
 	 * Maps the standingsEnd date to the correct start year.
 	 * 
-	 * @param standingsStart
+	 * @param standingsEnd
 	 * @return
 	 */
-	static int mapStandingsEndToStartYear(String standingsStart) {
-		switch (standingsStart) {
+	static int mapStandingsEndToStartYear(String standingsEnd) {
+		switch (standingsEnd) {
 		case "1995-01-20": // Lockout
 			return 1994;
 		case "2013-01-19": // Lockout
@@ -187,8 +187,8 @@ public class NHLGateway {
 		case "2021-01-13": // Covid
 			return 2020;
 		default:
-			// Strip from start date
-			return Integer.parseInt(standingsStart.split("-")[0]);
+			// Strip from end date
+			return Integer.parseInt(standingsEnd.split("-")[0]);
 		}
 	}
 }

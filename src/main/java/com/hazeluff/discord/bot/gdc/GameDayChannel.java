@@ -23,7 +23,6 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
-import discord4j.core.spec.EmbedCreateSpec.Builder;
 import discord4j.core.spec.MessageCreateSpec;
 
 public class GameDayChannel extends Thread implements IEventProcessor {
@@ -126,7 +125,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	public static EmbedCreateSpec buildEmbed(Game game) {
-		Builder embedBuilder = EmbedCreateSpec.builder();
+		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		TeamStats homeStats = game.getHomeStats();
 		String homeGoals = String.format("Goals: **%s**", game.getHomeScore());
 		String homeSog = String.format("SOG: **%s**", homeStats.getSog());

@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.channel.NHLReminderChannelManager;
+import com.hazeluff.discord.bot.channel.NHLRemindersChannelManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
@@ -48,13 +48,13 @@ public class NHLBot extends Thread {
 	private PersistentData persistantData;
 	private GameScheduler gameScheduler;
 	private GameDayChannelsManager gameDayChannelsManager;
-	private final NHLReminderChannelManager nhlReminderChannelManager;
+	private final NHLRemindersChannelManager nhlReminderChannelManager;
 	
 	private NHLBot() {
 		this.persistantData = null;
 		this.gameScheduler = null;
 		this.gameDayChannelsManager = null;
-		this.nhlReminderChannelManager = new NHLReminderChannelManager(this);
+		this.nhlReminderChannelManager = new NHLRemindersChannelManager(this);
 	}
 
 	/**

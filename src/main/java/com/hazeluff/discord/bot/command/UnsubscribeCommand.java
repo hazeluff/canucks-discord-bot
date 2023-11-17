@@ -76,20 +76,19 @@ public class UnsubscribeCommand extends Command {
 		return InteractionFollowupCreateSpec.builder().content(buildUnsubscribeMessage(team)).build();
 	}
 
-	static final String HELP_MESSAGE = "Unsubscribe from Game Day Channels of the specified team."
+	static final String HELP_MESSAGE = "Unsubscribe from reminders of the specified team."
 			+ " Channels will be automatically removed."
 			+ "[team] is the 3 letter code of the teams following:\n"
-			+ HelpCommand.listOfTeams()
-			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
+			+ HelpCommand.listOfTeams();
 	
 	static final String SPECIFY_TEAM_MESSAGE = 
 			"You must specify a parameter for what team you want to unsubscribe from. "
-					+ "`?subscribe [team]`\n"
-					+ "You may also use `?unsubscrube all` to unsubscribe from **all** teams.";
+					+ "`/subscribe team:[team]`\n"
+					+ "You may also use `/unsubscrube team:all` to unsubscribe from **all** teams.";
 
 	String buildHelpMessage(Guild guild) {
 		StringBuilder response = new StringBuilder(
-				"Unsubscribe from any of your subscribed teams by typing `?unsubscribe [team]`, "
+				"Unsubscribe from any of your subscribed teams by typing `/unsubscribe team:[team]`, "
 						+ "where [team] is the one of the three letter codes for your subscribed teams below: ")
 								.append("```");
 		List<Team> teams = nhlBot.getPersistentData()
@@ -106,7 +105,7 @@ public class UnsubscribeCommand extends Command {
 
 	private void unsubscribeGuild(Guild guild, Team team) {
 		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), team);
-		nhlBot.getGameDayChannelsManager().updateChannels(guild);
+		nhlBot.getGameDayChannelsManager().updateGuild(guild);
 	}
 
 	static String buildUnsubscribeMessage(Team team) {

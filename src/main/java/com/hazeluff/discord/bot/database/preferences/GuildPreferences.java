@@ -27,6 +27,10 @@ public class GuildPreferences {
 		teams.add(team);
 	}
 
+	public void addTeams(List<Team> team) {
+		teams.addAll(team);
+	}
+
 	public void removeTeam(Team team) {
 		teams.remove(team);
 	}

@@ -1,72 +1,47 @@
 package com.hazeluff.nhl.game;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
-import org.bson.BsonArray;
 import org.bson.BsonDocument;
+import org.bson.BsonDouble;
 import org.bson.BsonInt32;
-import org.bson.BsonValue;
+import org.bson.BsonString;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.nhl.Team;
-import com.hazeluff.nhl.event.GameEvent;
+public class BoxScoreData {
+	private static final Logger LOGGER = LoggerFactory.getLogger(BoxScoreData.class);
 
-public class PlayByPlayData {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PlayByPlayData.class);
-
-	private AtomicReference<BsonDocument> jsonPbp;
+	private AtomicReference<BsonDocument> jsonBoxScore;
 
 	private final TeamStats homeStats;
 	private final TeamStats awayStats;
 
-	PlayByPlayData(BsonDocument pbpJson, TeamStats homeStats, TeamStats awayStats) {
-		this.jsonPbp = new AtomicReference<>(pbpJson);
+	BoxScoreData(BsonDocument jsonBoxScore, TeamStats homeStats, TeamStats awayStats) {
+		this.jsonBoxScore = new AtomicReference<>(jsonBoxScore);
 		this.homeStats = homeStats;
 		this.awayStats = awayStats;
 	}
 
-	public static PlayByPlayData parse(BsonDocument jsonPbp) {
+	public static BoxScoreData parse(BsonDocument jsonPbp) {
 		try {
 			TeamStats homeStats = TeamStats.parse(jsonPbp.getDocument("homeTeam"));
 			TeamStats awayStats = TeamStats.parse(jsonPbp.getDocument("awayTeam"));
-			return new PlayByPlayData(jsonPbp, homeStats, awayStats);
+			return new BoxScoreData(jsonPbp, homeStats, awayStats);
 		} catch (Exception e) {
 			LOGGER.error("Could not parse json.", e);
 			return null;
 		}
 	}
 
-	static Map<Integer, RosterPlayer> parseRosterSpots(BsonArray array) {
-		Map<Integer, RosterPlayer> players = new HashMap<>();
-		for (BsonValue arrVal : array) {
-			BsonDocument player = arrVal.asDocument();
-			RosterPlayer rosterPlayer = new RosterPlayer(
-					player.getInt32("playerId").getValue(),
-					player.getDocument("firstName").getString("default").getValue(),
-					player.getDocument("lastName").getString("default").getValue(),
-					player.getString("positionCode").getValue(),
-					player.getInt32("sweaterNumber").getValue(), 
-					Team.parse(player.getInt32("teamId").getValue())
-			);
-			players.put(rosterPlayer.getPlayerId(), rosterPlayer);
-		}
-		return players;
-	}
-
 	public void update(BsonDocument playByPlayJson) {
-		this.jsonPbp.set(playByPlayJson);
+		this.jsonBoxScore.set(playByPlayJson);
 		this.homeStats.update(playByPlayJson.getDocument("homeTeam"));
 		this.awayStats.update(playByPlayJson.getDocument("awayTeam"));
-		// this.players - Player rosters do not need to be updated
 	}
 
 	public BsonDocument getJson() {
-		return jsonPbp.get();
+		return jsonBoxScore.get();
 	}
 
 	public String getGameScheduleState() {
@@ -93,10 +68,6 @@ public class PlayByPlayData {
 		return getClock().getString("timeRemaining").getValue();
 	}
 
-	public int getClockRemainingSeconds() {
-		return getClock().getInt32("secondsRemaining").getValue();
-	}
-
 	public TeamStats getHomeStats() {
 		return homeStats;
 	}
@@ -105,7 +76,7 @@ public class PlayByPlayData {
 		return awayStats;
 	}
 
-	static class TeamStats {
+	public static class TeamStats {
 		AtomicReference<BsonDocument> jsonTeamStats;
 
 		TeamStats(BsonDocument jsonTeamStats) {
@@ -124,12 +95,32 @@ public class PlayByPlayData {
 			this.jsonTeamStats.set(jsonTeamStats);
 		}
 
-		public int getScore() {
-			return getJson().getInt32("score").getValue();
+		public int getBlocks() {
+			return getJson().getInt32("blocks", new BsonInt32(0)).getValue();
 		}
 
-		public int getSOG() {
-			return getJson().getInt32("sog").getValue();
+		public double getFaceoffWinPctg() {
+			return getJson().getDouble("faceoffWinningPctg", new BsonDouble(0.0)).getValue();
+		}
+
+		public int getHits() {
+			return getJson().getInt32("hits", new BsonInt32(0)).getValue();
+		}
+
+		public String getPowerPlayConv() {
+			return getJson().getString("powerPlayConversion", new BsonString("0/0")).getValue();
+		}
+
+		public int getPim() {
+			return getJson().getInt32("pim", new BsonInt32(0)).getValue();
+		}
+
+		public int getScore() {
+			return getJson().getInt32("score", new BsonInt32(0)).getValue();
+		}
+
+		public int getSog() {
+			return getJson().getInt32("sog", new BsonInt32(0)).getValue();
 		}
 
 		@Override
@@ -159,26 +150,13 @@ public class PlayByPlayData {
 
 	}
 
-	public List<GameEvent> getPlays() {
-		return getJson().getArray("plays")
-			.getValues()
-			.stream()
-			.map(BsonValue::asDocument)
-			.map(GameEvent::parse)
-			.collect(Collectors.toList());
-	}
-
-	public Map<Integer, RosterPlayer> getPlayers() {
-		return parseRosterSpots(this.jsonPbp.get().getArray("rosterSpots"));
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((awayStats == null) ? 0 : awayStats.hashCode());
 		result = prime * result + ((homeStats == null) ? 0 : homeStats.hashCode());
-		result = prime * result + ((jsonPbp == null) ? 0 : jsonPbp.hashCode());
+		result = prime * result + ((jsonBoxScore == null) ? 0 : jsonBoxScore.hashCode());
 		return result;
 	}
 
@@ -190,7 +168,7 @@ public class PlayByPlayData {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		PlayByPlayData other = (PlayByPlayData) obj;
+		BoxScoreData other = (BoxScoreData) obj;
 		if (awayStats == null) {
 			if (other.awayStats != null)
 				return false;
@@ -201,10 +179,10 @@ public class PlayByPlayData {
 				return false;
 		} else if (!homeStats.equals(other.homeStats))
 			return false;
-		if (jsonPbp == null) {
-			if (other.jsonPbp != null)
+		if (jsonBoxScore == null) {
+			if (other.jsonBoxScore != null)
 				return false;
-		} else if (!jsonPbp.equals(other.jsonPbp))
+		} else if (!jsonBoxScore.equals(other.jsonBoxScore))
 			return false;
 		return true;
 	}

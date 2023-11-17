@@ -55,6 +55,11 @@ public class SubscribeCommand extends Command {
 
 		String strTeam = getOptionAsString(event, "team");
 
+		if (strTeam.equalsIgnoreCase("all")) {
+			// Unsubscribe from all teams
+			return replyAndDefer(event, "Subscribing...", () -> buildFollowUp(event, guild, null));
+		}
+
 		if (!Team.isValid(strTeam)) {
 			return event.reply(getInvalidTeamCodeMessage(strTeam)).withEphemeral(true);
 		}
@@ -63,11 +68,11 @@ public class SubscribeCommand extends Command {
 		return Command.replyAndDefer(event, "Subscribing...", () -> buildFollowUp(event, guild, team));
 	}
 
-	static final String HELP_MESSAGE = "Subscribe to create Game Day Channels of the most recent games for that team."
+	static final String HELP_MESSAGE = "Subscribe to create reminders for that team."
 			+ " Channels will be automatically added and removed each night."
 			+ "[team] is the 3 letter code of the teams following:\n"
 			+ HelpCommand.listOfTeams()
-			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
+			+ "\nYou can unsubscribe from them using `/unsubscribe team:[team]`.";
 
 	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
 		subscribeGuild(guild, team);
@@ -76,7 +81,7 @@ public class SubscribeCommand extends Command {
 
 	private void subscribeGuild(Guild guild, Team team) {
 		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guild.getId().asLong(), team);
-		nhlBot.getGameDayChannelsManager().updateChannels(guild);
+		nhlBot.getGameDayChannelsManager().updateGuild(guild);
 	}
 
 	String buildSubscribedMessage(Guild guild, Team team) {

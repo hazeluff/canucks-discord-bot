@@ -6,14 +6,11 @@ import java.util.List;
 import java.util.Properties;
 
 import com.hazeluff.discord.bot.command.AboutCommand;
-import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NHLStatsCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
-import com.hazeluff.discord.bot.command.BotStatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
-import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.nhl.Seasons;
 import com.hazeluff.discord.nhl.Seasons.Season;
@@ -51,12 +48,6 @@ public class Config {
 	 * Season Config
 	 */
 	public static final Season CURRENT_SEASON = Seasons.S23_24;
-
-	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
-			268247727400419329l, 
-			276953120964083713l
-	);
 	
 	/*
 	 *  Technical Config
@@ -93,8 +84,8 @@ public class Config {
 		return systemProperties.getProperty(MONGO_HOST_KEY);
 	}
 	
-	public static final String MONGO_DATABASE_NAME = "NHLBot";
-	public static final String MONGO_TEST_DATABASE_NAME = "NHLBotIntegrationTest";
+	public static final String MONGO_DATABASE_NAME = "SportsBot";
+	public static final String MONGO_TEST_DATABASE_NAME = "SportsBotIntegrationTest";
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
 	
 	public static final String STATUS_MESSAGE = "/help for commands";
@@ -117,13 +108,10 @@ public class Config {
 		return Arrays.asList(
 				AboutCommand.class,
 				NHLStatsCommand.class,
-				GDCCommand.class,
 				HelpCommand.class,
 				NextGameCommand.class,
 				SubscribeCommand.class,
 				ScheduleCommand.class,
-				BotStatsCommand.class,
-				ThreadsCommand.class,
 				UnsubscribeCommand.class
 		);
 	}

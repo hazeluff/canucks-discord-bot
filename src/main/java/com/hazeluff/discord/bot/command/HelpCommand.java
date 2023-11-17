@@ -51,8 +51,6 @@ public class HelpCommand extends Command {
 			return reply(event, TEAMS_MESSAGE, true);
 		case ScheduleCommand.NAME:
 			return reply(event, ScheduleCommand.HELP_MESSAGE, true);
-		case GDCCommand.NAME:
-			return reply(event, GDCCommand.HELP_MESSAGE_EMBED, true);
 		case SubscribeCommand.NAME:
 			return reply(event, SubscribeCommand.HELP_MESSAGE, true);
 		case UnsubscribeCommand.NAME:
@@ -66,13 +64,9 @@ public class HelpCommand extends Command {
 			+ "You can use the commands by doing slash commands integrated with Discord.\n"
 			+ "```\n" 
 			+ "Setup\n"
-			+ "  Creates/Removes game day channels for teams subscribed to. Team option should be provided with the three letter code of your team.\n\n"
+			+ "  Reminders are sent for subscribed teams. Team option should be provided with the three letter code of your team.\n\n"
 			+ "  `subscribe team:`   - Subscribes you to a team.\n"
 			+ "  `unsubscribe team:` - Unsubscribes you from a team.\n\n"
-
-			+ "Game Day Channel\n"
-			+ "  `gdc subcommand:`   - Game Day Channel commands. Must be used in Game Day Channels.`subcommand: score, goals, status`.\n\n"
-
 			+ "General\n"
 			+ "  `schedule`          - Displays information about the most recent and coming up games of your subscribed teams.\n"
 			+ "  `about`             - Displays information about me."

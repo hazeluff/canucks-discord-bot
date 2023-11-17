@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.channel.GDCCategoryManager;
+import com.hazeluff.discord.bot.channel.NHLReminderChannelManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
@@ -24,6 +24,7 @@ import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.discordjson.json.ApplicationCommandData;
@@ -47,13 +48,13 @@ public class NHLBot extends Thread {
 	private PersistentData persistantData;
 	private GameScheduler gameScheduler;
 	private GameDayChannelsManager gameDayChannelsManager;
-
-	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
+	private final NHLReminderChannelManager nhlReminderChannelManager;
 	
 	private NHLBot() {
-		persistantData = null;
-		gameScheduler = null;
-		gameDayChannelsManager = null;
+		this.persistantData = null;
+		this.gameScheduler = null;
+		this.gameDayChannelsManager = null;
+		this.nhlReminderChannelManager = new NHLReminderChannelManager(this);
 	}
 
 	/**
@@ -98,9 +99,16 @@ public class NHLBot extends Thread {
 		attachSlashCommandListeners(this);
 
 		/*
-		 * Setup Categories and Channels
+		 * Setup Guild and Channels
 		 */
-		initCategoriesAndChannels();
+		// Init Static Entities (They must be init in order!!!)
+		// Create #nhl-reminder Channel
+		nhlReminderChannelManager.init(getDiscordManager().getGuilds());
+
+		// Start the Game Day Channels Manager
+		this.gameDayChannelsManager = new GameDayChannelsManager(this);
+		this.gameDayChannelsManager.start();
+
 
 		LOGGER.info("NHLBot completed initialization.");
 		getDiscordManager().changePresence(ONLINE_PRESENCE);
@@ -111,33 +119,9 @@ public class NHLBot extends Thread {
 		}
 	}
 
-	void initCategoriesAndChannels() {
-		LOGGER.info("Setup discord entities (Categories + Channels).");
-		List<Guild> guilds = getDiscordManager().getGuilds();
-
-		// Init Static Entities (They must be init in order!!!)
-		gdcCategoryManager.init(guilds);
-
-		// Start the Game Day Channels Manager
-		initGameDayChannelsManager();
-
-		// Manage WelcomeChannels (Only for my dev servers)
-		updateWelcomeChannel();
-	}
-
 	void initPersistentData() {
 		LOGGER.info("Initializing Persistent Data.");
 		this.persistantData = PersistentData.load(Config.getMongoHost(), Config.MONGO_PORT);
-	}
-
-	void initGameDayChannelsManager() {
-		if (Config.Debug.isLoadGames()) {
-			LOGGER.info("Initializing GameDayChannelsManager.");
-			this.gameDayChannelsManager = new GameDayChannelsManager(this);
-			gameDayChannelsManager.start();
-		} else {
-			LOGGER.warn("Skipping Initialization of GameDayChannelsManager");
-		}
 	}
 
 	/**
@@ -178,25 +162,11 @@ public class NHLBot extends Thread {
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
 
-		List<ApplicationCommandRequest> allCommands = commands.stream()
-				.filter(cmd -> cmd.getACR() != null)
-				.map(Command::getACR)
-				.collect(Collectors.toList());
-
 		List<ApplicationCommandRequest> commonCommands = commands.stream()
 				.filter(cmd -> cmd.getACR() != null)
 				.filter(not(Command::isDevOnly))
 				.map(Command::getACR)
 				.collect(Collectors.toList());
-
-		// Dev Guilds
-		LOGGER.info("Writing Dev Application Commands");
-		for (Long guildId : Config.DEV_GUILD_LIST) {
-			DiscordManager.block(
-				restClient.getApplicationService()
-					.bulkOverwriteGuildApplicationCommand(applicationId, guildId, allCommands)
-			);
-		}
 
 		// All Guilds
 		LOGGER.info("Writing Global Application Commands");
@@ -217,13 +187,6 @@ public class NHLBot extends Thread {
 		}
 	}
 
-	private void updateWelcomeChannel() {
-		LOGGER.info("Updating 'Welcome' channels.");
-		getDiscordManager().getClient().getGuilds()
-				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
-	}
-
 	public PersistentData getPersistentData() {
 		return persistantData;
 	}
@@ -240,8 +203,8 @@ public class NHLBot extends Thread {
 		return gameDayChannelsManager;
 	}
 
-	public GDCCategoryManager getGdcCategoryManager() {
-		return gdcCategoryManager;
+	public TextChannel getNHLReminderChannel(Guild guild) {
+		return nhlReminderChannelManager.get(guild);
 	}
 
 	/**

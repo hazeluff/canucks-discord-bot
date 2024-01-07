@@ -40,7 +40,6 @@ import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
-import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
 
 public class GameDayChannel extends Thread implements IEventProcessor {
@@ -83,8 +82,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final GuildPreferences preferences;
 	private final GDCMeta meta;
 
-	private Message summaryMessage;
-	private EmbedCreateSpec summaryMessageEmbed; // Used to determine if message needs updating.
 	private Message endOfGameMessage;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
@@ -211,9 +208,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.goalMessages.initEvents(game.getScoringEvents());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
 
-		// Post Predictions poll
-		summaryMessage = getSummaryMessage();
-
 		if (!game.getGameState().isFinished()) {
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
@@ -236,16 +230,11 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					Utils.sleep(ACTIVE_POLL_RATE_MS);
 
 					updateMessages();
-
-					EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
-					boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
-					if (summaryMessage != null && updatedSummary) {
-						updateSummaryMessage(newSummaryMessageEmbed);
-					}
 				} catch (Exception e) {
 					LOGGER.error("Exception occured while running.", e);
 				}
 			}
+			sendSummaryMessage();
 			sendEndOfGameMessage();
 		} else {
 			LOGGER.info("Game is already finished");
@@ -261,7 +250,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		try {
 			gameTracker.updateGame();
 			updateMessages();
-			updateSummaryMessage(getSummaryEmbedSpec());
 		} catch (Exception e) {
 			LOGGER.error("Exception occured while refreshing.", e);
 		}
@@ -351,41 +339,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		sendMessage("Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe");
 	}
 
-	/*
-	 * Summary Message
-	 */
-	private Message getSummaryMessage() {
-		Message message = null;
-		if (meta != null) {
-			Long messageId = meta.getSummaryMessageId();
-			if (messageId == null) {
-				message = sendSummaryMessage();
-			} else {
-				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
-				if (message == null) {
-					message = sendSummaryMessage();
-				}
-			}
-
-			if (message != null) {
-				DiscordManager.pinMessage(message);
-				meta.setSummaryMessageId(message.getId().asLong());
-				saveMetadata();
-			}
-		}
-		return message;
-	}
-
 	private Message sendSummaryMessage() {
-		this.summaryMessageEmbed = getSummaryEmbedSpec();
+		EmbedCreateSpec summaryMessageEmbed = getSummaryEmbedSpec();
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(summaryMessageEmbed).build();
 		return DiscordManager.sendAndGetMessage(channel, messageSpec);
-	}
-
-	private void updateSummaryMessage(EmbedCreateSpec newSummaryMessageEmbed) {
-		this.summaryMessageEmbed = newSummaryMessageEmbed;
-		MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(summaryMessageEmbed).build();
-		DiscordManager.updateMessage(summaryMessage, messageSpec);
 	}
 	
 	private EmbedCreateSpec getSummaryEmbedSpec() {

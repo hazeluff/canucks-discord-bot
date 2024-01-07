@@ -107,9 +107,9 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167951778059386900/myers_2023.gif", 8474574); // Canucks Graphic 2023
 
 		// Phil DiGiuseppe
-		scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167713608231297064/ogrbsdx0bvwb1.png", 8478856);
-		scorer("https://tenor.com/view/vancouver-canucks-phillip-di-giuseppe-canucks-canucks-goal-canucks-win-gif-6680089124421974858", 8478856);
-		scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950366021799966/pdg_2023.gif", 8478856);
+		scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167713608231297064/ogrbsdx0bvwb1.png", 8476858);
+		scorer("https://tenor.com/view/vancouver-canucks-phillip-di-giuseppe-canucks-canucks-goal-canucks-win-gif-6680089124421974858", 8476858);
+		scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167950366021799966/pdg_2023.gif", 8476858);
 
 		// Sam Lafferty
 		scorer("https://cdn.discordapp.com/attachments/276953120964083713/1167944429768818748/laff_2023.gif", 8478043);

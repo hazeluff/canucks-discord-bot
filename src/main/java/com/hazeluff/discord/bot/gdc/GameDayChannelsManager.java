@@ -200,7 +200,7 @@ public class GameDayChannelsManager extends Thread {
 		otherGuilds.stream().forEach(guild -> {
 			LOGGER.info("Updating channels of other guilds: " + guild.getId().asLong());
 			updateChannels(guild);
-			Utils.sleep(1000);
+			Utils.sleep(10000);
 		});
 	}
 

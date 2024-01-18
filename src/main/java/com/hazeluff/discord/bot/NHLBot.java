@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
-import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
@@ -59,7 +58,6 @@ public class NHLBot extends Thread {
 	private final ReactionListener reactionListener = new ReactionListener(this);
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
-	private final WordcloudChannelManager wcChannelManager = new WordcloudChannelManager(this, gdcCategoryManager);
 
 	private NHLBot() {
 		persistantData = null;
@@ -131,7 +129,6 @@ public class NHLBot extends Thread {
 
 		// Init Static Entities (They must be init in order!!!)
 		gdcCategoryManager.init(guilds);
-		wcChannelManager.init(guilds);
 
 		// Start the Game Day Channels Manager
 		initGameDayChannelsManager();
@@ -269,10 +266,6 @@ public class NHLBot extends Thread {
 
 	public GDCCategoryManager getGdcCategoryManager() {
 		return gdcCategoryManager;
-	}
-
-	public WordcloudChannelManager getWordcloudChannelManager() {
-		return wcChannelManager;
 	}
 
 	/**

@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
@@ -251,7 +250,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			}
 			sendEndOfGameMessage();
 			sendCustomEndMessage();
-			sendWordcloud();
 		} else {
 			LOGGER.info("Game is already finished");
 		}
@@ -486,10 +484,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private static String getHelpMessageText() {
 		return "This game/channel is interactable with Slash Commands!"
 				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
-	}
-
-	private void sendWordcloud() {
-		new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
 	}
 
 

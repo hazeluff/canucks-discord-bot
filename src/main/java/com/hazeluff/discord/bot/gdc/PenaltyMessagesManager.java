@@ -141,7 +141,7 @@ public class PenaltyMessagesManager {
 	}
 
 	void updateMessage(PenaltyEvent event) {
-		LOGGER.info("Updating message for event [" + event.getId() + "].");
+		LOGGER.debug("Updating message for event [" + event.getId() + "].");
 		if (!eventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {

@@ -72,7 +72,7 @@ public class GDCCommand extends Command {
 				.build();
 	}
 	
-	public static List<ApplicationCommandOptionChoiceData> CHOICES = PUBLIC_COMMANDS.entrySet().stream()
+	private final static List<ApplicationCommandOptionChoiceData> CHOICES = PUBLIC_COMMANDS.entrySet().stream()
 			.map(entry -> entry.getValue().getName())
 			.map(name -> ApplicationCommandOptionChoiceData.builder()
 					.name(StringUtils.capitalize(name))

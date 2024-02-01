@@ -395,7 +395,7 @@ public class GameScheduler extends Thread {
 	 *         null, if it does not exists
 	 * 
 	 */
-	public void createGameTracker(Game game) {
+	private void createGameTracker(Game game) {
 		if (!activeGameTrackers.containsKey(game)) {
 			LOGGER.info("Creating GameTracker: " + game.getGameId());
 			GameTracker newGameTracker = GameTracker.get(game);

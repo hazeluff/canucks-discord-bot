@@ -168,7 +168,7 @@ public class GameScheduler extends Thread {
 		for (Team team : Team.values()) {
 			activeGames.addAll(getActiveGames(team));
 		}
-		activeGames.forEach(game -> getGameTracker(game));
+		activeGames.forEach(game -> createGameTracker(game));
 	}
 
 
@@ -225,7 +225,7 @@ public class GameScheduler extends Thread {
 		LOGGER.info("Starting new trackers and creating channels.");
 		for (Team team : Team.values()) {
 			getActiveGames(team).forEach(activeGame -> {
-				getGameTracker(activeGame);
+				createGameTracker(activeGame);
 			});
 		}
 	}
@@ -383,13 +383,25 @@ public class GameScheduler extends Thread {
 	 * 
 	 */
 	public GameTracker getGameTracker(Game game) {
-		if (activeGameTrackers.containsKey(game)) {
-			// NHLGameTracker already exists
-			LOGGER.debug("NHLGameTracker exists: " + game);
-			return activeGameTrackers.get(game);
+		return activeGameTrackers.get(game);
+	}
+
+	/**
+	 * Creates and caches a GameTracker for the given game.
+	 * 
+	 * @param game
+	 *            game to find NHLGameTracker for
+	 * @return NHLGameTracker for the game, if it exists <br>
+	 *         null, if it does not exists
+	 * 
+	 */
+	private void createGameTracker(Game game) {
+		if (!activeGameTrackers.containsKey(game)) {
+			LOGGER.info("Creating GameTracker: " + game.getGameId());
+			GameTracker newGameTracker = GameTracker.get(game);
+			activeGameTrackers.put(game, newGameTracker);
 		} else {
-			LOGGER.debug("NHLGameTracker does not exist: " + game);
-			return GameTracker.get(game);
+			LOGGER.debug("GameTracker already exists: " + game.getGameId());
 		}
 	}
 	

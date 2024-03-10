@@ -46,7 +46,7 @@ public class GameEvent {
 	}
 
 	public int getPeriod() {
-		return getJson().getInt32("period").getValue();
+		return getJson().getDocument("periodDescriptor").getInt32("number").getValue();
 	}
 
 	public PeriodType getPeriodType() {

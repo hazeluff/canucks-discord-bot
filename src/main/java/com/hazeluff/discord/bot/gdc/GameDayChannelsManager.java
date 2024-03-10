@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.gdc;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,6 +53,13 @@ public class GameDayChannelsManager extends Thread {
 		}
 
 		return gameDayChannels.get(guildId).get(gamePk);
+	}
+
+	Map<Integer, GameDayChannel> getGameDayChannels(long guildId) {
+		if (!gameDayChannels.containsKey(guildId)) {
+			return Collections.emptyMap();
+		}
+		return gameDayChannels.get(guildId);
 	}
 
 	boolean isGameDayChannelExist(long guildId, int gamePk) {
@@ -129,7 +137,8 @@ public class GameDayChannelsManager extends Thread {
 	public List<Guild> getSubscribedGuilds(Team team) {
 		return nhlBot.getDiscordManager().getGuilds().stream().filter(guild -> {
 			long guildId = guild.getId().asLong();
-			return nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId).getTeams()
+			return nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId)
+					.getTeams()
 					.contains(team);
 		}).collect(Collectors.toList());
 	}
@@ -142,11 +151,12 @@ public class GameDayChannelsManager extends Thread {
 	 * @param guild
 	 */
 	public GameDayChannel createChannel(Game game, Guild guild) {
-		int gameId = game.getGameId();
+		LOGGER.info("Initializing for channel. channelName={}, guild={}", GameDayChannel.getChannelName(game),
+				guild.getName());
+		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
-		LOGGER.info("Initializing for channel. channelName={}, guild={}", GameDayChannel.getChannelName(game), guildId);
 
-		GameDayChannel gameDayChannel = getGameDayChannel(guildId, gameId);
+		GameDayChannel gameDayChannel = getGameDayChannel(guildId, gamePk);
 		if (gameDayChannel == null) {
 			GameTracker gameTracker = nhlBot.getGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
@@ -155,18 +165,17 @@ public class GameDayChannelsManager extends Thread {
 				LOGGER.error("Could not find GameTracker for game [{}]", game);
 			}
 		} else {
-			LOGGER.debug("Game Day Channel already exists for game [{}] in guild [{}]", gameId, guildId);
+			LOGGER.debug("Game Day Channel already exists for game [{}] in guild [{}]", gamePk, guildId);
 		}
 
 		return gameDayChannel;
 	}
 
 	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
-		long guildId = guild.getId().asLong();
-		LOGGER.info("Creating channel. channelName={}, guildId={}",
-				GameDayChannel.getChannelName(gameTracker.getGame()), guildId);
+		LOGGER.info("Creating channel. channelName={}, guild={}", GameDayChannel.getChannelName(gameTracker.getGame()),
+				guild.getName());
 		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
-		addGameDayChannel(guildId, gameTracker.getGame().getGameId(), channel);
+		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
 		return channel;
 	}
 
@@ -179,13 +188,15 @@ public class GameDayChannelsManager extends Thread {
 	 */
 	void updateChannels() {
 		LOGGER.info("Updating channels for all guilds.");
-		List<Guild> guilds = nhlBot
-				.getDiscordManager().getGuilds().stream().filter(guild -> !nhlBot.getPersistentData()
-						.getPreferencesData().getGuildPreferences(guild.getId().asLong()).getTeams().isEmpty())
+		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds().stream()
+				.filter(guild -> !nhlBot.getPersistentData().getPreferencesData()
+						.getGuildPreferences(guild.getId().asLong()).getTeams()
+						.isEmpty())
 				.collect(Collectors.toList());
 
 		// Update Dev Guilds
-		List<Guild> devGuilds = guilds.stream().filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+		List<Guild> devGuilds = guilds.stream().filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId()
+				.asLong()))
 				.collect(Collectors.toList());
 
 		devGuilds.stream().forEach(devGuild -> {

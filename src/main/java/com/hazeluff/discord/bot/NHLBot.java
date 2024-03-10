@@ -127,7 +127,10 @@ public class NHLBot extends Thread {
 
 	void initPersistentData() {
 		LOGGER.info("Initializing Persistent Data.");
-		this.persistantData = PersistentData.load(Config.getMongoHost(), Config.MONGO_PORT);
+		this.persistantData = PersistentData.load(
+			Config.getMongoHost(), Config.getMongoPort(),
+			Config.getMongoUserName(), Config.getMongoPassword()
+		);
 	}
 
 	void initGameDayChannelsManager() {

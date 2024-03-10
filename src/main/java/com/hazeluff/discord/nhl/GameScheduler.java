@@ -168,7 +168,7 @@ public class GameScheduler extends Thread {
 		for (Team team : Team.values()) {
 			activeGames.addAll(getActiveGames(team));
 		}
-		activeGames.forEach(game -> getGameTracker(game));
+		activeGames.forEach(game -> createGameTracker(game));
 	}
 
 
@@ -210,11 +210,11 @@ public class GameScheduler extends Thread {
 			GameTracker gameTracker = map.getValue();
 			int gamePk = gameTracker.getGame().getGameId();
 			if (!games.containsKey(gamePk)) {
-				LOGGER.info("Game is has been removed: " + gamePk);
+				LOGGER.debug("Game is has been removed: " + gamePk);
 				gameTracker.interrupt();
 				return true;
 			} else if (gameTracker.isFinished()) {
-				LOGGER.info("Game is finished: " + gameTracker.getGame());
+				LOGGER.debug("Game is finished: " + gameTracker.getGame());
 				gameTracker.interrupt();
 				return true;
 			} else {
@@ -225,7 +225,7 @@ public class GameScheduler extends Thread {
 		LOGGER.info("Starting new trackers and creating channels.");
 		for (Team team : Team.values()) {
 			getActiveGames(team).forEach(activeGame -> {
-				getGameTracker(activeGame);
+				createGameTracker(activeGame);
 			});
 		}
 	}
@@ -384,18 +384,31 @@ public class GameScheduler extends Thread {
 	 * 
 	 */
 	public GameTracker getGameTracker(Game game) {
-		if (activeGameTrackers.containsKey(game)) {
-			// NHLGameTracker already exists
-			LOGGER.debug("NHLGameTracker exists: " + game);
-			return activeGameTrackers.get(game);
-		} else {
-			LOGGER.debug("NHLGameTracker does not exist: " + game);
-			return GameTracker.get(game);
-		}
+		return activeGameTrackers.get(game);
 	}
 	
 	/**
-	 * Gets a list games for a given team. An inactive game is one that is not in the teamLatestGames map/list.
+	 * Creates and caches a GameTracker for the given game.
+	 * 
+	 * @param game
+	 *            game to find NHLGameTracker for
+	 * @return NHLGameTracker for the game, if it exists <br>
+	 *         null, if it does not exists
+	 * 
+	 */
+	private void createGameTracker(Game game) {
+		if (!activeGameTrackers.containsKey(game)) {
+			LOGGER.debug("Creating GameTracker: " + game.getGameId());
+			GameTracker newGameTracker = GameTracker.get(game);
+			activeGameTrackers.put(game, newGameTracker);
+		} else {
+			LOGGER.debug("GameTracker already exists: " + game.getGameId());
+		}
+	}
+
+	/**
+	 * Gets a list games for a given team. An inactive game is one that is not in
+	 * the teamLatestGames map/list.
 	 * 
 	 * @param team
 	 *            team to get inactive games of

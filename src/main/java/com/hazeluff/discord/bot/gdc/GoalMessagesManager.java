@@ -141,7 +141,7 @@ public class GoalMessagesManager {
 	}
 
 	void sendMessage(GoalEvent event) {
-		LOGGER.info("Sending message for event [" + event.getId() + "].");
+		LOGGER.debug("Sending message for event [" + event.getId() + "].");
 		if (event.getPeriodType() != PeriodType.SHOOTOUT && isSpam()) {
 			LOGGER.warn("Spam message avoided. eventId={}, periodType={}", event.getId(), event.getPeriodType());
 			eventMessages.put(event.getId(), Pair.with(event, null)); // Pretend to send the message
@@ -172,7 +172,7 @@ public class GoalMessagesManager {
 	}
 
 	void updateMessage(GoalEvent event) {
-		LOGGER.info("Updating message for event [" + event.getId() + "].");
+		LOGGER.debug("Updating message for event [" + event.getId() + "].");
 		if (!eventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
@@ -213,7 +213,7 @@ public class GoalMessagesManager {
 			isRelink = true;
 		}
 		if (isRelink) {
-			LOGGER.info("Relink message to new event [" + event.getId() + "].");
+			LOGGER.debug("Relink message to new event [" + event.getId() + "].");
 			Message message = eventMessage.getValue1();
 			eventMessages.put(event.getId(), Pair.with(event, message));
 		}

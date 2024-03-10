@@ -66,6 +66,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	static final long SPAM_COOLDOWN_MS = 30000l; // Applies only to custom messages
 	private final GoalMessagesManager goalMessages;
 	private final PenaltyMessagesManager penaltyMessages;
+	private final List<String> startOfGameMessages;
 
 	// <threshold,message>
 	@SuppressWarnings("serial")
@@ -102,6 +103,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.meta = meta;
 		this.goalMessages = new GoalMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
 		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
+		this.startOfGameMessages = Arrays.asList(
+			"Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe",
+			"Be woke, be cool, a calm spirit is smarter."
+		);
 	}
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
@@ -353,7 +358,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	void sendStartOfGameMessage() {
 		LOGGER.info("Sending start message.");
-		sendMessage("Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe");
+		String message = Utils.getRandom(startOfGameMessages);
+		sendMessage(message);
 	}
 
 	/*

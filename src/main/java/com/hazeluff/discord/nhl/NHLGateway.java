@@ -41,6 +41,10 @@ public class NHLGateway {
 	static String getPlayByPlayUrl(int gameId) {
 		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/play-by-play";
 	}
+
+	static String getBoxScoreUrl(int gameId) {
+		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/boxscore";
+	}
 	
 	static String getTeamPlayerStatsUrl(String teamCode, int startYear) {
 		int endYear = startYear + 1;
@@ -64,6 +68,11 @@ public class NHLGateway {
 
 	static String fetchRawPlayByPlay(int gameId) throws HttpException {
 		URI uri = HttpUtils.buildUri(getPlayByPlayUrl(gameId));
+		return HttpUtils.get(uri);
+	}
+
+	static String fetchRawBoxScore(int gameId) throws HttpException {
+		URI uri = HttpUtils.buildUri(getBoxScoreUrl(gameId));
 		return HttpUtils.get(uri);
 	}
 
@@ -115,6 +124,16 @@ public class NHLGateway {
 	}
 
 	public static BsonDocument getPlayByPlay(int gameId) {
+		try {
+			String strPlayByPlay = fetchRawPlayByPlay(gameId);
+			return BsonDocument.parse(strPlayByPlay);
+		} catch (HttpException e) {
+			LOGGER.error("Failed to get play-by-play for game: " + gameId);
+			return null;
+		}
+	}
+
+	public static BsonDocument getBoxScore(int gameId) {
 		try {
 			String strBoxscore = fetchRawPlayByPlay(gameId);
 			return BsonDocument.parse(strBoxscore);
@@ -175,11 +194,11 @@ public class NHLGateway {
 	/**
 	 * Maps the standingsEnd date to the correct start year.
 	 * 
-	 * @param standingsEnd
+	 * @param standingsStart
 	 * @return
 	 */
-	static int mapStandingsEndToStartYear(String standingsEnd) {
-		switch (standingsEnd) {
+	static int mapStandingsEndToStartYear(String standingsStart) {
+		switch (standingsStart) {
 		case "1995-01-20": // Lockout
 			return 1994;
 		case "2013-01-19": // Lockout
@@ -187,8 +206,8 @@ public class NHLGateway {
 		case "2021-01-13": // Covid
 			return 2020;
 		default:
-			// Strip from end date
-			return Integer.parseInt(standingsEnd.split("-")[0]);
+			// Strip from start date
+			return Integer.parseInt(standingsStart.split("-")[0]);
 		}
 	}
 }

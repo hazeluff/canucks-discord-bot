@@ -21,10 +21,12 @@ public class Game {
 
 	private final ScheduleData scheduleData; // Set Once
 	private PlayByPlayData pbpData; // Constantly Updated
+	private BoxScoreData bsData; // Constantly Updated
 
 	Game(ScheduleData scheduleInfo) {
 		this.scheduleData = scheduleInfo;
 		this.pbpData = null;
+		this.bsData = null;
 	}
 
 	public static Game parse(BsonDocument jsonScheduleGame) {
@@ -80,6 +82,25 @@ public class Game {
 	 */
 	public boolean containsTeam(Team team) {
 		return getHomeTeam().equals(team) || getAwayTeam().equals(team);
+	}
+
+	// BoxScore
+	void initBoxScore(BsonDocument jsonBoxScore) {
+		BoxScoreData newBoxScoreData = BoxScoreData.parse(jsonBoxScore);
+		if (newBoxScoreData != null) {
+			this.bsData = newBoxScoreData;
+		} else {
+			LOGGER.error("Could not parse json: jsonBoxScore=" + jsonBoxScore);
+		}
+	}
+
+	public void updateBoxScore(BsonDocument jsonBoxScore) {
+		LOGGER.debug("Updating Game Boxscore Data. [" + getGameId() + "]");
+		if (this.bsData != null) {
+			this.bsData.update(jsonBoxScore);
+		} else {
+			initBoxScore(jsonBoxScore);
+		}
 	}
 
 	// PlayByPlay (Status)

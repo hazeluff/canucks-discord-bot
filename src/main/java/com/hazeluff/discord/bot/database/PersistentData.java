@@ -5,6 +5,9 @@ import com.hazeluff.discord.bot.database.channel.ChannelMessagesData;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMetaData;
 import com.hazeluff.discord.bot.database.preferences.PreferencesData;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDatabase;
 
 /**
@@ -26,8 +29,8 @@ public class PersistentData {
 		this.gdcMetaData = gdcMetaData;
 	}
 
-	public static PersistentData load(String hostName, int port) {
-		return load(getDatabase(hostName, port));
+	public static PersistentData load(String hostName, int port, String userName, String password) {
+		return load(getDatabase(hostName, port, userName, password));
 	}
 
 	static PersistentData load(MongoDatabase database) {
@@ -38,9 +41,17 @@ public class PersistentData {
 	}
 
 	@SuppressWarnings("resource")
-	private static MongoDatabase getDatabase(String hostName, int port) {
-		return new MongoClient(hostName, port)
-				.getDatabase(Config.MONGO_DATABASE_NAME);
+	private static MongoDatabase getDatabase(String hostName, int port, String userName, String password) {
+		MongoClient client;
+		if (userName != null && password != null) {
+			MongoCredential credentials = MongoCredential.createCredential(
+					userName, Config.MONGO_DATABASE_NAME, password.toCharArray());
+			ServerAddress serverAddress = new ServerAddress(hostName, port);
+			client = new MongoClient(serverAddress, credentials, MongoClientOptions.builder().build());
+		} else {
+			client = new MongoClient(hostName, port);
+		}
+		return client.getDatabase(Config.MONGO_DATABASE_NAME);
 	}
 
 	public PreferencesData getPreferencesData() {

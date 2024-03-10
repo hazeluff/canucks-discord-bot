@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.gdc;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,6 +53,13 @@ public class GameDayChannelsManager extends Thread {
 		}
 
 		return gameDayChannels.get(guildId).get(gamePk);
+	}
+
+	Map<Integer, GameDayChannel> getGameDayChannels(long guildId) {
+		if (!gameDayChannels.containsKey(guildId)) {
+			return Collections.emptyMap();
+		}
+		return gameDayChannels.get(guildId);
 	}
 
 	boolean isGameDayChannelExist(long guildId, int gamePk) {

@@ -6,14 +6,13 @@ import java.util.List;
 import java.util.Properties;
 
 import com.hazeluff.discord.bot.command.AboutCommand;
-import com.hazeluff.discord.bot.command.NHLStatsCommand;
+import com.hazeluff.discord.bot.command.BotStatsCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
+import com.hazeluff.discord.bot.command.NHLStatsCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
-import com.hazeluff.discord.bot.command.BotStatsCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
-import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.nhl.Seasons;
@@ -54,14 +53,10 @@ public class Config {
 	public static final Season CURRENT_SEASON = Seasons.S23_24;
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
-			268247727400419329l, 
-			276953120964083713l
-	);
+	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(268247727400419329l, 276953120964083713l);
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList( 
-			238870084003561472l // /r/canucks
+	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(238870084003561472l // /r/canucks
 	);
 	
 	/*
@@ -89,14 +84,44 @@ public class Config {
 
 	
 	private static final String MONGO_HOST_KEY = "mongo.host";
-	public static final String MONGO_HOST_DEFAULT = "localhost";
-	public static final int MONGO_PORT = 27017;
+	private static final String MONGO_HOST_DEFAULT = "localhost";
 	public static String getMongoHost() {
 		boolean hasKey = systemProperties.containsKey(MONGO_HOST_KEY);
 		if(!hasKey) {
 			return MONGO_HOST_DEFAULT;
 		}
 		return systemProperties.getProperty(MONGO_HOST_KEY);
+	}
+
+	private static final String MONGO_PORT_KEY = "mongo.port";
+	private static final int MONGO_PORT_DEFAULT = 27017;
+
+	public static int getMongoPort() {
+		boolean hasKey = systemProperties.containsKey(MONGO_PORT_KEY);
+		if (!hasKey) {
+			return MONGO_PORT_DEFAULT;
+		}
+		return Integer.parseInt(systemProperties.getProperty(MONGO_PORT_KEY));
+	}
+
+	private static final String MONGO_USER_KEY = "mongo.username";
+
+	public static String getMongoUserName() {
+		boolean hasKey = systemProperties.containsKey(MONGO_USER_KEY);
+		if (!hasKey) {
+			return null;
+		}
+		return systemProperties.getProperty(MONGO_USER_KEY);
+	}
+
+	private static final String MONGO_PASS_KEY = "mongo.password";
+
+	public static String getMongoPassword() {
+		boolean hasKey = systemProperties.containsKey(MONGO_PASS_KEY);
+		if (!hasKey) {
+			return null;
+		}
+		return systemProperties.getProperty(MONGO_PASS_KEY);
 	}
 	
 	public static final String MONGO_DATABASE_NAME = "CanucksBot";
@@ -129,7 +154,6 @@ public class Config {
 				SubscribeCommand.class,
 				ScheduleCommand.class,
 				BotStatsCommand.class,
-				ThreadsCommand.class,
 				UnsubscribeCommand.class,
 				WordcloudCommand.class
 		);

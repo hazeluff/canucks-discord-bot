@@ -2,8 +2,8 @@ package com.hazeluff.test;
 
 import static org.mockito.Mockito.mock;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.mockito.Answers;
 
 import com.hazeluff.discord.Config;
@@ -33,13 +33,13 @@ public abstract class DatabaseIT {
 		}
 	}
 
-	@Before
+	@BeforeAll
 	public void before() {
 		mongoDatabase = getClient().getDatabase(Config.MONGO_TEST_DATABASE_NAME);
 		nhlBot = mock(NHLBot.class, Answers.RETURNS_DEEP_STUBS);
 	}
 
-	@After
+	@AfterAll
 	public void after() {
 		mongoDatabase.drop();
 	}

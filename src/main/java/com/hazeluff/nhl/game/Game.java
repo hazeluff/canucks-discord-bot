@@ -190,10 +190,14 @@ public class Game {
 	}
 	
 	public List<Integer> getTopGoalScorers() {
+		return getTopGoalScorers(getScoringEvents());
+	}
+
+	static List<Integer> getTopGoalScorers(List<GoalEvent> scoringEvents) {
 		Map<Integer, Integer> playerGoals = new HashMap<>();
-		for (GoalEvent goal : getScoringEvents()) {
+		for (GoalEvent goal : scoringEvents) {
 			int scorer = goal.getScorerId();
-			if (playerGoals.containsKey(scorer)) {
+			if (!playerGoals.containsKey(scorer)) {
 				playerGoals.put(goal.getScorerId(), 1);
 			} else {
 				playerGoals.put(goal.getScorerId(), playerGoals.get(scorer) + 1);
@@ -216,14 +220,18 @@ public class Game {
 	}
 
 	public List<Integer> getTopPointScorers() {
+		return getTopPointScorers(getScoringEvents());
+	}
+
+	static List<Integer> getTopPointScorers(List<GoalEvent> scoringEvents) {
 		Map<Integer, Integer> playerPoints = new HashMap<>();
-		for (GoalEvent goal : getScoringEvents()) {
+		for (GoalEvent goal : scoringEvents) {
 			List<Integer> scorers = goal.getPlayerIds();
 			for(Integer scorer : scorers) {
-				if (playerPoints.containsKey(scorer)) {
-					playerPoints.put(goal.getScorerId(), 1);
+				if (!playerPoints.containsKey(scorer)) {
+					playerPoints.put(scorer, 1);
 				} else {
-					playerPoints.put(goal.getScorerId(), playerPoints.get(scorer) + 1);
+					playerPoints.put(scorer, playerPoints.get(scorer) + 1);
 				}
 			}			
 		}

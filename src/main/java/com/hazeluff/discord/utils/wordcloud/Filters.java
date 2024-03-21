@@ -1,8 +1,7 @@
 package com.hazeluff.discord.utils.wordcloud;
 
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -29,12 +28,9 @@ public class Filters {
 		@Override
 		public boolean test(String word) {
 			try {
-				URL obj = new URL(word);
-				obj.toURI();
+				URI.create(word).toURL();
 				return false;
 			} catch (MalformedURLException e) {
-				return true;
-			} catch (URISyntaxException e) {
 				return true;
 			}
 		}

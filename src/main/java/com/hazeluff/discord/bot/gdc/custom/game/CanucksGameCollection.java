@@ -32,5 +32,7 @@ public class CanucksGameCollection extends CustomGameMessage.Collection {
 		shutout("https://cdn.discordapp.com/attachments/1170096185034412114/1171223035072762058/shutout_231027.gif"); // Demko
 		shutout("https://cdn.discordapp.com/attachments/1170096185034412114/1171223035953545216/shutout_231104.gif"); // Demko
 		shutout("https://cdn.discordapp.com/attachments/240245066017406976/1171178501886447657/demkohattilt.gif"); // Demko hat tilt
+		shutout("https://cdn.discordapp.com/attachments/1170084611422949396/1220265360029126687/IMG_6339.png"); // DeSmith Zad
+		
 	}
 }

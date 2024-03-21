@@ -40,12 +40,7 @@ public class CustomGameMessage {
 		public void win(String message) {
 			CustomGameMessage customMessage = new CustomGameMessage(
 					message, 
-					game -> {
-						Team winningTeam = game.getWinningTeam();
-						return winningTeam == null 
-								? false
-								: winningTeam.equals(getTeam());
-					}, 
+					buildWinConditions(getTeam()), 
 					1);
 			add(customMessage);
 		}
@@ -53,17 +48,7 @@ public class CustomGameMessage {
 		public void mostGoalsOrPoints(String message, int playerId) {
 			CustomGameMessage customMessage = new CustomGameMessage(
 					message, 
-					game -> {
-						Team winningTeam = game.getWinningTeam();
-						boolean isWin = winningTeam != null && winningTeam.equals(getTeam());
-						if(!isWin) {
-							return false;
-						}
-						if(game.getTopGoalScorers().contains(playerId) || game.getTopPointScorers().contains(playerId)) {
-							return true;
-								}
-						return false;
-					}, 
+					buildMostGoalsOrPointsCondition(getTeam(), playerId), 
 					2);
 			add(customMessage);
 		}
@@ -71,15 +56,7 @@ public class CustomGameMessage {
 		public void lose(String message) {
 			CustomGameMessage customMessage = new CustomGameMessage(
 					message, 
-					game -> {
-						if (!game.containsTeam(getTeam())) {
-							return false;
-						}
-						Team winningTeam = game.getWinningTeam();
-						return winningTeam == null 
-								? false
-								: !winningTeam.equals(getTeam());
-					}, 
+					buildWinConditions(getTeam()).negate(), 
 					1);
 			add(customMessage);
 		}
@@ -87,24 +64,54 @@ public class CustomGameMessage {
 		public void shutout(String message) {
 			CustomGameMessage customMessage = new CustomGameMessage(
 					message, 
-					game -> {
-						Team winningTeam = game.getWinningTeam();
-						if (winningTeam == null) {
-							return false;
-						}
-								if (!winningTeam.equals(getTeam())) {
-							return false;
-						}
-						if(winningTeam.equals(game.getAwayTeam()) && game.getHomeScore() == 0) {
-							return true;
-						}
-						if(winningTeam.equals(game.getHomeTeam()) && game.getAwayScore() == 0) {
-							return true;
-						}					
-						return false;
-					}, 
+					buildShutoutConditions(getTeam()), 
 					2);
 			add(customMessage);
+		}
+
+		/*
+		 * Predicates
+		 */
+		static Predicate<Game> buildWinConditions(Team team) {
+			return game -> {
+				Team winningTeam = game.getWinningTeam();
+				return winningTeam == null 
+						? false
+						: winningTeam.equals(team);
+			};
+		}
+
+		static Predicate<Game> buildShutoutConditions(Team team) {
+			return game -> {
+				Team winningTeam = game.getWinningTeam();
+				if (winningTeam == null) {
+					return false;
+				}
+				if (!winningTeam.equals(team)) {
+					return false;
+				}
+				if (winningTeam.equals(game.getAwayTeam()) && game.getHomeScore() == 0) {
+					return true;
+				}
+				if (winningTeam.equals(game.getHomeTeam()) && game.getAwayScore() == 0) {
+					return true;
+				}
+				return false;
+			};
+		}
+
+		static Predicate<Game> buildMostGoalsOrPointsCondition(Team team, int playerId) {
+			return game -> {
+				Team winningTeam = game.getWinningTeam();
+				boolean isWin = winningTeam != null && winningTeam.equals(team);
+				if (!isWin) {
+					return false;
+				}
+				if (game.getTopGoalScorers().contains(playerId) || game.getTopPointScorers().contains(playerId)) {
+					return true;
+				}
+				return false;
+			};
 		}
 	}
 }

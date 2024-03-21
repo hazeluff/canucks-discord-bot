@@ -21,7 +21,7 @@ public class PresenceManager extends Thread {
 	private static final ClientPresence STARTING_UP_PRESENCE = ClientPresence
 			.doNotDisturb(ClientActivity.watching("itself starting up..."));
 	private static final ClientPresence FETCH_SCHEDULE_PRESENCE = ClientPresence
-			.doNotDisturb(ClientActivity.watching("fetching schedule..."));
+			.doNotDisturb(ClientActivity.watching("itself fetch the game schedule..."));
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
@@ -92,7 +92,7 @@ public class PresenceManager extends Thread {
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
 			LocalDate schedulerUpdate = nhlBot.getGameScheduler().getLastUpdate();
-			if (lastUpdate == null) {
+			if (schedulerUpdate == null) {
 				LOGGER.info("Waiting for GameScheduler to initialize...");
 				Utils.sleep(INIT_UPDATE_RATE);
 			} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {

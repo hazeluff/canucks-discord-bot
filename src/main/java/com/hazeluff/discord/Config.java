@@ -17,6 +17,7 @@ import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.nhl.Seasons;
 import com.hazeluff.discord.nhl.Seasons.Season;
+import com.hazeluff.nhl.Team;
 
 public class Config {
 	public static class Debug {
@@ -62,25 +63,11 @@ public class Config {
 	/*
 	 *  Technical Config
 	 */
+	public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
+	public static final long GUILD_ID = 238870084003561472l;
+	public static final Team DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
 	public static final int HTTP_REQUEST_RETRIES = 3;
 	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";	
-	
-	/*
-	 *  About
-	 */
-	public static final String APPLICATION_NAME = ProjectInfo.APPLICATION_NAME;
-	public static final String GIT_URL = "http://canucks-discord.hazeluff.com/";
-	
-	public static final String DONATION_URL = "https://paypal.me/hazeluff";
-	public static final String DONATION_DOGE = "DK58dzmNCExxCocq9tMbYVzg3rdWuYsbY8";
-	public static final String DONATION_ETH = "hazeluff.eth (0x313faE0D36BFf3F7a4817E52a71B74e2924D4b97)";
-	public static final long HAZELUFF_ID = 225742618422673409l;
-	public static final String HAZELUFF_MENTION = "<@225742618422673409>";
-	public static final String HAZELUFF_SITE = "http://www.hazeluff.com";
-	public static final String HAZELUFF_EMAIL = "me@hazeluff.com";
-	public static final String HAZELUFF_TWITTER = "@Hazeluff";
-	
-	public static final String VERSION = ProjectInfo.VERSION;
 
 	
 	private static final String MONGO_HOST_KEY = "mongo.host";
@@ -130,6 +117,23 @@ public class Config {
 	
 	public static final String STATUS_MESSAGE = "/help for commands";
 	
+	/*
+	 * About
+	 */
+	public static final String APPLICATION_NAME = ProjectInfo.APPLICATION_NAME;
+	public static final String GIT_URL = "http://canucks-discord.hazeluff.com/";
+
+	public static final String DONATION_URL = "https://paypal.me/hazeluff";
+	public static final String DONATION_DOGE = "DK58dzmNCExxCocq9tMbYVzg3rdWuYsbY8";
+	public static final String DONATION_ETH = "hazeluff.eth (0x313faE0D36BFf3F7a4817E52a71B74e2924D4b97)";
+	public static final long HAZELUFF_ID = 225742618422673409l;
+	public static final String HAZELUFF_MENTION = "<@225742618422673409>";
+	public static final String HAZELUFF_SITE = "http://www.hazeluff.com";
+	public static final String HAZELUFF_EMAIL = "me@hazeluff.com";
+	public static final String HAZELUFF_TWITTER = "@Hazeluff";
+
+	public static final String VERSION = ProjectInfo.VERSION;
+
 	// Slash Commands
 	/**
 	 * <p>

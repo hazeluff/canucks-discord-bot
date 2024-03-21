@@ -31,8 +31,6 @@ import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.presence.ClientActivity;
-import discord4j.core.object.presence.ClientPresence;
 import discord4j.discordjson.json.ApplicationCommandData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -44,13 +42,8 @@ import reactor.core.publisher.Mono;
 public class NHLBot extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLBot.class);
 
-	private static final ClientPresence STARTING_UP_PRESENCE = ClientPresence.doNotDisturb(
-			ClientActivity.watching("itself starting up..."));
-	private static final ClientPresence ONLINE_PRESENCE = ClientPresence.online(
-			ClientActivity.streaming(Config.STATUS_MESSAGE, Config.GIT_URL));
-	private static long UPDATE_PLAY_STATUS_INTERVAL = 3600000l;
-
 	private AtomicReference<DiscordManager> discordManager = new AtomicReference<>();
+	private PresenceManager presenceManager;
 	private PersistentData persistantData;
 	private GameScheduler gameScheduler;
 	private GameDayChannelsManager gameDayChannelsManager;
@@ -62,6 +55,7 @@ public class NHLBot extends Thread {
 	private final WordcloudChannelManager wcChannelManager = new WordcloudChannelManager(this, gdcCategoryManager);
 
 	private NHLBot() {
+		presenceManager = new PresenceManager(this);
 		persistantData = null;
 		gameScheduler = null;
 		gameDayChannelsManager = null;
@@ -100,7 +94,7 @@ public class NHLBot extends Thread {
 	public void run() {
 		LOGGER.info("NHLBot is being intialized.");
 		// Set starting up status
-		getDiscordManager().changePresence(STARTING_UP_PRESENCE);
+		presenceManager.changePresenceToStartup();
 
 		// Init MongoClient/GuildPreferences
 		initPersistentData();
@@ -116,13 +110,10 @@ public class NHLBot extends Thread {
 		 */
 		initCategoriesAndChannels();
 
-		LOGGER.info("NHLBot completed initialization.");
-		getDiscordManager().changePresence(ONLINE_PRESENCE);
+		// Start Presence/Status updates
+		presenceManager.start();
 
-		while (!isInterrupted()) {
-			Utils.sleep(UPDATE_PLAY_STATUS_INTERVAL);
-			getDiscordManager().changePresence(ONLINE_PRESENCE);
-		}
+		LOGGER.info("NHLBot completed initialization.");
 	}
 
 	void initCategoriesAndChannels() {
@@ -201,7 +192,6 @@ public class NHLBot extends Thread {
 				.filter(not(Command::isDevOnly)).map(Command::getACR).collect(Collectors.toList());
 
 		// Dev Guilds
-		LOGGER.info("Writing Dev Application Commands");
 		for (Long guildId : Config.DEV_GUILD_LIST) {
 			DiscordManager.block(restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,
 					guildId, allCommands));

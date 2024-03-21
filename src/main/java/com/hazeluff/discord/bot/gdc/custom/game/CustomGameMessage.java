@@ -44,9 +44,27 @@ public class CustomGameMessage {
 						Team winningTeam = game.getWinningTeam();
 						return winningTeam == null 
 								? false
-										: winningTeam.equals(getTeam());
+								: winningTeam.equals(getTeam());
 					}, 
 					1);
+			add(customMessage);
+		}
+		
+		public void mostGoalsOrPoints(String message, int playerId) {
+			CustomGameMessage customMessage = new CustomGameMessage(
+					message, 
+					game -> {
+						Team winningTeam = game.getWinningTeam();
+						boolean isWin = winningTeam != null && winningTeam.equals(getTeam());
+						if(!isWin) {
+							return false;
+						}
+						if(game.getTopGoalScorers().contains(playerId) || game.getTopPointScorers().contains(playerId)) {
+							return true;
+								}
+						return false;
+					}, 
+					2);
 			add(customMessage);
 		}
 		
@@ -60,7 +78,7 @@ public class CustomGameMessage {
 						Team winningTeam = game.getWinningTeam();
 						return winningTeam == null 
 								? false
-										: !winningTeam.equals(getTeam());
+								: !winningTeam.equals(getTeam());
 					}, 
 					1);
 			add(customMessage);

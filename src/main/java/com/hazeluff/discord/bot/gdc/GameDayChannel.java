@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
@@ -523,26 +524,15 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/**
-	 * Gets the date in the format "YY-MM-DD"
-	 * 
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the date in the format "YY-MM-DD"
-	 */
-	public String getShortDate(ZoneId zone) {
-		return getShortDate(game, zone);
-	}
-
-	/**
-	 * Gets the date in the format "YY-MM-DD"
+	 * Gets the date in the format "yy-MM-dd"
 	 * 
 	 * @param game
 	 *            game to get the date from
 	 * @param zone
 	 *            time zone to convert the time to
-	 * @return the date in the format "YY-MM-DD"
+	 * @return the date in the format "yy-MM-dd"
 	 */
-	public static String getShortDate(Game game, ZoneId zone) {
+	public static String buildChannelDate(Game game, ZoneId zone) {
 		return game.getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("yy-MM-dd"));
 	}
 
@@ -555,7 +545,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 *            time zone to convert the time to
 	 * @return the date in the format "EEEE dd MMM yyyy"
 	 */
-	public static String getNiceDate(Game game, ZoneId zone) {
+	public static String buildNiceDate(Game game, ZoneId zone) {
 		return game.getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
 	}
 
@@ -567,7 +557,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return the date in the format "EEEE dd MMM yyyy"
 	 */
 	public String getNiceDate(ZoneId zone) {
-		return getNiceDate(game, zone);
+		return buildNiceDate(game, zone);
 	}
 
 	/**
@@ -606,7 +596,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	public static String getChannelName(Game game) {
 		String channelName = String.format("%.3s-vs-%.3s-%s", game.getHomeTeam().getCode(),
-				game.getAwayTeam().getCode(), getShortDate(game, ZoneId.of("America/New_York")));
+				game.getAwayTeam().getCode(), buildChannelDate(game, Config.ZONE_ID));
 		return channelName.toLowerCase();
 
 	}

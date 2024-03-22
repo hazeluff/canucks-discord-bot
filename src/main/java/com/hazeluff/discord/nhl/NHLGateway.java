@@ -30,6 +30,7 @@ import com.hazeluff.nhl.Team;
  */
 public class NHLGateway {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGateway.class);
+	private static final Logger SCHEDULER_LOGGER = LoggerFactory.getLogger(GameScheduler.class);
 
 	// Paths/URLs
 	static String getClubScheduleSeasonUrl(String teamCode, int startYear) {
@@ -103,6 +104,7 @@ public class NHLGateway {
 
 	public static Map<Integer, BsonDocument> getTeamRawGames(Team team, Season season) {
 		LOGGER.info("Retrieving games of [" + team + "]");
+		SCHEDULER_LOGGER.info("Retrieving games of [" + team + "]");
 		Map<Integer, BsonDocument> games = new HashMap<>();
 		try {
 			String strJSONSchedule = fetchRawGames(team, season);

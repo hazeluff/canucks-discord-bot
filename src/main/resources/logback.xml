@@ -40,6 +40,21 @@
       </encoder>
     </appender>
     
+    <appender name="NHLGateway" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/nhl-gateway.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/gdc-manager-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>5MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
     <appender name="NHLBot" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <file>logs/nhlbot.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
@@ -100,13 +115,28 @@
       </encoder>
     </appender>
     
-    <root level="info">
+    <logger name="com.hazeluff.discord.bot.gdc.GameDayChannelsManager" level="info" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="System"/>
-    </root>
+      <appender-ref ref="GameDayChannelManager"/>
+    </logger>
     
-    <logger name="com.kennycason.kumo.*" level="warn" additivity="false">
+    <logger name="com.hazeluff.discord.nhl.GameScheduler" level="info" additivity="false">
       <appender-ref ref="Console"/>
+      <appender-ref ref="GameScheduler"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.nhl.GameTracker" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="GameScheduler"/>
+    </logger>
+    
+    <logger name="com.hazeluff.nhl.game.Game" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="GameScheduler"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.nhl.NHLGateway" level="info" additivity="false">
+      <appender-ref ref="NHLGateway"/>
     </logger>
     
     <logger name="com.hazeluff.discord.bot.ExceptionHandler" additivity="false">
@@ -120,28 +150,19 @@
     </logger>
     
     <logger name="com.hazeluff.discord.*" level="warn" additivity="false">
+      <appender-ref ref="Console"/>
       <appender-ref ref="NHLBotError"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.bot.gdc.GameDayChannelsManager" level="info" additivity="false">
+    <logger name="com.kennycason.kumo.WordCloud" level="error" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="GameDayChannelManager"/>
+      <appender-ref ref="System"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.nhl.GameScheduler" level="info" additivity="false">
+    <root level="info">
       <appender-ref ref="Console"/>
-      <appender-ref ref="GameScheduler"/>
-    </logger>
-    
-    <logger name="com.hazeluff.nhl.game.Game" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="GameScheduler"/>
-    </logger>
-    
-    <logger name="com.hazeluff.discord.nhl.GameTracker" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="GameScheduler"/>
-    </logger>
+      <appender-ref ref="System"/>
+    </root>
     
     
 </configuration>

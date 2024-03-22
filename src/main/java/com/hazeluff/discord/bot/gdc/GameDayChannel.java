@@ -217,6 +217,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		setName(threadName);
 		LOGGER.info("Started GameDayChannel thread.");
 
+		sendWordcloud();
 		this.goalMessages.initEvents(game.getScoringEvents());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
 

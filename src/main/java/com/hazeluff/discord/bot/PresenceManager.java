@@ -60,7 +60,7 @@ public class PresenceManager extends Thread {
 		if(nextGame != null) {
 			Team oppTeam = nextGame.getOppossingTeam(team);
 			if (oppTeam != null) {				
-				String nextGameMessage = String.format("next in #%s.", GameDayChannel.buildChannelName(nextGame));
+				String nextGameMessage = String.format("next in #%s. ", GameDayChannel.buildChannelName(nextGame));
 				status = nextGameMessage + status;
 			}
 		}

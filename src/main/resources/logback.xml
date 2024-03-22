@@ -18,7 +18,7 @@
         <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>50MB</maxFileSize>
+        <maxFileSize>5MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -33,7 +33,7 @@
         <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>50MB</maxFileSize>
+        <maxFileSize>5MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -48,7 +48,7 @@
         <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>50MB</maxFileSize>
+        <maxFileSize>5MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -63,7 +63,7 @@
         <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>50MB</maxFileSize>
+        <maxFileSize>5MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -78,7 +78,7 @@
         <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>50MB</maxFileSize>
+        <maxFileSize>5MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -93,7 +93,7 @@
         <maxIndex>2</maxIndex>
       </rollingPolicy>
       <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
-        <maxFileSize>50MB</maxFileSize>
+        <maxFileSize>5MB</maxFileSize>
       </triggeringPolicy>
       <encoder>
         <pattern>${pattern}</pattern>
@@ -104,6 +104,10 @@
       <appender-ref ref="Console"/>
       <appender-ref ref="System"/>
     </root>
+    
+    <logger name="com.kennycason.kumo.*" level="warn" additivity="false">
+      <appender-ref ref="Console"/>
+    </logger>
     
     <logger name="com.hazeluff.discord.bot.ExceptionHandler" additivity="false">
       <appender-ref ref="Console"/>

@@ -154,7 +154,7 @@ public class GameDayChannelsManager extends Thread {
 	 */
 	public GameDayChannel createChannel(Game game, Guild guild) {
 		LOGGER.info("Initializing for channel. channelName={}, guild={}",
-				GameDayChannel.getChannelName(game), guild.getName());
+				GameDayChannel.buildChannelName(game), guild.getName());
 		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
 
@@ -175,7 +175,7 @@ public class GameDayChannelsManager extends Thread {
 
 	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
 		LOGGER.info("Creating channel. channelName={}, guild={}", 
-				GameDayChannel.getChannelName(gameTracker.getGame()), guild.getName());
+				GameDayChannel.buildChannelName(gameTracker.getGame()), guild.getName());
 		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
 		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
 		return channel;
@@ -243,7 +243,7 @@ public class GameDayChannelsManager extends Thread {
 			LOGGER.info("Updating Channels for [{}]: activeGames={}", 
 					guild.getId().asLong(),
 					nhlBot.getGameScheduler().getActiveGames(teams).stream()
-							.map(GameDayChannel::getChannelName)
+							.map(GameDayChannel::buildChannelName)
 							.collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games

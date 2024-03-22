@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
+import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
@@ -58,10 +59,8 @@ public class PresenceManager extends Thread {
 		Game nextGame = nhlBot.getGameScheduler().getNextGame(team);
 		if(nextGame != null) {
 			Team oppTeam = nextGame.getOppossingTeam(team);
-			if (oppTeam != null) {
-				String nextGameMessage = String.format(
-						"against %s in %s on %s.", 
-						oppTeam.getName(), nextGame.getHomeTeam(), buildPresenceDate(nextGame, Config.ZONE_ID));
+			if (oppTeam != null) {				
+				String nextGameMessage = String.format("next in #%s.", GameDayChannel.buildChannelName(nextGame));
 				status = nextGameMessage + status;
 			}
 		}

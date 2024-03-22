@@ -92,7 +92,7 @@ public class GameTracker extends Thread {
 	@Override
 	public void run() {
 		try {
-			setName(GameDayChannel.getChannelName(game));
+			setName(GameDayChannel.buildChannelName(game));
 			updateGame();
 
 			if (!game.getGameState().isFinished()) {

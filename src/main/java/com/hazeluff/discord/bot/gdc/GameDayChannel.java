@@ -135,7 +135,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	static TextChannel getTextChannel(Guild guild, Game game, NHLBot nhlBot, GuildPreferences preferences) {
 		TextChannel channel = null;
 		try {
-			String channelName = getChannelName(game);
+			String channelName = buildChannelName(game);
 			Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
 			Category category = nhlBot.getGdcCategoryManager().get(guild);
 			if (!DiscordManager.getTextChannels(guild).stream().anyMatch(channelMatcher)) {
@@ -212,7 +212,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private void _run() {
-		String channelName = getChannelName(this.game);
+		String channelName = buildChannelName(this.game);
 		String threadName = String.format("<%s> <%s>", guild.getName(), channelName);
 		setName(threadName);
 		LOGGER.info("Started GameDayChannel thread.");
@@ -594,7 +594,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 *         BBB is the 3 letter code of away team<br>
 	 *         yy-MM-DD is a date format
 	 */
-	public static String getChannelName(Game game) {
+	public static String buildChannelName(Game game) {
 		String channelName = String.format("%.3s-vs-%.3s-%s", game.getHomeTeam().getCode(),
 				game.getAwayTeam().getCode(), buildChannelDate(game, Config.ZONE_ID));
 		return channelName.toLowerCase();

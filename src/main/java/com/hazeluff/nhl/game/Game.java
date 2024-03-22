@@ -267,7 +267,7 @@ public class Game {
 
 	@Override
 	public String toString() {
-		return "Game [name()=" + GameDayChannel.getChannelName(this) + ", getGameState()=" + getGameState() + "]";
+		return "Game [name()=" + GameDayChannel.buildChannelName(this) + ", getGameState()=" + getGameState() + "]";
 	}
 
 }

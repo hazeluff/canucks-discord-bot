@@ -22,6 +22,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
@@ -256,6 +257,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				}
 			}
 			sendEndOfGameMessage();
+			sendStatsMessage();
 			sendCustomEndMessage();
 			sendWordcloud();
 		} else {
@@ -421,6 +423,19 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			LOGGER.debug("Sent end of game message for game. Pinning it...");
 			DiscordManager.pinMessage(endOfGameMessage);
 		}
+	}
+	
+	void sendStatsMessage() {
+		if (channel != null) {
+			EmbedCreateSpec embedSpec = GDCStatsCommand.buildEmbed(getGame());
+			MessageCreateSpec msgSpec = MessageCreateSpec.builder().addEmbed(embedSpec).build();
+			DiscordManager.sendAndGetMessage(channel, msgSpec);
+		}
+		if (endOfGameMessage != null) {
+			LOGGER.debug("Sent stats for the game. Pinning it...");
+			DiscordManager.pinMessage(endOfGameMessage);
+		}
+		
 	}
 
 	/**

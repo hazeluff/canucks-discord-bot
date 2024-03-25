@@ -12,6 +12,7 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
@@ -38,7 +39,8 @@ public class GDCCommand extends Command {
 			Arrays.asList(
 				new GDCScoreCommand(),
 				new GDCGoalsCommand(),
-				new GDCStatusCommand()
+				new GDCStatusCommand(),
+				new GDCStatsCommand()
 			)
 			.stream()
 			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));

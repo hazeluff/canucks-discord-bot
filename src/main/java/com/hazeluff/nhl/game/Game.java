@@ -258,6 +258,10 @@ public class Game {
 				.collect(Collectors.toList());
 	}
 
+	public TeamGameStats getTeamGameStats() {
+		return pbpData.getTeamGameStats();
+	}
+
 	public boolean equals(Game other) {
 		if (other == null) {
 			return false;

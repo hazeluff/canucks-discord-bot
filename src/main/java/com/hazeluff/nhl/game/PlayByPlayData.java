@@ -66,7 +66,7 @@ public class PlayByPlayData {
 	}
 
 	public BsonDocument getJson() {
-		return jsonPbp.get();
+		return this.jsonPbp.get();
 	}
 
 	public String getGameScheduleState() {
@@ -165,7 +165,11 @@ public class PlayByPlayData {
 	}
 
 	public Map<Integer, RosterPlayer> getPlayers() {
-		return parseRosterSpots(this.jsonPbp.get().getArray("rosterSpots"));
+		return parseRosterSpots(getJson().getArray("rosterSpots"));
+	}
+
+	public TeamGameStats getTeamGameStats() {
+		return TeamGameStats.parse(getJson().getDocument("summary").getArray("teamGameStats"));
 	}
 
 	@Override

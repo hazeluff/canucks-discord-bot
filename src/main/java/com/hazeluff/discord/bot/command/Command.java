@@ -112,7 +112,7 @@ public abstract class Command extends ReactiveEventAdapter {
 		if (game == null) {
 			return null;
 		}
-		String channelName = GameDayChannel.getChannelName(game).toLowerCase();
+		String channelName = GameDayChannel.buildChannelName(game).toLowerCase();
 
 		List<TextChannel> channels = DiscordManager.getTextChannels(guild);
 		if(channels != null && !channels.isEmpty()) {

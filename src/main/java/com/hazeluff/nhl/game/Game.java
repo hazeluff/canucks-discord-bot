@@ -1,8 +1,12 @@
 package com.hazeluff.nhl.game;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.bson.BsonDocument;
@@ -62,6 +66,13 @@ public class Game {
 
 	public Team getHomeTeam() {
 		return scheduleData.getHomeTeam();
+	}
+
+	public Team getOppossingTeam(Team team) {
+		if (!containsTeam(team)) {
+			return null;
+		}
+		return getTeams().stream().filter(gameTeam -> !gameTeam.equals(team)).findAny().orElse(null);
 	}
 
 	/**
@@ -178,11 +189,73 @@ public class Game {
 				.collect(Collectors.toList());
 	}
 	
+	public List<Integer> getTopGoalScorers() {
+		return getTopGoalScorers(getScoringEvents());
+	}
+
+	static List<Integer> getTopGoalScorers(List<GoalEvent> scoringEvents) {
+		Map<Integer, Integer> playerGoals = new HashMap<>();
+		for (GoalEvent goal : scoringEvents) {
+			int scorer = goal.getScorerId();
+			if (!playerGoals.containsKey(scorer)) {
+				playerGoals.put(goal.getScorerId(), 1);
+			} else {
+				playerGoals.put(goal.getScorerId(), playerGoals.get(scorer) + 1);
+			}
+		}
+
+		int highestGoals = playerGoals.values().stream().max(Integer::compare).orElse(-1);
+
+		List<Integer> highestScorers = new ArrayList<>();
+		if (highestGoals > 0) {
+			for (Entry<Integer, Integer> entry : playerGoals.entrySet()) {
+				if (entry.getValue() == highestGoals) {
+					highestScorers.add(entry.getKey());
+				}
+			}
+		}
+		return highestScorers;
+	}
+
+	public List<Integer> getTopPointScorers() {
+		return getTopPointScorers(getScoringEvents());
+	}
+
+	static List<Integer> getTopPointScorers(List<GoalEvent> scoringEvents) {
+		Map<Integer, Integer> playerPoints = new HashMap<>();
+		for (GoalEvent goal : scoringEvents) {
+			List<Integer> scorers = goal.getPlayerIds();
+			for (Integer scorer : scorers) {
+				if (!playerPoints.containsKey(scorer)) {
+					playerPoints.put(scorer, 1);
+				} else {
+					playerPoints.put(scorer, playerPoints.get(scorer) + 1);
+				}
+			}
+		}
+
+		int highestPoints = playerPoints.values().stream().max(Integer::compare).orElse(-1);
+
+		List<Integer> highestScorers = new ArrayList<>();
+		if (highestPoints > 0) {
+			for (Entry<Integer, Integer> entry : playerPoints.entrySet()) {
+				if (entry.getValue() == highestPoints) {
+					highestScorers.add(entry.getKey());
+				}
+			}
+		}
+		return highestScorers;
+	}
+
 	public List<PenaltyEvent> getPenaltyEvents() {
 		return getEvents().stream()
 				.filter(event -> EventType.PENALTY.equals(event.getType()))
 				.map(PenaltyEvent.class::cast)
 				.collect(Collectors.toList());
+	}
+
+	public TeamGameStats getTeamGameStats() {
+		return pbpData.getTeamGameStats();
 	}
 
 	public boolean equals(Game other) {
@@ -194,7 +267,7 @@ public class Game {
 
 	@Override
 	public String toString() {
-		return "Game [name()=" + GameDayChannel.getChannelName(this) + ", getGameState()=" + getGameState() + "]";
+		return "Game [name()=" + GameDayChannel.buildChannelName(this) + ", getGameState()=" + getGameState() + "]";
 	}
 
 }

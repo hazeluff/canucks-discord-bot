@@ -368,7 +368,7 @@ public class GameScheduler extends Thread {
 		return games.entrySet()
 				.stream()
 				.map(Entry::getValue)
-				.filter(game -> GameDayChannel.getChannelName(game).equalsIgnoreCase(channelName))
+				.filter(game -> GameDayChannel.buildChannelName(game).equalsIgnoreCase(channelName))
 				.findAny()
 				.orElse(null);
 	}
@@ -425,12 +425,12 @@ public class GameScheduler extends Thread {
 
 	public boolean isGameActive(Team team, String channelName) {
 		return getActiveGames(team).stream()
-				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.getChannelName(game)));
+				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.buildChannelName(game)));
 	}
 
 	public boolean isGameActive(List<Team> teams, String channelName) {
 		return getActiveGames(teams).stream()
-				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.getChannelName(game)));
+				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.buildChannelName(game)));
 	}
 
 	Map<Game, GameTracker> getActiveGameTrackers() {

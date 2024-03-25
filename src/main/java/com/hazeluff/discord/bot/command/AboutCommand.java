@@ -55,8 +55,8 @@ public class AboutCommand extends Command {
 					"I support this bot personally. "
 					+ "Donations will help offset my costs of running the server."
 					+ "\n**Paypal**: " + Config.DONATION_URL 
-					+ "\n**ETH**: " + Config.DONATION_ETH
-					+ "\n**DOGE**: " + Config.DONATION_DOGE,
+					+ "\n**Ethereum (ETH)**: " + Config.DONATION_ETH
+					+ "\n**Polygon (MATIC)**: " + Config.DONATION_MATIC,
 					false)
 			.build();
 }

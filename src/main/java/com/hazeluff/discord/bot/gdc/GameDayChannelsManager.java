@@ -151,7 +151,7 @@ public class GameDayChannelsManager extends Thread {
 	 * @param guild
 	 */
 	public GameDayChannel createChannel(Game game, Guild guild) {
-		LOGGER.info("Initializing for channel. channelName={}, guild={}", GameDayChannel.getChannelName(game),
+		LOGGER.info("Initializing for channel. channelName={}, guild={}", GameDayChannel.buildChannelName(game),
 				guild.getName());
 		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
@@ -174,7 +174,7 @@ public class GameDayChannelsManager extends Thread {
 	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
 		long guildId = guild.getId().asLong();
 		LOGGER.debug("Creating channel. channelName={}, guildId={}",
-				GameDayChannel.getChannelName(gameTracker.getGame()), guildId);
+				GameDayChannel.buildChannelName(gameTracker.getGame()), guildId);
 		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
 		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
 		return channel;
@@ -236,7 +236,7 @@ public class GameDayChannelsManager extends Thread {
 					.getGuildPreferences(guild.getId().asLong()).getTeams();
 
 			LOGGER.debug("Updating Channels for [{}]: activeGames={}", guild.getId().asLong(), nhlBot.getGameScheduler()
-					.getActiveGames(teams).stream().map(GameDayChannel::getChannelName).collect(Collectors.toList()));
+					.getActiveGames(teams).stream().map(GameDayChannel::buildChannelName).collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
 			for (TextChannel channel : DiscordManager.getTextChannels(guild)) {

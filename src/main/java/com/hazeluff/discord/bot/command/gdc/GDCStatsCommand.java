@@ -51,7 +51,7 @@ public class GDCStatsCommand extends GDCSubCommand {
 
 		embedBuilder
 				.addField(
-						game.getHomeTeam().getFullName(),
+						game.getHomeTeam().getName(),
 						homeCol.toString(),
 						true
 				)
@@ -61,7 +61,7 @@ public class GDCStatsCommand extends GDCSubCommand {
 						true
 				)
 				.addField(
-						game.getAwayTeam().getFullName(),
+						game.getAwayTeam().getName(),
 						awayCol.toString(),
 						true
 				);

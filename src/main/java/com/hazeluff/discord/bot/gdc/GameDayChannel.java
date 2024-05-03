@@ -89,7 +89,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final GuildPreferences preferences;
 	private final GDCMeta meta;
 
-	private Message introMessage; // TODO
+	private Message introMessage;
 	private Message summaryMessage;
 	private EmbedCreateSpec summaryMessageEmbed; // Used to determine if message needs updating.
 	private Message endOfGameMessage;
@@ -108,9 +108,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.goalMessages = new GoalMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
 		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
 		this.startOfGameMessages = Arrays.asList(
-			"Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe",
-			"Be woke, be cool, a calm spirit is smarter."
-		);
+				"Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe",
+				"Be woke, be cool, a calm spirit is smarter.");
 	}
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
@@ -157,8 +156,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					DiscordManager.moveChannel(category, channel);
 				}
 			}
-			
-			
+
 		} catch (Exception e) {
 			LOGGER.error("Failed to create channel.", e);
 		}
@@ -403,8 +401,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	public void updateIntroMessage() {
 		String strMessage = buildIntroMessage();
 		MessageEditSpec messageSpec = MessageEditSpec.builder()
-				.content(Possible.of(java.util.Optional.ofNullable(strMessage)))
-				.build();
+				.content(Possible.of(java.util.Optional.ofNullable(strMessage))).build();
 		DiscordManager.updateMessage(introMessage, messageSpec);
 	}
 
@@ -453,7 +450,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(summaryMessageEmbed).build();
 		DiscordManager.updateMessage(summaryMessage, messageSpec);
 	}
-	
+
 	private EmbedCreateSpec getSummaryEmbedSpec() {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
@@ -476,7 +473,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			DiscordManager.pinMessage(endOfGameMessage);
 		}
 	}
-	
+
 	void sendStatsMessage() {
 		if (channel != null) {
 			EmbedCreateSpec embedSpec = GDCStatsCommand.buildEmbed(getGame());
@@ -487,7 +484,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			LOGGER.debug("Sent stats for the game. Pinning it...");
 			DiscordManager.pinMessage(endOfGameMessage);
 		}
-		
+
 	}
 
 	/**
@@ -502,25 +499,21 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	String buildEndOfGameMessage() {
 		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
 
-		List<Game> nextGames = preferences.getTeams().stream()
-				.map(team -> nhlBot.getGameScheduler().getNextGame(team))
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+		List<Game> nextGames = preferences.getTeams().stream().map(team -> nhlBot.getGameScheduler().getNextGame(team))
+				.filter(Objects::nonNull).collect(Collectors.toList());
 
 		if (!nextGames.isEmpty()) {
 			if (nextGames.size() > 1) {
 
 			} else {
-				message += "\nThe next game is: "
-						+ buildDetailsMessage(nextGames.get(0));
+				message += "\nThe next game is: " + buildDetailsMessage(nextGames.get(0));
 			}
 		}
 		return message;
 	}
 
 	private static String buildGameScore(Game game) {
-		return String.format("%s **%s** - **%s** %s", 
-				game.getHomeTeam().getName(), game.getHomeScore(),
+		return String.format("%s **%s** - **%s** %s", game.getHomeTeam().getName(), game.getHomeScore(),
 				game.getAwayScore(), game.getAwayTeam().getName());
 	}
 
@@ -552,7 +545,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private void sendWordcloud() {
 		new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
 	}
-
 
 	private void sendCustomEndMessage() {
 		String message = CustomGameMessages.getMessage(getGame());
@@ -667,10 +659,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
 	public static String buildDetailsMessage(Game game) {
-		String message = String.format("**%s** vs **%s** at <t:%s>", 
-				game.getHomeTeam().getFullName(),
-				game.getAwayTeam().getFullName(), 
-				game.getStartTime().toEpochSecond());
+		String time = game.isStartTimeTBD()
+				? "TBD"
+				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
+		String message = String.format(
+				"**%s** vs **%s** at %s", 
+				game.getHomeTeam().getFullName(), game.getAwayTeam().getFullName(), 
+				time
+			);
 		return message;
 	}
 

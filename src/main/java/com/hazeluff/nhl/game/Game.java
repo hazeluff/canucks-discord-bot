@@ -53,7 +53,7 @@ public class Game {
 	}
 
 	public boolean isStartTimeTBD() {
-		return scheduleData.getGameScheduleState().toLowerCase().equals("tbd");
+		return scheduleData.getGameScheduleState().equalsIgnoreCase("TBD");
 	}
 
 	public ZonedDateTime getStartTime() {

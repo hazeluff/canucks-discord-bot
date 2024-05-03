@@ -34,7 +34,9 @@ import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
+import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
+import discord4j.discordjson.possible.Possible;
 
 public class GameDayChannel extends Thread implements IEventProcessor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannel.class);
@@ -66,6 +68,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final GuildPreferences preferences;
 	private final GDCMeta meta;
 
+	private Message introMessage;
 	private Message endOfGameMessage;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
@@ -192,6 +195,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.goalMessages.initEvents(game.getScoringEvents());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
 
+		// Send + Pin Intro Messages
+		introMessage = getIntroMessage();
+
 		if (!game.getGameState().isFinished()) {
 			// Game is close to starting. Poll at higher rate than previously
 			LOGGER.debug("Game is about to start. Polling more actively.");
@@ -289,6 +295,54 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		GDCGoalsCommand.buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
+	}
+	
+	/*
+	 * Intro Message
+	 */
+	private Message getIntroMessage() {
+		Message message = null;
+		if (meta != null) {
+			Long messageId = meta.getIntroMessageId();
+			if (messageId == null) {
+				// No message saved
+				message = sendIntroMessage();
+			} else {
+				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+				if (message == null) {
+					// Could not find existing message. Send new message
+					message = sendIntroMessage();
+				} else {
+					// Message exists
+					return message;
+				}
+			}
+
+			if (message != null) {
+				DiscordManager.pinMessage(message);
+				meta.setIntroMessageId(message.getId().asLong());
+				saveMetadata();
+			}
+		}
+		return message;
+	}
+
+	private Message sendIntroMessage() {
+		String strMessage = buildIntroMessage();
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder().content(strMessage).build();
+		return DiscordManager.sendAndGetMessage(channel, messageSpec);
+	}
+
+	public void updateIntroMessage() {
+		String strMessage = buildIntroMessage();
+		MessageEditSpec messageSpec = MessageEditSpec.builder()
+				.content(Possible.of(java.util.Optional.ofNullable(strMessage)))
+				.build();
+		DiscordManager.updateMessage(introMessage, messageSpec);
+	}
+
+	private String buildIntroMessage() {
+		return buildDetailsMessage(game) + "\n\n" + getHelpMessageText();
 	}
 
 	/*
@@ -488,8 +542,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
 	public static String buildDetailsMessage(Game game) {
-		String message = String.format("**%s** vs **%s** at <t:%s>", game.getHomeTeam().getFullName(),
-				game.getAwayTeam().getFullName(), game.getStartTime().toEpochSecond());
+		String time = game.isStartTimeTBD()
+				? "TBD"
+				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
+		String message = String.format(
+				"**%s** vs **%s** at %s", 
+				game.getHomeTeam().getFullName(), game.getAwayTeam().getFullName(), 
+				time
+			);
 		return message;
 	}
 

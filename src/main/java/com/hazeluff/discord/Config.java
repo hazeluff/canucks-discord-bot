@@ -13,7 +13,6 @@ import com.hazeluff.discord.bot.command.NHLStatsCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
-import com.hazeluff.discord.bot.command.ThreadsCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.nhl.Seasons;
 import com.hazeluff.discord.nhl.Seasons.Season;
@@ -152,7 +151,6 @@ public class Config {
 				SubscribeCommand.class,
 				ScheduleCommand.class,
 				BotStatsCommand.class,
-				ThreadsCommand.class,
 				UnsubscribeCommand.class
 		);
 	}

@@ -52,6 +52,10 @@ public class Game {
 		return getGameType().getPeriodCode(getPeriod());
 	}
 
+	public boolean isStartTimeTBD() {
+		return scheduleData.getGameScheduleState().equalsIgnoreCase("TBD");
+	}
+
 	public ZonedDateTime getStartTime() {
 		return scheduleData.getStartTime();
 	}

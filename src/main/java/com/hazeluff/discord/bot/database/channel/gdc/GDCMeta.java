@@ -17,11 +17,13 @@ import discord4j.core.object.entity.Message;
 
 public class GDCMeta {
 	private static final String CHANNEL_ID_KEY = "channelId";
+	private static final String INTRO_MESSAGE_ID_KEY = "intro-messageId";
 	private static final String SUMMARY_MESSAGE_ID_KEY = "summary-messageId";
 	private static final String GOAL_MESSAGE_IDS_KEY = "goal-messageIds";
 	private static final String PENALTY_MESSAGE_IDS_KEY = "penalty-messageIds";
 
 	private final long channelId;
+	private Long introMessageId;
 	private Long summaryMessageId;
 
 	private String strGoalMessages;
@@ -31,10 +33,13 @@ public class GDCMeta {
 		this.channelId = channelId;
 	}
 
-	GDCMeta(long channelId, Long summaryMessageId,
+	GDCMeta(long channelId,
+			Long introMessageId,
+			Long summaryMessageId,
 			String strGoalMessages,
 			String strPenaltyMessages) {
 		this(channelId);
+		this.introMessageId = introMessageId;
 		this.summaryMessageId = summaryMessageId;
 		this.strGoalMessages = strGoalMessages;
 		this.strPenaltyMessages = strPenaltyMessages;
@@ -52,11 +57,12 @@ public class GDCMeta {
 		}
 
 		long channelId = doc.getLong(CHANNEL_ID_KEY);
+		Long introMessageId = doc.getLong(INTRO_MESSAGE_ID_KEY);
 		Long summaryMessageId = doc.getLong(SUMMARY_MESSAGE_ID_KEY);
 		String goalMessageIds = doc.getString(GOAL_MESSAGE_IDS_KEY);
 		String penaltyMessageIds = doc.getString(PENALTY_MESSAGE_IDS_KEY);
 
-		return new GDCMeta(channelId, summaryMessageId, goalMessageIds, penaltyMessageIds);
+		return new GDCMeta(channelId, introMessageId, summaryMessageId, goalMessageIds, penaltyMessageIds);
 	}
 
 	static GDCMeta findFromCollection(MongoCollection<Document> collection, long channelId) {
@@ -71,6 +77,7 @@ public class GDCMeta {
 				new Document(CHANNEL_ID_KEY,
 						channelId),
 				new Document("$set", new Document()
+						.append(INTRO_MESSAGE_ID_KEY, introMessageId)
 						.append(SUMMARY_MESSAGE_ID_KEY, summaryMessageId)
 						.append(GOAL_MESSAGE_IDS_KEY, strGoalMessages)
 						.append(PENALTY_MESSAGE_IDS_KEY, strPenaltyMessages)
@@ -80,6 +87,14 @@ public class GDCMeta {
 
 	public Long getChannelId() {
 		return channelId;
+	}
+
+	public Long getIntroMessageId() {
+		return introMessageId;
+	}
+
+	public void setIntroMessageId(Long messageId) {
+		this.introMessageId = messageId;
 	}
 
 	public Long getSummaryMessageId() {

@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -251,6 +252,11 @@ public class GameDayChannelsManager extends Thread {
 				if (isRemoveChannel(channel, preferences)) {
 					deleteChannel(channel, preferences);
 				}
+			}
+
+			for (Entry<Integer, GameDayChannel> gdcEntry : getGameDayChannels(guild.getId().asLong()).entrySet()) {
+				GameDayChannel gdc = gdcEntry.getValue();
+				gdc.updateIntroMessage();
 			}
 
 			// Create game channels of latest game for current subscribed team

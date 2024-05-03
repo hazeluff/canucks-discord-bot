@@ -46,6 +46,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
+import discord4j.discordjson.possible.Possible;
 
 public class GameDayChannel extends Thread implements IEventProcessor {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannel.class);
@@ -88,6 +89,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final GuildPreferences preferences;
 	private final GDCMeta meta;
 
+	private Message introMessage; // TODO
 	private Message summaryMessage;
 	private EmbedCreateSpec summaryMessageEmbed; // Used to determine if message needs updating.
 	private Message endOfGameMessage;
@@ -147,10 +149,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					channelSpecBuilder.parentId(category.getId());
 				}
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
-				if (channel != null) {
-					// Send Messages to Initialize Channel
-					sendWelcomeMessage(channel, game);
-				}
 			} else {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
 				channel = DiscordManager.getTextChannels(guild).stream().filter(channelMatcher).findAny().orElse(null);
@@ -221,7 +219,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.goalMessages.initEvents(game.getScoringEvents());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
 
-		// Post Predictions poll
+		// Send + Pin Intro/Summary Messages
+		introMessage = getIntroMessage();
 		summaryMessage = getSummaryMessage();
 
 		if (!game.getGameState().isFinished()) {
@@ -366,6 +365,54 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/*
+	 * Intro Message
+	 */
+	private Message getIntroMessage() {
+		Message message = null;
+		if (meta != null) {
+			Long messageId = meta.getIntroMessageId();
+			if (messageId == null) {
+				// No message saved
+				message = sendIntroMessage();
+			} else {
+				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+				if (message == null) {
+					// Could not find existing message. Send new message
+					message = sendIntroMessage();
+				} else {
+					// Message exists
+					return message;
+				}
+			}
+
+			if (message != null) {
+				DiscordManager.pinMessage(message);
+				meta.setIntroMessageId(message.getId().asLong());
+				saveMetadata();
+			}
+		}
+		return message;
+	}
+
+	private Message sendIntroMessage() {
+		String strMessage = buildIntroMessage();
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder().content(strMessage).build();
+		return DiscordManager.sendAndGetMessage(channel, messageSpec);
+	}
+
+	public void updateIntroMessage() {
+		String strMessage = buildIntroMessage();
+		MessageEditSpec messageSpec = MessageEditSpec.builder()
+				.content(Possible.of(java.util.Optional.ofNullable(strMessage)))
+				.build();
+		DiscordManager.updateMessage(introMessage, messageSpec);
+	}
+
+	private String buildIntroMessage() {
+		return buildDetailsMessage(game) + "\n\n" + getHelpMessageText();
+	}
+
+	/*
 	 * Summary Message
 	 */
 	private Message getSummaryMessage() {
@@ -373,11 +420,16 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		if (meta != null) {
 			Long messageId = meta.getSummaryMessageId();
 			if (messageId == null) {
+				// No message saved
 				message = sendSummaryMessage();
 			} else {
 				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
 				if (message == null) {
+					// Could not find existing message. Send new message
 					message = sendSummaryMessage();
+				} else {
+					// Message exists
+					return message;
 				}
 			}
 
@@ -490,19 +542,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	@Override
 	public void process(Event event) {
 		// Do Nothing
-	}
-
-	private static Message sendWelcomeMessage(TextChannel channel, Game game) {
-		String strMessage = buildDetailsMessage(game)
-				+ "\n\n"
-				+ getHelpMessageText();
-		Message message = DiscordManager.sendAndGetMessage(channel,
-				MessageCreateSpec.builder()
-					.content(strMessage)
-					.build());
-		DiscordManager.pinMessage(message);
-
-		return message;
 	}
 
 	private static String getHelpMessageText() {

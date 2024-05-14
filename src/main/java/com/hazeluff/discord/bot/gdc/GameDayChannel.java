@@ -219,6 +219,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Send + Pin Intro/Summary Messages
 		introMessage = getIntroMessage();
+		updateIntroMessage();
 		summaryMessage = getSummaryMessage();
 
 		if (!game.getGameState().isFinished()) {

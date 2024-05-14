@@ -184,9 +184,10 @@ public class GameScheduler extends Thread {
 		Map<Integer, BsonDocument> jsonFetchedGames = NHLGateway.getAllTeamRawGames();
 		jsonFetchedGames.entrySet().stream().forEach(jsonFetchedGame -> {
 			int gamePk = jsonFetchedGame.getKey();
+			BsonDocument jsonSchedule = jsonFetchedGame.getValue();
 			if (!games.containsKey(gamePk)) {
 				// Create a new game object and put it in our map
-				Game newGame = Game.parse(jsonFetchedGame.getValue());
+				Game newGame = Game.parse(jsonSchedule);
 				if (newGame != null) {
 					// Games can be null if they fail to parse.
 					// Only put non-null values (map throws error otherwise).
@@ -194,6 +195,8 @@ public class GameScheduler extends Thread {
 				} else {
 					LOGGER.debug("Fetched game could not be parsed. Skipping insertion...");
 				}
+			} else {
+				games.get(gamePk).updateSchedule(jsonSchedule);
 			}
 		});
 

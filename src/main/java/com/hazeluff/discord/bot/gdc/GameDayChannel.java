@@ -224,7 +224,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		if (!game.getGameState().isFinished()) {
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
-			sendReminders();
+			if (!game.isStartTimeTBD()) {
+				sendReminders();
+			}
 
 			// Game is close to starting. Poll at higher rate than previously
 			LOGGER.info("Game is about to start. Polling more actively.");
@@ -660,7 +662,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	public static String buildDetailsMessage(Game game) {
 		String time = game.isStartTimeTBD()
-				? "TBD"
+				? "`TBD`"
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
 		String message = String.format(
 				"**%s** vs **%s** at %s", 

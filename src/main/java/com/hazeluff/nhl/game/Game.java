@@ -43,6 +43,10 @@ public class Game {
 		}
 	}
 
+	public void updateSchedule(BsonDocument jsonScheduleGame) {
+		scheduleData.update(jsonScheduleGame);
+	}
+
 	// Schedule
 	public GameType getGameType() {
 		return scheduleData.getGameType();

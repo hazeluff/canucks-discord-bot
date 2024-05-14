@@ -197,6 +197,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 		// Send + Pin Intro Messages
 		introMessage = getIntroMessage();
+		updateIntroMessage();
 
 		if (!game.getGameState().isFinished()) {
 			// Game is close to starting. Poll at higher rate than previously
@@ -543,7 +544,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	public static String buildDetailsMessage(Game game) {
 		String time = game.isStartTimeTBD()
-				? "TBD"
+				? "`TBD`"
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
 		String message = String.format(
 				"**%s** vs **%s** at %s", 

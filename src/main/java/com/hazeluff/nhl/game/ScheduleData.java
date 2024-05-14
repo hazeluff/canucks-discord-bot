@@ -16,17 +16,15 @@ public class ScheduleData {
 	private AtomicReference<BsonDocument> jsonSchedule;
 
 	private final GameType gameType;
-	private final ZonedDateTime startTime;
 	private final int gameId;
 	private final Team awayTeam;
 	private final Team homeTeam;
 
-	ScheduleData(BsonDocument jsonSchedule, 
-			GameType gameType, ZonedDateTime startTime, int gameId, 
+	ScheduleData(BsonDocument jsonSchedule,
+			GameType gameType, int gameId,
 			Team awayTeam, Team homeTeam) {
 		this.jsonSchedule = new AtomicReference<BsonDocument>(jsonSchedule);
 		this.gameType = gameType;
-		this.startTime = startTime;
 		this.gameId = gameId;
 		this.awayTeam = awayTeam;
 		this.homeTeam = homeTeam;
@@ -35,13 +33,12 @@ public class ScheduleData {
 	public static ScheduleData parse(BsonDocument jsonSchedule) {
 		try {
 			GameType gameType = GameType.parse(jsonSchedule.getInt32("gameType").getValue());
-			ZonedDateTime date = DateUtils.parseNHLDate(jsonSchedule.getString("startTimeUTC").getValue());
 			int gameId = jsonSchedule.getInt32("id").getValue();
 			Team awayTeam = Team.parse(jsonSchedule.getDocument("awayTeam").getInt32("id").getValue());
 			Team homeTeam = Team.parse(jsonSchedule.getDocument("homeTeam").getInt32("id").getValue());
 			return new ScheduleData(
-					jsonSchedule, 
-					gameType, date, gameId, 
+					jsonSchedule,
+					gameType, gameId,
 					awayTeam, homeTeam
 			);
 		} catch (Exception e) {
@@ -71,7 +68,7 @@ public class ScheduleData {
 	}
 
 	public ZonedDateTime getStartTime() {
-		return startTime;
+		return DateUtils.parseNHLDate(getJson().getString("startTimeUTC").getValue());
 	}
 
 	public int getGameId() {
@@ -95,7 +92,6 @@ public class ScheduleData {
 		result = prime * result + ((gameType == null) ? 0 : gameType.hashCode());
 		result = prime * result + ((homeTeam == null) ? 0 : homeTeam.hashCode());
 		result = prime * result + ((jsonSchedule == null) ? 0 : jsonSchedule.hashCode());
-		result = prime * result + ((startTime == null) ? 0 : startTime.hashCode());
 		return result;
 	}
 
@@ -121,11 +117,7 @@ public class ScheduleData {
 				return false;
 		} else if (!jsonSchedule.equals(other.jsonSchedule))
 			return false;
-		if (startTime == null) {
-			if (other.startTime != null)
-				return false;
-		} else if (!startTime.equals(other.startTime))
-			return false;
 		return true;
 	}
+
 }

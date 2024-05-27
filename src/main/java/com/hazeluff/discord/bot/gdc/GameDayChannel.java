@@ -122,10 +122,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					channelSpecBuilder.parentId(category.getId());
 				}
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
-				if (channel != null) {
-					// Send Messages to Initialize Channel
-					sendWelcomeMessage(channel, game);
-				}
 			} else {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
 				channel = DiscordManager.getTextChannels(guild).stream().filter(channelMatcher).findAny().orElse(null);
@@ -410,15 +406,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	@Override
 	public void process(Event event) {
 		// Do Nothing
-	}
-
-	private static Message sendWelcomeMessage(TextChannel channel, Game game) {
-		String strMessage = buildDetailsMessage(game) + "\n\n" + getHelpMessageText();
-		Message message = DiscordManager.sendAndGetMessage(channel,
-				MessageCreateSpec.builder().content(strMessage).build());
-		DiscordManager.pinMessage(message);
-
-		return message;
 	}
 
 	private static String getHelpMessageText() {

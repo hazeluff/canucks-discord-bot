@@ -100,7 +100,9 @@ public class Game {
 	 *         false, otherwise
 	 */
 	public boolean containsTeam(Team team) {
-		return getHomeTeam().equals(team) || getAwayTeam().equals(team);
+		boolean isHome = getHomeTeam() != null && getHomeTeam().equals(team);
+		boolean isAway = getAwayTeam() != null && getAwayTeam().equals(team);
+		return isHome || isAway;
 	}
 
 	// BoxScore

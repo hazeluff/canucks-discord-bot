@@ -264,7 +264,7 @@ public class GameDayChannelsManager extends Thread {
 				createChannel(game, guild);
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Issue updating guild: " + guild.getId().asLong());
+			LOGGER.warn("Issue updating guild: " + guild.getId().asLong() + "\n" + e.getMessage());
 		}
 	}
 

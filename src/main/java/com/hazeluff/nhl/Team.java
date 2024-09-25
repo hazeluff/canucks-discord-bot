@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import discord4j.rest.util.Color;
 
 public enum Team {
@@ -270,17 +273,6 @@ public enum Team {
 			"Go Jets Go!", 
 			Color.of(0xFFFFFF),
 			ZoneId.of("America/Winnipeg")),
-	/*
-	ARIZONA_COYOTES(
-			53, 
-			"Arizona", 
-			"Coyotes", 
-			"ARI", 
-			Division.PACIFIC, 
-			"Lets Go Coyotes!", 
-			Color.of(0x8C2633),
-			ZoneId.of("America/Denver")),
-	*/
 	VEGAS_GOLDEN_KNIGHTS(
 			54, 
 			"Vegas", 
@@ -302,12 +294,14 @@ public enum Team {
 	UTAH_HC(
 			59,
 			"Utah",
-			"Hockey Club", 
-			"UTA", 
-			Division.CENTRAL, 
+			"Hockey Club",
+			"UTA",
+			Division.CENTRAL,
 			"Lets Go Utah!",
 			Color.of(0x6CACE4),
 			ZoneId.of("America/Denver"));
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(Team.class);
 
 	public static final String MULTI_TEAM_CHEER = "Lets Go!";
 
@@ -390,7 +384,7 @@ public enum Team {
 		}
 		Team result = VALUES_MAP.get(id);
 		if (result == null) {
-			throw new IllegalArgumentException("No value exists for: " + id);
+			LOGGER.warn("No value exists for: " + id);
 		}
 		return result;
 	}
@@ -412,7 +406,7 @@ public enum Team {
 		}
 		Team result = CODES_MAP.get(code.toUpperCase());
 		if (result == null) {
-			throw new IllegalArgumentException("No value exists for: " + code);
+			LOGGER.warn("No value exists for: " + code);
 		}
 		return result;
 	}

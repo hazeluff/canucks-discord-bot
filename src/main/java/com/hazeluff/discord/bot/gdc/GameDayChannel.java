@@ -110,7 +110,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.startOfGameMessages = Arrays.asList(
 				"Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe",
 				"Be woke, be cool, a calm spirit is smarter.",
-				"Get ready, go to the washroom, get your snacks, get your drinks, get your ????, get comfy, and watch us play."
+				"Get ready, go to the washroom, get your snacks, get your drinks, get your ????, get comfy, and watch us play.",
+				""
 		);
 	}
 

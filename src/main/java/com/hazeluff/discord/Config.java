@@ -51,7 +51,7 @@ public class Config {
 	/* 
 	 * Season Config
 	 */
-	public static final Season CURRENT_SEASON = Seasons.S23_24;
+	public static final Season CURRENT_SEASON = Seasons.S24_25;
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
 	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(268247727400419329l, 276953120964083713l);

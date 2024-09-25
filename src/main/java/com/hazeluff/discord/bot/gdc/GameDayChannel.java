@@ -109,7 +109,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
 		this.startOfGameMessages = Arrays.asList(
 				"Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe",
-				"Be woke, be cool, a calm spirit is smarter.");
+				"Be woke, be cool, a calm spirit is smarter.",
+				"Get ready, go to the washroom, get your snacks, get your drinks, get your ????, get comfy, and watch us play."
+		);
 	}
 
 	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {

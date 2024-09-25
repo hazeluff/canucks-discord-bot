@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -56,7 +57,10 @@ public class PreferencesData extends DatabaseManager {
 			List<Team> teams;
 
 			if (doc.containsKey("teams")) {
-				teams = ((List<Integer>) doc.get("teams")).stream().map(Team::parse).collect(Collectors.toList());
+				teams = ((List<Integer>) doc.get("teams")).stream()
+							.map(Team::parse)
+							.filter(Objects::nonNull)
+							.collect(Collectors.toList());
 			} else {
 				teams = new ArrayList<>();
 			}

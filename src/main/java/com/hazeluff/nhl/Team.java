@@ -270,15 +270,6 @@ public enum Team {
 			"Go Jets Go!", 
 			Color.of(0xFFFFFF),
 			ZoneId.of("America/Winnipeg")),
-	ARIZONA_COYOTES(
-			53, 
-			"Arizona", 
-			"Coyotes", 
-			"ARI", 
-			Division.PACIFIC, 
-			"Lets Go Coyotes!", 
-			Color.of(0x8C2633),
-			ZoneId.of("America/Denver")),
 	VEGAS_GOLDEN_KNIGHTS(
 			54, 
 			"Vegas", 

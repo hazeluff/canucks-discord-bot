@@ -270,6 +270,7 @@ public enum Team {
 			"Go Jets Go!", 
 			Color.of(0xFFFFFF),
 			ZoneId.of("America/Winnipeg")),
+	/*
 	ARIZONA_COYOTES(
 			53, 
 			"Arizona", 
@@ -279,6 +280,7 @@ public enum Team {
 			"Lets Go Coyotes!", 
 			Color.of(0x8C2633),
 			ZoneId.of("America/Denver")),
+	*/
 	VEGAS_GOLDEN_KNIGHTS(
 			54, 
 			"Vegas", 
@@ -296,7 +298,16 @@ public enum Team {
 			Division.PACIFIC, 
 			"Lets Go Kraken!",
 			Color.of(0x639FB6),
-			ZoneId.of("America/Los_Angeles"));
+			ZoneId.of("America/Los_Angeles")),
+	UTAH_HC(
+			59,
+			"Utah",
+			"Hockey Club",
+			"UTA",
+			Division.CENTRAL,
+			"Lets Go Utah!",
+			Color.of(0x6CACE4),
+			ZoneId.of("America/Denver"));
 
 	public static final String MULTI_TEAM_CHEER = "Lets Go!";
 

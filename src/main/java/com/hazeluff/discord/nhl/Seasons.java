@@ -4,6 +4,12 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 public class Seasons {
+	public static final Season S24_25 = new Season(
+			ZonedDateTime.of(2023, 9, 1, 0, 0, 0, 0, ZoneOffset.UTC),
+			ZonedDateTime.of(2024, 7, 31, 0, 0, 0, 0, ZoneOffset.UTC),
+			2024,
+			2025,
+			"24-25");
 	public static final Season S23_24 = new Season(
 			ZonedDateTime.of(2023, 9, 1, 0, 0, 0, 0, ZoneOffset.UTC),
 			ZonedDateTime.of(2024, 7, 31, 0, 0, 0, 0, ZoneOffset.UTC),

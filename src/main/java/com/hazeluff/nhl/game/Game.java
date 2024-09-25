@@ -36,7 +36,12 @@ public class Game {
 	public static Game parse(BsonDocument jsonScheduleGame) {
 		ScheduleData scheduleInfo = ScheduleData.parse(jsonScheduleGame);
 		if (scheduleInfo != null) {
-			return new Game(scheduleInfo);
+			Game game = new Game(scheduleInfo);
+			if (game.getHomeTeam() == null || game.getAwayTeam() == null) {
+				LOGGER.warn("team was null: " + game.getGameId());
+				return null;
+			}
+			return game;
 		} else {
 			LOGGER.error("Could not parse game: rawScheduleGameJson=" + jsonScheduleGame);
 			return null;

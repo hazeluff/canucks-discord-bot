@@ -73,6 +73,10 @@ public class GameTracker extends Thread {
 		if (jsonBoxScore != null) {
 			this.game.updateBoxScore(jsonBoxScore);
 		}
+		BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
+		if (jsonRightRail != null) {
+			this.game.updateRightRail(jsonRightRail);
+		}
 	}
 
 	@Override

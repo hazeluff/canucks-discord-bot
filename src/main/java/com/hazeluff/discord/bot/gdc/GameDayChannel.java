@@ -108,10 +108,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.goalMessages = new GoalMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
 		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
 		this.startOfGameMessages = Arrays.asList(
-				"Game is about to start! " + preferences.getCheer() + "\nRemember: Be Kind, Be Calm, Be Safe",
+				"Game is about to start! " + preferences.getCheer(),
+				"Be Kind, Be Calm, Be Safe",
 				"Be woke, be cool, a calm spirit is smarter.",
-				"Get ready, go to the washroom, get your snacks, get your drinks, get your ????, get comfy, and watch us play.",
-				""
+				"Get ready, go to the washroom, get your snacks, get your drinks, get your ????, get comfy, and watch us play."
 		);
 	}
 
@@ -471,26 +471,33 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * Sends the end of game message.
 	 */
 	void sendEndOfGameMessage() {
-		if (channel != null) {
-			DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-		}
-		if (endOfGameMessage != null) {
-			LOGGER.debug("Sent end of game message for game. Pinning it...");
-			DiscordManager.pinMessage(endOfGameMessage);
+		try {
+			if (channel != null) {
+				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
+			}
+			if (endOfGameMessage != null) {
+				LOGGER.debug("Sent end of game message for game. Pinning it...");
+				DiscordManager.pinMessage(endOfGameMessage);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Could not send Stats Message.");
 		}
 	}
 
 	void sendStatsMessage() {
-		if (channel != null) {
-			EmbedCreateSpec embedSpec = GDCStatsCommand.buildEmbed(getGame());
-			MessageCreateSpec msgSpec = MessageCreateSpec.builder().addEmbed(embedSpec).build();
-			DiscordManager.sendAndGetMessage(channel, msgSpec);
+		try {
+			if (channel != null) {
+				EmbedCreateSpec embedSpec = GDCStatsCommand.buildEmbed(getGame());
+				MessageCreateSpec msgSpec = MessageCreateSpec.builder().addEmbed(embedSpec).build();
+				DiscordManager.sendAndGetMessage(channel, msgSpec);
+			}
+			if (endOfGameMessage != null) {
+				LOGGER.debug("Sent stats for the game. Pinning it...");
+				DiscordManager.pinMessage(endOfGameMessage);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Could not send Stats Message.");
 		}
-		if (endOfGameMessage != null) {
-			LOGGER.debug("Sent stats for the game. Pinning it...");
-			DiscordManager.pinMessage(endOfGameMessage);
-		}
-
 	}
 
 	/**
@@ -549,13 +556,21 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	private void sendWordcloud() {
-		new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
+		try {
+			new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
+		} catch (Exception e) {
+			LOGGER.error("Could not send Wordcloud.");
+		}
 	}
 
 	private void sendCustomEndMessage() {
-		String message = CustomGameMessages.getMessage(getGame());
-		if (channel != null && message != null) {
-			sendMessage(message);
+		try {
+			String message = CustomGameMessages.getMessage(getGame());
+			if (channel != null && message != null) {
+				sendMessage(message);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Could not send EOG Custom Message.");
 		}
 	}
 

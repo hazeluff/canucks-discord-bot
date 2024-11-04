@@ -168,10 +168,6 @@ public class PlayByPlayData {
 		return parseRosterSpots(getJson().getArray("rosterSpots"));
 	}
 
-	public TeamGameStats getTeamGameStats() {
-		return TeamGameStats.parse(getJson().getDocument("summary").getArray("teamGameStats"));
-	}
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;

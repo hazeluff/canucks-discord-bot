@@ -46,6 +46,10 @@ public class NHLGateway {
 	static String getBoxScoreUrl(int gameId) {
 		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/boxscore";
 	}
+
+	static String getRightRailUrl(int gameId) {
+		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/right-rail";
+	}
 	
 	static String getTeamPlayerStatsUrl(String teamCode, int startYear) {
 		int endYear = startYear + 1;
@@ -74,6 +78,11 @@ public class NHLGateway {
 
 	static String fetchRawBoxScore(int gameId) throws HttpException {
 		URI uri = HttpUtils.buildUri(getBoxScoreUrl(gameId));
+		return HttpUtils.get(uri);
+	}
+
+	static String fetchRawRightRail(int gameId) throws HttpException {
+		URI uri = HttpUtils.buildUri(getRightRailUrl(gameId));
 		return HttpUtils.get(uri);
 	}
 
@@ -141,6 +150,16 @@ public class NHLGateway {
 			return BsonDocument.parse(strBoxscore);
 		} catch (HttpException e) {
 			LOGGER.error("Failed to get boxscore for game: " + gameId);
+			return null;
+		}
+	}
+
+	public static BsonDocument getRightRail(int gameId) {
+		try {
+			String strBoxscore = fetchRawRightRail(gameId);
+			return BsonDocument.parse(strBoxscore);
+		} catch (HttpException e) {
+			LOGGER.error("Failed to get right rail for game: " + gameId);
 			return null;
 		}
 	}

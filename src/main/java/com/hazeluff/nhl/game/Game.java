@@ -26,11 +26,13 @@ public class Game {
 	private final ScheduleData scheduleData; // Set Once
 	private PlayByPlayData pbpData; // Constantly Updated
 	private BoxScoreData bsData; // Constantly Updated
+	private RightRailData rrData; // Constantly Updated
 
 	Game(ScheduleData scheduleInfo) {
 		this.scheduleData = scheduleInfo;
 		this.pbpData = null;
 		this.bsData = null;
+		this.rrData = null;
 	}
 
 	public static Game parse(BsonDocument jsonScheduleGame) {
@@ -125,6 +127,25 @@ public class Game {
 			this.bsData.update(jsonBoxScore);
 		} else {
 			initBoxScore(jsonBoxScore);
+		}
+	}
+
+	// Right Rail
+	void initRightRail(BsonDocument jsonRightRail) {
+		RightRailData newRightRailData = RightRailData.parse(jsonRightRail);
+		if (newRightRailData != null) {
+			this.rrData = newRightRailData;
+		} else {
+			LOGGER.error("Could not parse json: jsonRightRail=" + jsonRightRail);
+		}
+	}
+
+	public void updateRightRail(BsonDocument jsonRightRail) {
+		LOGGER.debug("Updating Game Rail Data. [" + getGameId() + "]");
+		if (this.rrData != null) {
+			this.rrData.update(jsonRightRail);
+		} else {
+			initRightRail(jsonRightRail);
 		}
 	}
 
@@ -273,7 +294,7 @@ public class Game {
 	}
 
 	public TeamGameStats getTeamGameStats() {
-		return pbpData.getTeamGameStats();
+		return rrData.getTeamGameStats();
 	}
 
 	public boolean equals(Game other) {

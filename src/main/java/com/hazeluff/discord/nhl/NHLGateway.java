@@ -30,6 +30,7 @@ import com.hazeluff.nhl.Team;
  */
 public class NHLGateway {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGateway.class);
+	private static final Logger SCHEDULER_LOGGER = LoggerFactory.getLogger(GameScheduler.class);
 
 	// Paths/URLs
 	static String getClubScheduleSeasonUrl(String teamCode, int startYear) {
@@ -44,6 +45,10 @@ public class NHLGateway {
 
 	static String getBoxScoreUrl(int gameId) {
 		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/boxscore";
+	}
+
+	static String getRightRailUrl(int gameId) {
+		return Config.NHL_API_URL + "/gamecenter/" + gameId + "/right-rail";
 	}
 	
 	static String getTeamPlayerStatsUrl(String teamCode, int startYear) {
@@ -76,6 +81,11 @@ public class NHLGateway {
 		return HttpUtils.get(uri);
 	}
 
+	static String fetchRawRightRail(int gameId) throws HttpException {
+		URI uri = HttpUtils.buildUri(getRightRailUrl(gameId));
+		return HttpUtils.get(uri);
+	}
+
 	static String fetchTeamPlayerStats(Team team, Season season) throws HttpException {
 		URI uri = HttpUtils.buildUri(getTeamPlayerStatsUrl(team.getCode(), season.getStartYear()));
 		return HttpUtils.get(uri);
@@ -103,6 +113,7 @@ public class NHLGateway {
 
 	public static Map<Integer, BsonDocument> getTeamRawGames(Team team, Season season) {
 		LOGGER.info("Retrieving games of [" + team + "]");
+		SCHEDULER_LOGGER.info("Retrieving games of [" + team + "]");
 		Map<Integer, BsonDocument> games = new HashMap<>();
 		try {
 			String strJSONSchedule = fetchRawGames(team, season);
@@ -139,6 +150,16 @@ public class NHLGateway {
 			return BsonDocument.parse(strBoxscore);
 		} catch (HttpException e) {
 			LOGGER.error("Failed to get boxscore for game: " + gameId);
+			return null;
+		}
+	}
+
+	public static BsonDocument getRightRail(int gameId) {
+		try {
+			String strBoxscore = fetchRawRightRail(gameId);
+			return BsonDocument.parse(strBoxscore);
+		} catch (HttpException e) {
+			LOGGER.error("Failed to get right rail for game: " + gameId);
 			return null;
 		}
 	}

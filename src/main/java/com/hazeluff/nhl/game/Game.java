@@ -59,7 +59,7 @@ public class Game {
 	}
 
 	public String getPeriodOridnal() {
-		return getGameType().getPeriodCode(getPeriod());
+		return getGameType().getPeriodCode(getPeriodNumber());
 	}
 
 	public boolean isStartTimeTBD() {
@@ -175,8 +175,12 @@ public class Game {
 		return this.scheduleData.getGameState();
 	}
 
-	public int getPeriod() {
-		return this.pbpData.getPeriod();
+	public int getPeriodNumber() {
+		return this.pbpData.getCurrentPeriodNumber();
+	}
+
+	public PeriodType getPeriodType() {
+		return this.pbpData.getCurrentPeriodType();
 	}
 
 	public boolean isInIntermission() {
@@ -188,7 +192,7 @@ public class Game {
 	}
 
 	public boolean hasShootout() {
-		return getGameType().isShootout(getPeriod());
+		return getGameType().isShootout(getPeriodNumber());
 	}
 
 	public int getHomeScore() {

@@ -55,7 +55,6 @@ public class GDCStatusCommand extends GDCSubCommand {
 					break;
 				case SHOOTOUT:
 					fieldDescription += " in shootout.";
-					// TODO: Add shootout score
 					break;
 				default:
 					fieldDescription += ".";
@@ -77,7 +76,6 @@ public class GDCStatusCommand extends GDCSubCommand {
 				break;
 			case SHOOTOUT:
 				fieldDescription += " Currently in shootout.";
-				// TODO: Add shootout score
 				break;
 			default:
 				fieldDescription += ".";

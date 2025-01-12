@@ -58,7 +58,7 @@ public class Game {
 		return scheduleData.getGameType();
 	}
 
-	public String getPeriodOridnal() {
+	public String getPeriodCode() {
 		return getGameType().getPeriodCode(getPeriodNumber());
 	}
 

@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -63,20 +64,15 @@ public class GDCStatusCommand extends GDCSubCommand {
 			fieldDescription = "Game is in progress.";
 			switch (game.getPeriodType()) {
 			case REGULAR:
-				if (!game.isInIntermission()) {
-					fieldDescription += " Currently in "
-							+ game.getPeriodOridnal() + " period.";						
-				} else {
-					fieldDescription += " Currently in intermission after the "
-							+ game.getPeriodOridnal() + " period.";
-				}
+				fieldDescription += " Currently in the " + Utils.getOrdinal(game.getPeriodNumber()) + " period.";
 				break;
 			case OVERTIME:
 				int numOvertime = game.getPeriodNumber() - 3;
+
 				if (numOvertime == 1) {
 					fieldDescription += " Currently in overtime.";
 				} else {
-					fieldDescription += " Currently in " + numOvertime + " overtimes";
+					fieldDescription += " Currently in " + Utils.getOrdinal(numOvertime) + " overtime.";
 				}
 				break;
 			case SHOOTOUT:
@@ -91,14 +87,16 @@ public class GDCStatusCommand extends GDCSubCommand {
 			fieldDescription = "Game has not started.";
 		}
 
+		// Append Score Information
 		String score = String.format("%s %s - %s %s",
 				game.getHomeTeam().getName(), game.getHomeScore(),
 				game.getAwayScore(), game.getAwayTeam().getName());
 		embedBuilder.addField(fieldDescription, score, false);
 		
+		// Append Intermission Status
 		if (game.getGameState().isLive()) {
 			if (game.isInIntermission()) {
-				String intermissionTitle = "Currently in an intermission: " + game.getPeriodOridnal();
+				String intermissionTitle = "Currently in an intermission";
 				String intermissionDescription = String.format("Remaining: %s.", game.getClockRemaining());
 				embedBuilder.addField(intermissionTitle, intermissionDescription, false);
 			}

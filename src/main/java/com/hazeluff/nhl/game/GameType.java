@@ -6,6 +6,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.utils.Utils;
+
 public enum GameType {
 	PRESEASON(1), REGULAR(2), PLAYOFF(3);
 
@@ -59,25 +61,25 @@ public enum GameType {
 		case PLAYOFF:
 			return _playoffCode(period);
 		default:
-			return getOrdinal(period);
+			return Utils.getOrdinal(period);
 		}
 	}
 
 	static String _regularCode(int period) {
 		switch (period) {
 		case 1:
-			return "1ST";
+			return "1st";
 		case 2:
-			return "2ND";
+			return "2nd";
 		case 3:
-			return "3RD";
+			return "3rd";
 		case 4:
 			return "OT";
 		case 5:
 			return "SO";
 		default:
 			// Shouldn't happen, but just incase.
-			return getOrdinal(period);
+			return Utils.getOrdinal(period);
 		}
 	}
 
@@ -92,18 +94,6 @@ public enum GameType {
 		default:
 			int otPeriod = period - 3;
 			return "OT" + otPeriod;
-		}
-	}
-
-	static String getOrdinal(int value) {
-		String[] suffixes = new String[] { "TH", "ST", "ND", "RD", "TH", "TH", "TH", "TH", "TH", "TH" };
-		switch (value % 100) {
-		case 11:
-		case 12:
-		case 13:
-			return value + "TH";
-		default:
-			return value + suffixes[value % 10];
 		}
 	}
 }

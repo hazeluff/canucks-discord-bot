@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -40,41 +41,45 @@ public class GDCStatusCommand extends GDCSubCommand {
 		String fieldDescription;
 		if (game.getGameState().isFinished()) {
 			fieldDescription = "Game has finished";
-			if (game.hasShootout()) {
-				fieldDescription += " in shootout.";
-				// Add shootout score
-			} else {
-				int numOvertime = game.getPeriod() - 3;
-				if (numOvertime <= 0) {
+			switch (game.getPeriodType()) {
+			case REGULAR:
 					fieldDescription += " in regulation time.";
-
-				} else if (numOvertime == 1) {
-					fieldDescription += " in overtime";
+				break;
+			case OVERTIME:
+				int numOvertime = game.getPeriodNumber() - 3;
+				if (numOvertime == 1) {
+					fieldDescription += " in overtime.";
 				} else {
-					fieldDescription += " in " + numOvertime + " overtimes";
+					fieldDescription += " in " + numOvertime + " overtimes.";
 				}
+				break;
+			case SHOOTOUT:
+				fieldDescription += " in shootout.";
+				break;
+			default:
+				fieldDescription += ".";
 			}
-
 		} else if (game.getGameState().isStarted()) {
 			fieldDescription = "Game is in progress.";
-			if (game.hasShootout()) {
-				fieldDescription += " Currently in shootout.";
-				// Add shootout score
-			} else {
-				int numOvertime = game.getPeriod() - 3;
-				if (numOvertime <= 0) {
-					if (!game.isInIntermission()) {
-						fieldDescription += " Currently in "
-								+ game.getPeriodOridnal() + " period.";						
-					} else {
-						fieldDescription += " Currently in intermission after the "
-								+ game.getPeriodOridnal() + " period.";
-					}
-				} else if (numOvertime == 1) {
+			switch (game.getPeriodType()) {
+			case REGULAR:
+				fieldDescription += " Currently in the " + Utils.getOrdinal(game.getPeriodNumber()) + " period.";
+				break;
+			case OVERTIME:
+				int numOvertime = game.getPeriodNumber() - 3;
+
+				if (numOvertime == 1) {
 					fieldDescription += " Currently in overtime.";
 				} else {
-					fieldDescription += " Currently in " + numOvertime + " overtimes";
+					fieldDescription += " Currently in " + Utils.getOrdinal(numOvertime) + " overtime.";
 				}
+
+				break;
+			case SHOOTOUT:
+				fieldDescription += " Currently in shootout.";
+				break;
+			default:
+				fieldDescription += ".";
 			}
 		} else {
 			// Might not display as main command will reply when games are not started.
@@ -88,7 +93,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 		
 		if (game.getGameState().isLive()) {
 			if (game.isInIntermission()) {
-				String intermissionTitle = "Currently in an intermission: " + game.getPeriodOridnal();
+				String intermissionTitle = "Currently in an intermission: " + game.getPeriodCode();
 				String intermissionDescription = String.format("Remaining: %s.", game.getClockRemaining());
 				embedBuilder.addField(intermissionTitle, intermissionDescription, false);
 			}

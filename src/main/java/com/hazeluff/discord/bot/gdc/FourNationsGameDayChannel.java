@@ -216,7 +216,7 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
 			if (!game.isStartTimeTBD()) {
-				sendWaitAndReminders();
+				waitAndSendReminders();
 			}
 
 			// Game is close to starting. Poll at higher rate than previously
@@ -283,7 +283,7 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 	 * 
 	 * @throws InterruptedException
 	 */
-	void sendWaitAndReminders() {
+	void waitAndSendReminders() {
 		boolean firstPass = true;
 		boolean closeToStart;
 		long timeTillGameMs = Long.MAX_VALUE;

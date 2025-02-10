@@ -18,6 +18,7 @@ import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.FourNationsChannel;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
 import com.hazeluff.discord.bot.listener.MessageListener;
 import com.hazeluff.discord.bot.listener.ReactionListener;
@@ -105,13 +106,13 @@ public class NHLBot extends Thread {
 		// Attach Listeners for Bot Slash Commands
 		attachSlashCommandListeners(this);
 
+		// Start Presence/Status updates
+		presenceManager.start();
+
 		/*
 		 * Setup Categories and Channels
 		 */
 		initCategoriesAndChannels();
-
-		// Start Presence/Status updates
-		presenceManager.start();
 
 		LOGGER.info("NHLBot completed initialization.");
 	}
@@ -126,6 +127,9 @@ public class NHLBot extends Thread {
 
 		// Start the Game Day Channels Manager
 		initGameDayChannelsManager();
+
+		// (Special) Create Four Nations Channel
+		updateFourNationsChannel();
 
 		// Manage WelcomeChannels (Only for my dev servers)
 		updateWelcomeChannel();
@@ -233,6 +237,13 @@ public class NHLBot extends Thread {
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
+	}
+
+	private void updateFourNationsChannel() {
+		LOGGER.info("Updating 'Four Nations' channels.");
+		getDiscordManager().getClient()
+			.getGuilds()
+			.subscribe(guild -> FourNationsChannel.createChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {

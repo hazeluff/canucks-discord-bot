@@ -27,6 +27,7 @@ import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.GameType;
 
 /**
  * This class is used to start GameTrackers for games and to maintain the channels in discord for those games.
@@ -58,7 +59,8 @@ public class GameScheduler extends Thread {
 		}
 	};
 
-	private final Map<Game, GameTracker> activeGameTrackers;
+	private final Map<Game, GameTracker> activeNHLGameTrackers;
+	private final Map<Game, GameTracker> fourNationsGameTrackers;
 
 	AtomicReference<LocalDate> lastUpdate = new AtomicReference<>();
 
@@ -71,13 +73,16 @@ public class GameScheduler extends Thread {
 	 * @param teamSubscriptions
 	 * @param teamLatestGames
 	 */
-	GameScheduler(Map<Integer, Game> games, Map<Game, GameTracker> activeGameTrackers) {
+	GameScheduler(Map<Integer, Game> games, Map<Game, GameTracker> activeNHLGameTrackers,
+			Map<Game, GameTracker> fourNationsGameTrackers) {
 		this.games = games;
-		this.activeGameTrackers = activeGameTrackers;
+		this.activeNHLGameTrackers = activeNHLGameTrackers;
+		this.fourNationsGameTrackers = fourNationsGameTrackers;
 	}
 
 	public GameScheduler() {
-		activeGameTrackers = new ConcurrentHashMap<>();
+		activeNHLGameTrackers = new ConcurrentHashMap<>();
+		fourNationsGameTrackers = new ConcurrentHashMap<>();
 	}
 
 
@@ -164,11 +169,15 @@ public class GameScheduler extends Thread {
 	 */
 	void initTrackers() {
 		LOGGER.info("Creating trackers.");
+		// NHL games
 		Set<Game> activeGames = new TreeSet<>(GAME_COMPARATOR);
 		for (Team team : Team.values()) {
 			activeGames.addAll(getActiveGames(team));
 		}
-		activeGames.forEach(game -> createGameTracker(game));
+		activeGames.forEach(game -> createNHLGameTracker(game));
+		
+		// Four Nation games
+		createFourNationsGameTrackers();
 	}
 
 
@@ -208,8 +217,16 @@ public class GameScheduler extends Thread {
 	 * Removes finished trackers, and starts trackers for active games.
 	 */
 	void updateTrackers() {
-		LOGGER.info("Removing finished trackers.");
-		activeGameTrackers.entrySet().removeIf(map -> {
+		removeInactiveNHLGames();
+		createNHLGameTrackers();
+
+		removeInactiveFourNationsGames();
+		createFourNationsGameTrackers();
+	}
+
+	public void removeInactiveNHLGames() {
+		LOGGER.info("Removing finished NHL trackers.");
+		activeNHLGameTrackers.entrySet().removeIf(map -> {
 			GameTracker gameTracker = map.getValue();
 			int gamePk = gameTracker.getGame().getGameId();
 			if (!games.containsKey(gamePk)) {
@@ -224,12 +241,71 @@ public class GameScheduler extends Thread {
 				return false;
 			}
 		});
+	}
 
-		LOGGER.info("Starting new trackers and creating channels.");
-		for (Team team : Team.values()) {
+	public void createNHLGameTrackers() {
+		LOGGER.info("Starting new trackers for NHL games.");
+		for (Team team : Team.NHL_TEAMS) {
 			getActiveGames(team).forEach(activeGame -> {
-				createGameTracker(activeGame);
+				createNHLGameTracker(activeGame);
 			});
+		}
+	}
+
+	public void removeInactiveFourNationsGames() {
+		LOGGER.info("Removing finished Four Nations trackers.");
+		fourNationsGameTrackers.entrySet().removeIf(map -> {
+			GameTracker gameTracker = map.getValue();
+			int gamePk = gameTracker.getGame().getGameId();
+			if (!games.containsKey(gamePk)) {
+				LOGGER.info("Game is has been removed: " + gamePk);
+				gameTracker.interrupt();
+				return true;
+			} else if (gameTracker.isFinished()) {
+				LOGGER.info("Game is finished: " + gameTracker.getGame());
+				gameTracker.interrupt();
+				return true;
+			} else {
+				return false;
+			}
+		});
+	}
+
+	public void createFourNationsGameTrackers() {
+		LOGGER.info("Starting new trackers for Four Nations games.");
+		for (Game game : getFourNationsGames()) {
+			createFourNationsGameTracker(game);
+		}
+	}
+
+	public List<Game> getFourNationsGames() {
+		return games.entrySet().stream()
+				.map(Entry::getValue)
+				.filter(game -> game.getGameType().equals(GameType.FOUR_NATIONS)
+						|| game.getGameType().equals(GameType.FOUR_NATIONS_FINAL))
+				.collect(Collectors.toList());
+	}
+
+	public GameTracker getFourNationsGameTracker(Game game) {
+		return fourNationsGameTrackers.get(game);
+	}
+
+	/**
+	 * Creates and caches a GameTracker for the given game.
+	 * 
+	 * @param game
+	 *            game to find NHLGameTracker for
+	 * @return NHLGameTracker for the game, if it exists <br>
+	 *         null, if it does not exists
+	 * 
+	 */
+	private void createFourNationsGameTracker(Game game) {
+		if (!fourNationsGameTrackers.containsKey(game)) {
+			LOGGER.info("Creating GameTracker: " + game.getGameId());
+			GameTracker newGameTracker = GameTracker.get(game);
+			fourNationsGameTrackers.put(game, newGameTracker);
+		} else {
+			LOGGER.debug("GameTracker already exists: " + game.getGameId());
 		}
 	}
 
@@ -298,7 +374,6 @@ public class GameScheduler extends Thread {
 		}
 		return games.get(0);
 	}
-
 
 	public List<Game> getPastGames(Team team) {
 		return games.entrySet().stream()
@@ -386,7 +461,7 @@ public class GameScheduler extends Thread {
 	 * 
 	 */
 	public GameTracker getGameTracker(Game game) {
-		return activeGameTrackers.get(game);
+		return activeNHLGameTrackers.get(game);
 	}
 
 	/**
@@ -398,11 +473,11 @@ public class GameScheduler extends Thread {
 	 *         null, if it does not exists
 	 * 
 	 */
-	private void createGameTracker(Game game) {
-		if (!activeGameTrackers.containsKey(game)) {
+	private void createNHLGameTracker(Game game) {
+		if (!activeNHLGameTrackers.containsKey(game)) {
 			LOGGER.info("Creating GameTracker: " + game.getGameId());
 			GameTracker newGameTracker = GameTracker.get(game);
-			activeGameTrackers.put(game, newGameTracker);
+			activeNHLGameTrackers.put(game, newGameTracker);
 		} else {
 			LOGGER.debug("GameTracker already exists: " + game.getGameId());
 		}
@@ -435,7 +510,7 @@ public class GameScheduler extends Thread {
 	}
 
 	Map<Game, GameTracker> getActiveGameTrackers() {
-		return new HashMap<>(activeGameTrackers);
+		return new HashMap<>(activeNHLGameTrackers);
 	}
 
 	/**

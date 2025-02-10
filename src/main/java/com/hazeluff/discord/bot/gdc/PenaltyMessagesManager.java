@@ -168,7 +168,12 @@ public class PenaltyMessagesManager {
 				StringUtils.capitalize(event.getDescription()), event.getDuration()));
 
 		String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
-		return EmbedCreateSpec.builder()
+
+		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
+		if (game.getGameType().isFourNations()) {
+			builder.title(FourNationsGameDayChannel.buildFourNationsMatchupName(game));			
+		}
+		return builder
 				.color(Color.BLACK)
 				.addField(header, description.toString(), false)
 				.footer(time, null)

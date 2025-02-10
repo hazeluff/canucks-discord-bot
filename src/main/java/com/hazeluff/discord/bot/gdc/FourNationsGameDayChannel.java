@@ -1,5 +1,6 @@
 package com.hazeluff.discord.bot.gdc;
 
+import java.time.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -9,7 +10,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -19,14 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
-import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.custom.game.CustomGameMessages;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
@@ -46,10 +43,9 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
-import discord4j.discordjson.possible.Possible;
 
-public class GameDayChannel extends Thread implements IEventProcessor {
-	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannel.class);
+public class FourNationsGameDayChannel extends Thread implements IEventProcessor {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FourNationsGameDayChannel.class);
 
 	// Number of retries to do when NHL API returns no events.
 	static final int NHL_EVENTS_RETRIES = 5;
@@ -69,15 +65,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	static final long SPAM_COOLDOWN_MS = 30000l; // Applies only to custom messages
 	private final GoalMessagesManager goalMessages;
 	private final PenaltyMessagesManager penaltyMessages;
-	private final List<String> startOfGameMessages;
 
 	// <threshold,message>
 	@SuppressWarnings("serial")
 	private final Map<Long, String> gameReminders = new HashMap<Long, String>() {
 		{
 			put(3600000l, "60 minutes till puck drop.");
-			put(1800000l, "30 minutes till puck drop.");
-			put(600000l, "10 minutes till puck drop.");
 		}
 	};
 
@@ -86,16 +79,16 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	private final Game game;
 	private final Guild guild;
 	private final TextChannel channel;
+	@SuppressWarnings("unused")
 	private final GuildPreferences preferences;
 	private final GDCMeta meta;
 
-	private Message introMessage;
 	private Message summaryMessage;
 	private EmbedCreateSpec summaryMessageEmbed; // Used to determine if message needs updating.
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 
-	private GameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild, TextChannel channel,
+	private FourNationsGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild, TextChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
@@ -106,18 +99,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		this.meta = meta;
 		this.goalMessages = new GoalMessagesManager(SPAM_COOLDOWN_MS, nhlBot, game, channel, meta);
 		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
-		this.startOfGameMessages = Arrays.asList(
-				"Game is about to start! " + preferences.getCheer(),
-				"Be Kind, Be Calm, Be Safe",
-				"Be woke, be cool, a calm spirit is smarter.",
-				"Get ready, go to the washroom, get your snacks, get your drinks, get your ????, get comfy, and watch us play."
-		);
+
 	}
 
-	public static GameDayChannel get(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
+	public static FourNationsGameDayChannel get(NHLBot nhlBot, TextChannel textChannel, GameTracker gameTracker, Guild guild) {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
-		TextChannel textChannel = getTextChannel(guild, gameTracker.getGame(), nhlBot, preferences);
 		GDCMeta meta = null;
 		if (textChannel != null) {
 			meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
@@ -128,7 +115,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
 			}
 		}
-		GameDayChannel gameDayChannel = new GameDayChannel(nhlBot, gameTracker, guild, textChannel, preferences, meta);
+		FourNationsGameDayChannel gameDayChannel = new FourNationsGameDayChannel(nhlBot, gameTracker, guild,
+				textChannel, preferences, meta);
 
 		if (gameDayChannel.channel != null) {
 			gameDayChannel.loadMetadata();
@@ -161,7 +149,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					DiscordManager.moveChannel(category, channel);
 				}
 			}
-
 		} catch (Exception e) {
 			LOGGER.error("Failed to create channel.", e);
 		}
@@ -217,15 +204,14 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		String channelName = buildChannelName(this.game);
 		String threadName = String.format("<%s> <%s>", guild.getName(), channelName);
 		setName(threadName);
-		LOGGER.info("Started GameDayChannel thread.");
+		LOGGER.info("Started Four Nations GDC thread.");
 
 		this.goalMessages.initEvents(game.getScoringEvents());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
-
-		// Send + Pin Intro/Summary Messages
-		introMessage = getIntroMessage();
-		updateIntroMessage();
-		summaryMessage = getSummaryMessage();
+		
+		if (Duration.between(ZonedDateTime.now(), game.getStartTime()).toDays() < 4) {
+			updateSummaryMessage();			
+		}
 
 		if (!game.getGameState().isFinished()) {
 			// Wait until close to start of game
@@ -245,6 +231,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			} else {
 				LOGGER.info("Game has already started.");
 			}
+			updateSummaryMessage();
 
 			while (!gameTracker.isFinished()) {
 				try {
@@ -262,9 +249,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				}
 			}
 			sendEndOfGameMessage();
-			sendStatsMessage();
-			sendCustomEndMessage();
-			sendWordcloud();
 		} else {
 			LOGGER.info("Game is already finished");
 		}
@@ -297,7 +281,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/**
-	 * Sends reminders of time till the game starts.
+	 * Waits for the game to start and sends reminders of time till it starts.
 	 * 
 	 * @throws InterruptedException
 	 */
@@ -319,7 +303,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 					if (threshold > timeTillGameMs) {
 						if (lowestThreshold > threshold) {
 							lowestThreshold = threshold;
-							message = entry.getValue();
+							message = getFourNationsMatchupName() + ": " + entry.getValue();
 						}
 						it.remove();
 					}
@@ -359,67 +343,26 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	/**
-	 * Sends the 'Start of game' message to the game channels of the specified game.
+	 * Sends the 'Start of game' message to the channel.
 	 * 
 	 * @param game
 	 *            game of which it's channels will have the messages sent to
 	 */
 	void sendStartOfGameMessage() {
 		LOGGER.info("Sending start message.");
-		String message = Utils.getRandom(startOfGameMessages);
+		String message = String.format("**%s**: \n", getFourNationsMatchupName());
+		message += "Game is about to start!";
 		sendMessage(message);
-	}
-
-	/*
-	 * Intro Message
-	 */
-	private Message getIntroMessage() {
-		Message message = null;
-		if (meta != null) {
-			Long messageId = meta.getIntroMessageId();
-			if (messageId == null) {
-				// No message saved
-				message = sendIntroMessage();
-			} else {
-				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
-				if (message == null) {
-					// Could not find existing message. Send new message
-					message = sendIntroMessage();
-				} else {
-					// Message exists
-					return message;
-				}
-			}
-
-			if (message != null) {
-				DiscordManager.pinMessage(message);
-				meta.setIntroMessageId(message.getId().asLong());
-				saveMetadata();
-			}
-		}
-		return message;
-	}
-
-	private Message sendIntroMessage() {
-		String strMessage = buildIntroMessage();
-		MessageCreateSpec messageSpec = MessageCreateSpec.builder().content(strMessage).build();
-		return DiscordManager.sendAndGetMessage(channel, messageSpec);
-	}
-
-	public void updateIntroMessage() {
-		String strMessage = buildIntroMessage();
-		MessageEditSpec messageSpec = MessageEditSpec.builder()
-				.content(Possible.of(java.util.Optional.ofNullable(strMessage))).build();
-		DiscordManager.updateMessage(introMessage, messageSpec);
-	}
-
-	private String buildIntroMessage() {
-		return buildDetailsMessage(game) + "\n\n" + getHelpMessageText();
 	}
 
 	/*
 	 * Summary Message
 	 */
+	public void updateSummaryMessage() {
+		LOGGER.info("Update Summary Message.");
+		summaryMessage = getSummaryMessage();
+	}
+
 	private Message getSummaryMessage() {
 		Message message = null;
 		if (meta != null) {
@@ -461,6 +404,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 
 	private EmbedCreateSpec getSummaryEmbedSpec() {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+		embedBuilder.addField("Four Nations", buildDetailsMessage(getGame()), false);
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		GDCGoalsCommand.buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
@@ -473,34 +417,12 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * Sends the end of game message.
 	 */
 	void sendEndOfGameMessage() {
-		Message endOfGameMessage = null;
 		try {
 			if (channel != null) {
-				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-			if (endOfGameMessage != null) {
-				LOGGER.debug("Sent end of game message for game. Pinning it...");
-				DiscordManager.pinMessage(endOfGameMessage);
+				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
-			LOGGER.error("Could not send Stats Message.");
-		}
-	}
-
-	void sendStatsMessage() {
-		try {
-			Message statsGameMessage = null;
-			if (channel != null) {
-				EmbedCreateSpec embedSpec = GDCStatsCommand.buildEmbed(getGame());
-				MessageCreateSpec msgSpec = MessageCreateSpec.builder().addEmbed(embedSpec).build();
-				statsGameMessage = DiscordManager.sendAndGetMessage(channel, msgSpec);
-			}
-			if (statsGameMessage != null) {
-				LOGGER.debug("Sent stats for the game. Pinning it...");
-				DiscordManager.pinMessage(statsGameMessage);
-			}
-		} catch (Exception e) {
-			LOGGER.error("Could not send Stats Message.");
+			LOGGER.error("Could not send end of game Message.");
 		}
 	}
 
@@ -514,18 +436,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * @return end of game message
 	 */
 	String buildEndOfGameMessage() {
-		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
-
-		List<Game> nextGames = preferences.getTeams().stream().map(team -> nhlBot.getGameScheduler().getNextGame(team))
-				.filter(Objects::nonNull).collect(Collectors.toList());
-
-		if (!nextGames.isEmpty()) {
-			if (nextGames.size() > 1) {
-
-			} else {
-				message += "\nThe next game is: " + buildDetailsMessage(nextGames.get(0));
-			}
-		}
+		String message = String.format("**%s**\n", getFourNationsMatchupName());
+		message += "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
 		return message;
 	}
 
@@ -552,30 +464,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	@Override
 	public void process(Event event) {
 		// Do Nothing
-	}
-
-	private static String getHelpMessageText() {
-		return "This game/channel is interactable with Slash Commands!"
-				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
-	}
-
-	private void sendWordcloud() {
-		try {
-			new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
-		} catch (Exception e) {
-			LOGGER.error("Could not send Wordcloud.");
-		}
-	}
-
-	private void sendCustomEndMessage() {
-		try {
-			String message = CustomGameMessages.getMessage(getGame());
-			if (channel != null && message != null) {
-				sendMessage(message);
-			}
-		} catch (Exception e) {
-			LOGGER.error("Could not send EOG Custom Message.");
-		}
 	}
 
 	boolean isBotSelf(User user) {
@@ -669,7 +557,17 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		String channelName = String.format("%.3s-vs-%.3s-%s", game.getHomeTeam().getCode(),
 				game.getAwayTeam().getCode(), buildChannelDate(game, Config.ZONE_ID));
 		return channelName.toLowerCase();
+	}
 
+	public static String buildFourNationsMatchupName(Game game) {
+		return String.format(
+				"**%s** vs **%s**", 
+				game.getHomeTeam().getLocation(), game.getAwayTeam().getLocation()
+			);
+	}
+
+	String getFourNationsMatchupName() {
+		return buildFourNationsMatchupName(getGame());
 	}
 
 	/**
@@ -689,7 +587,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
 		String message = String.format(
 				"**%s** vs **%s** at %s", 
-				game.getHomeTeam().getFullName(), game.getAwayTeam().getFullName(), 
+				game.getHomeTeam().getLocation(), game.getAwayTeam().getLocation(), 
 				time
 			);
 		return message;
@@ -716,10 +614,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 * Thread Management
 	 */
 	/**
-	 * Stops the thread and deletes the channel from the Discord Guild.
+	 * Stops the thread.
 	 */
-	void stopAndRemoveGuildChannel() {
-		DiscordManager.deleteChannel(channel);
+	void stopChannel() {
 		interrupt();
 	}
 

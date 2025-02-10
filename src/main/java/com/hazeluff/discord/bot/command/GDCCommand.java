@@ -16,6 +16,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
+import com.hazeluff.discord.bot.gdc.FourNationsChannel;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.nhl.game.Game;
 
@@ -85,10 +86,20 @@ public class GDCCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		TextChannel channel = getChannel(event);
+		if (channel.getName().equals(FourNationsChannel.CHANNEL_NAME)) {
+			// Not in game day channel
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.content("GDC Commands not supported for Four Nations channel.")
+					.ephemeral(true)
+					.build();
+			return event.reply(spec);
+		}
+		
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			// Not in game day channel
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.content("GDC Commands must be used in a Game Day Channel.")
 					.addEmbed(HELP_MESSAGE_EMBED)
 					.ephemeral(true)
 					.build();

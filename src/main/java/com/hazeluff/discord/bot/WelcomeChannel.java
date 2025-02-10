@@ -49,7 +49,7 @@ public class WelcomeChannel extends Thread {
 	@Override
 	public void run() {
 		if (channel == null) {
-			LOGGER.warn("Channel could not found in Discord.");
+			LOGGER.warn("Channel could not be found in Discord.");
 			return;
 		}
 
@@ -61,12 +61,8 @@ public class WelcomeChannel extends Thread {
 			DiscordManager.deleteMessage(DiscordManager.block(channel.getLastMessage()));
 		}
 		DiscordManager.sendMessage(channel, UPDATED_MESSAGE);
-		DiscordManager.sendMessage(channel, MessageCreateSpec
-				.builder()
-			.content("About the bot:")
-			.addEmbed(AboutCommand.EMBED_SPEC)
-			.build()
-		);
+		DiscordManager.sendMessage(channel,
+				MessageCreateSpec.builder().content("About the bot:").addEmbed(AboutCommand.EMBED_SPEC).build());
 		DiscordManager.sendMessage(channel, HelpCommand.COMMAND_LIST);
 	}
 }

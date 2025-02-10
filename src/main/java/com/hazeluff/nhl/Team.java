@@ -2,6 +2,7 @@ package com.hazeluff.nhl;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -299,7 +300,50 @@ public enum Team {
 			Division.CENTRAL,
 			"Lets Go Utah!",
 			Color.of(0x6CACE4),
-			ZoneId.of("America/Denver"));
+			ZoneId.of("America/Denver")),
+	TEAM_CANADA(
+			60,
+			"Canada",
+			"Canada",
+			"CAN",
+			null,
+			"Go Canada Go!",
+			Color.of(0xC70D31),
+			ZoneId.of("America/Toronto")),
+	TEAM_USA(
+			67,
+			"USA",
+			"USA",
+			"USA",
+			null,
+			"U-S-A! U-S-A! U-S-A!",
+			Color.of(0xFDCC32),
+			ZoneId.of("America/Toronto")),
+	TEAM_SWEDEN(
+			66,
+			"Sweden",
+			"Sweden",
+			"SWE",
+			null,
+			"Lets go Sweden!",
+			Color.of(0xFDCC32),
+			ZoneId.of("America/Toronto")),
+	TEAM_FINLAND(
+			62,
+			"Finland",
+			"Finland",
+			"FIN",
+			null,
+			"Lets go Finland!",
+			Color.of(0x0C366F),
+			ZoneId.of("America/Toronto"));
+
+	public final static List<Team> NHL_TEAMS = Arrays.asList(
+			NEW_JERSEY_DEVILS, NEW_YORK_ISLANDERS, NEW_YORK_RANGERS, PHILADELPHIA_FLYERS, PITTSBURGH_PENGUINS, BOSTON_BRUINS, BUFFALO_SABRES, MONTREAL_CANADIENS, 
+			OTTAWA_SENATORS, TORONTO_MAPLE_LEAFS, CAROLINA_HURRICANES, FLORIDA_PANTHERS, TAMPA_BAY_LIGHTNING, WASHINGTON_CAPITALS, CHICAGO_BLACKHAWKS, DETROIT_RED_WINGS, 
+			NASHVILLE_PREDATORS, ST_LOUIS_BLUES, CALGARY_FLAMES, COLORADO_AVALANCH, EDMONTON_OILERS, VANCOUVER_CANUCKS, ANAHEIM_DUCKS, DALLAS_STARS,
+			LA_KINGS, SAN_JOSE_SHARKS, COLUMBUS_BLUE_JACKETS, MINNESOTA_WILD, WINNIPEG_JETS, VEGAS_GOLDEN_KNIGHTS, SEATTLE_KRAKEN, UTAH_HC
+	);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Team.class);
 

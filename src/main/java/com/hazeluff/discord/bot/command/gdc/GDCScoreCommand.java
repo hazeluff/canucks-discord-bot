@@ -38,11 +38,17 @@ public class GDCScoreCommand extends GDCSubCommand {
 	}
 	
 	public static EmbedCreateSpec.Builder buildEmbed(EmbedCreateSpec.Builder embedBuilder, Game game) {
+		String homeTeam = game.getGameType().isFourNations()
+				? game.getHomeTeam().getLocation()
+				: game.getHomeTeam().getFullName();
 		String homeGoals = "Goals:  **" + game.getHomeScore() + "**";
+		String awayTeam = game.getGameType().isFourNations()
+				? game.getAwayTeam().getLocation()
+				: game.getAwayTeam().getFullName();
 		String awayGoals = "Goals:  **" + game.getAwayScore() + "**";
 		return embedBuilder
 				.addField(
-						game.getHomeTeam().getFullName(),
+						homeTeam,
 						"Home\n" + homeGoals,
 						true
 				)
@@ -52,7 +58,7 @@ public class GDCScoreCommand extends GDCSubCommand {
 						true
 				)
 				.addField(
-						game.getAwayTeam().getFullName(),
+						awayTeam,
 						"Away\n" + awayGoals,
 						true
 				);

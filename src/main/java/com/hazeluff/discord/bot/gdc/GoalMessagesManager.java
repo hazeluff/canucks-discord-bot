@@ -149,7 +149,7 @@ public class GoalMessagesManager {
 		}
 
 		if (!isSpam()) {
-			// Custom Message - only send when within the spam cooldown
+			// Custom Message - only send when outside the spam cooldown
 			String messageContent = CustomGoalMessages.getMessage(game.getScoringEvents(), event);
 			if (messageContent != null) {
 				Message customMessage = DiscordManager.sendAndGetMessage(channel, messageContent);
@@ -222,7 +222,9 @@ public class GoalMessagesManager {
 
 	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
-
+		if (game.getGameType().isFourNations()) {
+			builder.title(FourNationsGameDayChannel.buildFourNationsMatchupName(game));			
+		}
 		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 		Color embedColor = scorer != null
 				? scorer.getTeam().getColor()
@@ -237,7 +239,10 @@ public class GoalMessagesManager {
 					.addField(scorerName, "Shootout goal", false)
 					.footer("Shootout", null).build();
 		} else {
-			String description = event.getTeam().getFullName() + " goal!";
+			String teamName = game.getGameType().isFourNations() 
+					? event.getTeam().getLocation() 
+					: event.getTeam().getFullName();
+			String description = teamName + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()
 					.map(game::getPlayer)
 					.collect(Collectors.toList());

@@ -201,23 +201,22 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 	}
 
 	private void _run() {
-		String channelName = buildChannelName(this.game);
-		String threadName = String.format("<%s> <%s>", guild.getName(), channelName);
+		String serverName = guild.getName();
+		String gameName = buildChannelName(this.game);
+		String threadName = String.format("<%s> <%s>", serverName, gameName);
 		setName(threadName);
 		LOGGER.info("Started Four Nations GDC thread.");
 
 		this.goalMessages.initEvents(game.getScoringEvents());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
 		
-		if (Duration.between(ZonedDateTime.now(), game.getStartTime()).toDays() < 4) {
-			updateSummaryMessage();			
-		}
+		updateSummaryMessage();
 
 		if (!game.getGameState().isFinished()) {
 			// Wait until close to start of game
 			LOGGER.info("Idling until near game start.");
 			if (!game.isStartTimeTBD()) {
-				sendReminders();
+				sendWaitAndReminders();
 			}
 
 			// Game is close to starting. Poll at higher rate than previously
@@ -231,14 +230,13 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 			} else {
 				LOGGER.info("Game has already started.");
 			}
-			updateSummaryMessage();
 
 			while (!gameTracker.isFinished()) {
 				try {
 					Utils.sleep(ACTIVE_POLL_RATE_MS);
 
 					updateMessages();
-
+					updateSummaryMessage();
 					EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
 					boolean updatedSummary = !newSummaryMessageEmbed.equals(summaryMessageEmbed);
 					if (summaryMessage != null && updatedSummary) {
@@ -285,7 +283,7 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 	 * 
 	 * @throws InterruptedException
 	 */
-	void sendReminders() {
+	void sendWaitAndReminders() {
 		boolean firstPass = true;
 		boolean closeToStart;
 		long timeTillGameMs = Long.MAX_VALUE;
@@ -293,7 +291,12 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 			timeTillGameMs = DateUtils.diffMs(ZonedDateTime.now(), game.getStartTime());
 			closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;
 			if (!closeToStart) {
-				// Check to see if message should be sent.
+				// Update Summary Message
+				if (summaryMessage == null) {
+					updateSummaryMessage();
+				}
+
+				// Check to see if reminder message should be sent.
 				long lowestThreshold = Long.MAX_VALUE;
 				String message = null;
 				Iterator<Entry<Long, String>> it = gameReminders.entrySet().iterator();
@@ -360,7 +363,9 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 	 */
 	public void updateSummaryMessage() {
 		LOGGER.info("Update Summary Message.");
-		summaryMessage = getSummaryMessage();
+		if (Duration.between(ZonedDateTime.now(), game.getStartTime()).toDays() < 4) {
+			summaryMessage = getSummaryMessage();
+		}
 	}
 
 	private Message getSummaryMessage() {

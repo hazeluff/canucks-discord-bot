@@ -61,7 +61,7 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 		if (!standingsSeasons.containsKey(season.getStartYear())) {
 			return Command.reply(event, "Season is out of range.");
 		}
-		
+
 		return Command.replyAndDefer(event, "Fetching Results...", buildFollowupSpecSupplier(event));
 	}
 
@@ -89,7 +89,7 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 				return InteractionFollowupCreateSpec.builder().content(Command.NON_NHL_TEAM_MESSAGE).ephemeral(true)
 						.build();
 			}
-			
+
 			// Determine the Division the team is in
 			Team fTeam = team;
 			String conference = Utils.getFromList(standings, stdng -> fTeam.equals(stdng.getTeam()))

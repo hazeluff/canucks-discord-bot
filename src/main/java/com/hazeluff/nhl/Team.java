@@ -316,7 +316,7 @@ public enum Team {
 			"USA",
 			null,
 			"U-S-A! U-S-A! U-S-A!",
-			Color.of(0xFDCC32),
+			Color.of(0x053185),
 			ZoneId.of("America/Toronto")),
 	TEAM_SWEDEN(
 			66,

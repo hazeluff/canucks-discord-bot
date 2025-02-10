@@ -304,7 +304,7 @@ public enum Team {
 	TEAM_CANADA(
 			60,
 			"Canada",
-			"Canada",
+			null,
 			"CAN",
 			null,
 			"Go Canada Go!",
@@ -313,7 +313,7 @@ public enum Team {
 	TEAM_USA(
 			67,
 			"USA",
-			"USA",
+			null,
 			"USA",
 			null,
 			"U-S-A! U-S-A! U-S-A!",
@@ -322,7 +322,7 @@ public enum Team {
 	TEAM_SWEDEN(
 			66,
 			"Sweden",
-			"Sweden",
+			null,
 			"SWE",
 			null,
 			"Lets go Sweden!",
@@ -331,7 +331,7 @@ public enum Team {
 	TEAM_FINLAND(
 			62,
 			"Finland",
-			"Finland",
+			null,
 			"FIN",
 			null,
 			"Lets go Finland!",
@@ -395,10 +395,16 @@ public enum Team {
 	}
 
 	public String getName() {
+		if (name == null) {
+			return location;
+		}
 		return name;
 	}
 
 	public String getFullName() {
+		if (name == null) {
+			return location;
+		}
 		return location + " " + name;
 	}
 

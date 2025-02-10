@@ -55,6 +55,8 @@ public abstract class Command extends ReactiveEventAdapter {
 					+ "To see a list of [team] codes use command `?subscribe help`";
 	static final String RUN_IN_SERVER_CHANNEL_MESSAGE = 
 			"This can only be run on a server's 'Game Day Channel'.";
+	public static final String NON_NHL_TEAM_MESSAGE = 
+			"The team must be an NHL Team.";
 	
 	protected final NHLBot nhlBot;
 
@@ -208,7 +210,7 @@ public abstract class Command extends ReactiveEventAdapter {
 	 *            command to tell user to invoke help of
 	 * @return
 	 */
-	String getInvalidTeamCodeMessage(String incorrectCode) {
+	public static String getInvalidTeamCodeMessage(String incorrectCode) {
 		return String.format("`%s` is not a valid team code.\nUse `/help teams` to get a full list of team",
 				incorrectCode);
 	}

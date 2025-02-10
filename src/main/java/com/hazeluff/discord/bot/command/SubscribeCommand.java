@@ -51,6 +51,7 @@ public class SubscribeCommand extends Command {
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!hasPrivilege(guild, user)) {
 			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
+
 		}
 
 		String strTeam = getOptionAsString(event, "team");
@@ -60,6 +61,9 @@ public class SubscribeCommand extends Command {
 		}
 
 		Team team = Team.parse(strTeam);
+		if (!team.isNHLTeam()) {
+			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
+		}
 		return Command.replyAndDefer(event, "Subscribing...", () -> buildFollowUp(event, guild, team));
 	}
 

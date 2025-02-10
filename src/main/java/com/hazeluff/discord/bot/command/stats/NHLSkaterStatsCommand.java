@@ -23,11 +23,20 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 public abstract class NHLSkaterStatsCommand extends NHLStatsSubCommand {
 	protected Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, String label,
 			Predicate<SkaterStats> filter, Comparator<SkaterStats> order) {
-		Team team = Team.parse(DiscordUtils.getOptionAsString(event, "team"));
+		String strTeam = DiscordUtils.getOptionAsString(event, "team");
+		if (!Team.isValid(strTeam)) {
+			return event.reply(Command.getInvalidTeamCodeMessage(strTeam)).withEphemeral(true);
+		}
+		Team team = Team.parse(strTeam);
 		// Default team
 		if (team == null) {
 			team = Team.VANCOUVER_CANUCKS;
 		}
+		// Only NHL Teams
+		if (!team.isNHLTeam()) {
+			return event.reply(Command.NON_NHL_TEAM_MESSAGE).withEphemeral(true);
+		}
+
 		Long startYear = DiscordUtils.getOptionAsLong(event, "season");
 		Season season = getSeason(startYear);
 		if (season.getStartYear() > Config.CURRENT_SEASON.getStartYear() || season.getStartYear() < 1917) {

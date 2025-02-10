@@ -2,7 +2,6 @@ package com.hazeluff.nhl;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
@@ -338,13 +337,6 @@ public enum Team {
 			Color.of(0x0C366F),
 			ZoneId.of("America/Toronto"));
 
-	public final static List<Team> NHL_TEAMS = Arrays.asList(
-			NEW_JERSEY_DEVILS, NEW_YORK_ISLANDERS, NEW_YORK_RANGERS, PHILADELPHIA_FLYERS, PITTSBURGH_PENGUINS, BOSTON_BRUINS, BUFFALO_SABRES, MONTREAL_CANADIENS, 
-			OTTAWA_SENATORS, TORONTO_MAPLE_LEAFS, CAROLINA_HURRICANES, FLORIDA_PANTHERS, TAMPA_BAY_LIGHTNING, WASHINGTON_CAPITALS, CHICAGO_BLACKHAWKS, DETROIT_RED_WINGS, 
-			NASHVILLE_PREDATORS, ST_LOUIS_BLUES, CALGARY_FLAMES, COLORADO_AVALANCH, EDMONTON_OILERS, VANCOUVER_CANUCKS, ANAHEIM_DUCKS, DALLAS_STARS,
-			LA_KINGS, SAN_JOSE_SHARKS, COLUMBUS_BLUE_JACKETS, MINNESOTA_WILD, WINNIPEG_JETS, VEGAS_GOLDEN_KNIGHTS, SEATTLE_KRAKEN, UTAH_HC
-	);
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(Team.class);
 
 	public static final String MULTI_TEAM_CHEER = "Lets Go!";
@@ -441,6 +433,58 @@ public enum Team {
 
 	public static boolean isValid(String code) {
 		return CODES_MAP.get(code.toUpperCase()) != null;
+	}
+
+	public boolean isNHLTeam() {
+		switch (this) {
+		case NEW_JERSEY_DEVILS:
+		case NEW_YORK_ISLANDERS:
+		case NEW_YORK_RANGERS:
+		case PHILADELPHIA_FLYERS:
+		case PITTSBURGH_PENGUINS:
+		case BOSTON_BRUINS:
+		case BUFFALO_SABRES:
+		case MONTREAL_CANADIENS:
+		case OTTAWA_SENATORS:
+		case TORONTO_MAPLE_LEAFS:
+		case CAROLINA_HURRICANES:
+		case FLORIDA_PANTHERS:
+		case TAMPA_BAY_LIGHTNING:
+		case WASHINGTON_CAPITALS:
+		case CHICAGO_BLACKHAWKS:
+		case DETROIT_RED_WINGS:
+		case NASHVILLE_PREDATORS:
+		case ST_LOUIS_BLUES:
+		case CALGARY_FLAMES:
+		case COLORADO_AVALANCH:
+		case EDMONTON_OILERS:
+		case VANCOUVER_CANUCKS:
+		case ANAHEIM_DUCKS:
+		case DALLAS_STARS:
+		case LA_KINGS:
+		case SAN_JOSE_SHARKS:
+		case COLUMBUS_BLUE_JACKETS:
+		case MINNESOTA_WILD:
+		case WINNIPEG_JETS:
+		case VEGAS_GOLDEN_KNIGHTS:
+		case SEATTLE_KRAKEN:
+		case UTAH_HC:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	public boolean isFourNationsTeam() {
+		switch (this) {
+		case TEAM_CANADA:
+		case TEAM_USA:
+		case TEAM_SWEDEN:
+		case TEAM_FINLAND:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	/**

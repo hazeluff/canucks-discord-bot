@@ -63,6 +63,9 @@ public class UnsubscribeCommand extends Command {
 		}
 
 		Team team = Team.parse(strTeam);
+		if (!team.isNHLTeam()) {
+			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
+		}
 		return replyAndDefer(event, "Unsubscribing...", () -> buildUnsubscribeFollowUp(event, guild, team));
 	}
 

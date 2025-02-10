@@ -245,10 +245,12 @@ public class GameScheduler extends Thread {
 
 	public void createNHLGameTrackers() {
 		LOGGER.info("Starting new trackers for NHL games.");
-		for (Team team : Team.NHL_TEAMS) {
-			getActiveGames(team).forEach(activeGame -> {
-				createNHLGameTracker(activeGame);
-			});
+		for (Team team : Team.values()) {
+			if (team.isNHLTeam()) {
+				getActiveGames(team).forEach(activeGame -> {
+					createNHLGameTracker(activeGame);
+				});
+			}
 		}
 	}
 

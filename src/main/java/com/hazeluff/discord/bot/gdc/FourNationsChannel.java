@@ -32,13 +32,13 @@ public class FourNationsChannel extends Thread {
 	private final TextChannel channel;
 
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
-	private final Map<Integer, FourNationsGameDayChannel> gameDayChannels;
+	private final Map<Integer, FourNationsGameDayThread> gameDayThreads;
 
 	FourNationsChannel(NHLBot nhlBot, Guild guild, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
 		this.channel = channel;
-		this.gameDayChannels = new ConcurrentHashMap<>();
+		this.gameDayThreads = new ConcurrentHashMap<>();
 	}
 
 	public static FourNationsChannel createChannel(NHLBot nhlBot, Guild guild) {
@@ -98,16 +98,16 @@ public class FourNationsChannel extends Thread {
 			GameTracker gameTracker = nhlBot.getGameScheduler().getFourNationsGameTracker(game);
 			if (!game.getGameState().isFinished()) {
 				// Start/Maintain gdc if they have not finished.
-				FourNationsGameDayChannel gdc = null;
-				if (!gameDayChannels.containsKey(gamePk)) {
-					gdc = FourNationsGameDayChannel.get(nhlBot, channel, gameTracker, guild);
-					gameDayChannels.put(gamePk, gdc);
+				FourNationsGameDayThread gdt = null;
+				if (!gameDayThreads.containsKey(gamePk)) {
+					gdt = FourNationsGameDayThread.get(nhlBot, channel, gameTracker, guild);
+					gameDayThreads.put(gamePk, gdt);
 				}
 			} else {
 				// Terminate finished gdc threads.
-				if (gameDayChannels.containsKey(gamePk)) {
-					FourNationsGameDayChannel gdc = gameDayChannels.remove(gamePk);
-					gdc.stopChannel();
+				if (gameDayThreads.containsKey(gamePk)) {
+					FourNationsGameDayThread gdt = gameDayThreads.remove(gamePk);
+					gdt.stopChannel();
 				}
 			}
 		}

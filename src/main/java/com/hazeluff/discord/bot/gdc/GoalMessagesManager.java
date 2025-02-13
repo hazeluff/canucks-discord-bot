@@ -223,7 +223,7 @@ public class GoalMessagesManager {
 	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		if (game.getGameType().isFourNations()) {
-			builder.title(FourNationsGameDayChannel.buildFourNationsMatchupName(game));			
+			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));			
 		}
 		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 		Color embedColor = scorer != null

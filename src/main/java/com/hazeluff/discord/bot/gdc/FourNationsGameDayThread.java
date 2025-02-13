@@ -44,8 +44,8 @@ import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
 
-public class FourNationsGameDayChannel extends Thread implements IEventProcessor {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FourNationsGameDayChannel.class);
+public class FourNationsGameDayThread extends Thread implements IEventProcessor {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FourNationsGameDayThread.class);
 
 	// Number of retries to do when NHL API returns no events.
 	static final int NHL_EVENTS_RETRIES = 5;
@@ -88,7 +88,7 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 
-	private FourNationsGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild, TextChannel channel,
+	private FourNationsGameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, TextChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
@@ -102,7 +102,7 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 
 	}
 
-	public static FourNationsGameDayChannel get(NHLBot nhlBot, TextChannel textChannel, GameTracker gameTracker, Guild guild) {
+	public static FourNationsGameDayThread get(NHLBot nhlBot, TextChannel textChannel, GameTracker gameTracker, Guild guild) {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
 		GDCMeta meta = null;
@@ -115,7 +115,7 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
 			}
 		}
-		FourNationsGameDayChannel gameDayChannel = new FourNationsGameDayChannel(nhlBot, gameTracker, guild,
+		FourNationsGameDayThread gameDayChannel = new FourNationsGameDayThread(nhlBot, gameTracker, guild,
 				textChannel, preferences, meta);
 
 		if (gameDayChannel.channel != null) {
@@ -353,7 +353,7 @@ public class FourNationsGameDayChannel extends Thread implements IEventProcessor
 	 */
 	void sendStartOfGameMessage() {
 		LOGGER.info("Sending start message.");
-		String message = String.format("**%s**: \n", getFourNationsMatchupName());
+		String message = String.format("%s: \n", getFourNationsMatchupName());
 		message += "Game is about to start!";
 		sendMessage(message);
 	}

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.utils.Utils;
 
 public enum GameType {
-	PRESEASON(1), REGULAR(2), PLAYOFF(3), FOUR_NATIONS(19), FOUR_NATIONS_FINAL(999999);
+	PRESEASON(1), REGULAR(2), PLAYOFF(3), FOUR_NATIONS(19), FOUR_NATIONS_FINAL(20);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameType.class);
 

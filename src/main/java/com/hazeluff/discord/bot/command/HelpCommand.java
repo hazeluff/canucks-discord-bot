@@ -82,7 +82,7 @@ public class HelpCommand extends Command {
 
 	public static String listOfTeams() {
 		StringBuilder response = new StringBuilder("```");
-		List<Team> teams = Team.getSortedLValues();
+		List<Team> teams = Team.getSortedValues();
 		for (Team team : teams) {
 			response.append("\n").append(team.getCode()).append(" - ").append(team.getFullName());
 		}

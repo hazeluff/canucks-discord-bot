@@ -3,6 +3,7 @@ package com.hazeluff.discord.bot.database;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.database.channel.ChannelMessagesData;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMetaData;
+import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMetaData;
 import com.hazeluff.discord.bot.database.preferences.PreferencesData;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
@@ -19,14 +20,17 @@ public class PersistentData {
 	private final PreferencesData preferencesData;
 	private final ChannelMessagesData channelMessagesData;
 	private final GDCMetaData gdcMetaData;
+	private final PlayoffWatchMetaData playoffWatchMetaData;
 
 
 	PersistentData(MongoDatabase database, PreferencesData preferencesData,
-			ChannelMessagesData channelMessagesData, GDCMetaData gdcMetaData) {
+			ChannelMessagesData channelMessagesData, GDCMetaData gdcMetaData,
+			PlayoffWatchMetaData playoffWatchMetaData) {
 		this.database = database;
 		this.preferencesData = preferencesData;
 		this.channelMessagesData = channelMessagesData;
 		this.gdcMetaData = gdcMetaData;
+		this.playoffWatchMetaData = playoffWatchMetaData;
 	}
 
 	public static PersistentData load(String hostName, int port, String userName, String password) {
@@ -37,7 +41,9 @@ public class PersistentData {
 		PreferencesData preferencesManager = PreferencesData.load(database);
 		ChannelMessagesData channelMessagesData = ChannelMessagesData.load(database);
 		GDCMetaData gdcMetaData = GDCMetaData.load(database);
-		return new PersistentData(database, preferencesManager, channelMessagesData, gdcMetaData);
+		PlayoffWatchMetaData playoffWatchMetaData = PlayoffWatchMetaData.load(database);
+		return new PersistentData(database, preferencesManager, channelMessagesData, 
+				gdcMetaData, playoffWatchMetaData);
 	}
 
 	@SuppressWarnings("resource")
@@ -64,6 +70,10 @@ public class PersistentData {
 
 	public GDCMetaData getGDCMetaData() {
 		return gdcMetaData;
+	}
+
+	public PlayoffWatchMetaData getPlayoffWatchMetaData() {
+		return playoffWatchMetaData;
 	}
 
 	public MongoDatabase getMongoDatabase() {

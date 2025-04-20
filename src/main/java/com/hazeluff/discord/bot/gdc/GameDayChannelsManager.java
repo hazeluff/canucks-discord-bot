@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.gdc;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -305,7 +306,7 @@ public class GameDayChannelsManager extends Thread {
 		}
 
 		// Does not remove channels that does not have the correct name format
-		if (!GameDayChannel.isChannelNameFormat(channel.getName())) {
+		if (!isChannelNameFormat(channel.getName())) {
 			return false;
 		}
 
@@ -317,13 +318,30 @@ public class GameDayChannelsManager extends Thread {
 		return true;
 	}
 
-	boolean isGameActive(List<Team> teams, String channelName) {
-		return nhlBot.getGameScheduler().isGameActive(teams, channelName);
-	}
-
 	public boolean isInGameDayCategory(TextChannel channel) {
 		Category category = DiscordManager.getCategory(channel);
 		return category == null ? false : category.getName().equalsIgnoreCase(GDCCategoryManager.CATEGORY_NAME);
+	}
+
+	/**
+	 * Determines if the given channel name is that of a possible game. Does not
+	 * factor into account whether or not the game is real.
+	 * 
+	 * @param channelName
+	 *            name of the channel
+	 * @return true, if is of game channel format;<br>
+	 *         false, otherwise.
+	 */
+	public static boolean isChannelNameFormat(String channelName) {
+		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
+				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
+		teamRegex = String.format("(%s)", teamRegex);
+		String regex = String.format("%1$s-vs-%1$s-[0-9]{2}-[0-9]{2}-[0-9]{2}", teamRegex);
+		return channelName.matches(regex);
+	}
+
+	boolean isGameActive(List<Team> teams, String channelName) {
+		return nhlBot.getGameScheduler().isGameActive(teams, channelName);
 	}
 
 	/**

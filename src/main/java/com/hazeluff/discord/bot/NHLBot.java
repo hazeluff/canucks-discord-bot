@@ -18,8 +18,9 @@ import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.FourNationsChannel;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
+import com.hazeluff.discord.bot.gdc.fournations.FourNationsChannel;
+import com.hazeluff.discord.bot.gdc.playoff.PlayoffWatchChannel;
 import com.hazeluff.discord.bot.listener.MessageListener;
 import com.hazeluff.discord.bot.listener.ReactionListener;
 import com.hazeluff.discord.nhl.GameScheduler;
@@ -129,10 +130,13 @@ public class NHLBot extends Thread {
 		initGameDayChannelsManager();
 
 		// (Special) Create Four Nations Channel
-		updateFourNationsChannel();
+		// initFourNationsChannel();
+
+		// (Special) Create Playoff watch Channel
+		initPlayoffWatchChannel();
 
 		// Manage WelcomeChannels (Only for my dev servers)
-		updateWelcomeChannel();
+		initWelcomeChannel();
 	}
 
 	void initPersistentData() {
@@ -232,18 +236,24 @@ public class NHLBot extends Thread {
 				.onErrorResume(e -> Mono.empty()).subscribe(event -> nhlBot.getReactionListener().execute(event));
 	}
 
-	private void updateWelcomeChannel() {
+	private void initWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
 	}
 
-	private void updateFourNationsChannel() {
+	@SuppressWarnings("unused")
+	private void initFourNationsChannel() {
+		LOGGER.info("Updating 'Four Nations' channels.");
+		getDiscordManager().getClient().getGuilds().subscribe(guild -> FourNationsChannel.createChannel(this, guild));
+	}
+
+	private void initPlayoffWatchChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
 		getDiscordManager().getClient()
 			.getGuilds()
-			.subscribe(guild -> FourNationsChannel.createChannel(this, guild));
+			.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {

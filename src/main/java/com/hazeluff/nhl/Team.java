@@ -505,7 +505,7 @@ public enum Team {
 		return result;
 	}
 
-	public static List<Team> getSortedLValues() {
+	public static List<Team> getSortedValues() {
 		return new ArrayList<>(SORTED_VALUES);
 	}
 }

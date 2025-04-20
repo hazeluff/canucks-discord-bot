@@ -39,23 +39,21 @@ public class GDCScoreCommand extends GDCSubCommand {
 	
 	public static EmbedCreateSpec.Builder buildEmbed(EmbedCreateSpec.Builder embedBuilder, Game game) {
 		String homeTeam = game.getHomeTeam().getFullName();
-		String homeGoals = "Goals:  **" + game.getHomeScore() + "**";
 		String awayTeam = game.getAwayTeam().getFullName();
-		String awayGoals = "Goals:  **" + game.getAwayScore() + "**";
 		return embedBuilder
 				.addField(
 						homeTeam,
-						"Home\n" + homeGoals,
+						"Home: " + " " + game.getHomeScore(),
 						true
 				)
 				.addField(
 						"vs",
-						"~~", // For formatting
+						"᲼᲼", // For formatting
 						true
 				)
 				.addField(
 						awayTeam,
-						"Away\n" + awayGoals,
+						"Away: " + game.getAwayScore(),
 						true
 				);
 	}

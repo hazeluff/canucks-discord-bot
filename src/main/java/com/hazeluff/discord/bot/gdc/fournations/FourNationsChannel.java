@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc;
+package com.hazeluff.discord.bot.gdc.fournations;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -107,7 +107,7 @@ public class FourNationsChannel extends Thread {
 				// Terminate finished gdc threads.
 				if (gameDayThreads.containsKey(gamePk)) {
 					FourNationsGameDayThread gdt = gameDayThreads.remove(gamePk);
-					gdt.stopChannel();
+					gdt.interrupt();
 				}
 			}
 		}

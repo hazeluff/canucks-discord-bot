@@ -346,6 +346,21 @@ public class DiscordManager {
 	}
 
 	/**
+	 * Pins the message to the specified channels
+	 * 
+	 * @param message
+	 *            existing message in Discord
+	 */
+	public static void unpinMessage(Message message) {
+		if (message == null) {
+			logNullArgumentsStackTrace("`message` was null.");
+			return;
+		}
+
+		subscribe(message.unpin());
+	}
+
+	/**
 	 * Creates a category with the given name.
 	 * 
 	 * @param guild
@@ -464,7 +479,7 @@ public class DiscordManager {
 
 	public static <T> void subscribe(Mono<T> mono) {
 		mono.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofMinutes(1)))
+				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(20)))
 				.subscribe();
 	}
 
@@ -478,7 +493,7 @@ public class DiscordManager {
 
 	public static <T> void subscribe(Flux<T> flux) {
 		flux.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofMinutes(1)))
+				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(20)))
 				.subscribe();
 	}
 

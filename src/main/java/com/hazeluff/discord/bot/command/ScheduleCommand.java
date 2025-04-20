@@ -20,9 +20,6 @@ import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
-/**
- * Lists the closest 10 games (5 previous, 5 future).
- */
 public class ScheduleCommand extends Command {
 	static final String NAME = "schedule";
 

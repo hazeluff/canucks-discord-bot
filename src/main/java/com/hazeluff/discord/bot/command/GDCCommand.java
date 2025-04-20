@@ -16,8 +16,8 @@ import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
-import com.hazeluff.discord.bot.gdc.FourNationsChannel;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.bot.gdc.fournations.FourNationsChannel;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;

@@ -56,7 +56,7 @@ public class CustomGameMessage {
 		public void lose(String message) {
 			CustomGameMessage customMessage = new CustomGameMessage(
 					message, 
-					buildWinConditions(getTeam()).negate(), 
+					buildLoseConditions(getTeam()),
 					1);
 			add(customMessage);
 		}
@@ -78,6 +78,15 @@ public class CustomGameMessage {
 				return winningTeam == null 
 						? false
 						: winningTeam.equals(team);
+			};
+		}
+
+		static Predicate<Game> buildLoseConditions(Team team) {
+			return game -> {
+				Team losingTeam = game.getLosingTeam();
+				return losingTeam == null
+						? false
+						: losingTeam.equals(team);
 			};
 		}
 

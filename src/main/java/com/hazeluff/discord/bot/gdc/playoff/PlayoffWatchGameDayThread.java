@@ -48,7 +48,6 @@ public class PlayoffWatchGameDayThread extends GameDayChannel {
 		PlayoffWatchGameDayThread gdt = new PlayoffWatchGameDayThread(nhlBot, gameTracker, guild,
 				textChannel, preferences, meta);
 		if (gdt.channel != null) {
-			gdt.loadMetadata();
 			gdt.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}", guild.getId().asLong());

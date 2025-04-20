@@ -50,7 +50,6 @@ public class FourNationsGameDayThread extends GameDayChannel {
 				textChannel, preferences, meta);
 
 		if (gameDayChannel.channel != null) {
-			gameDayChannel.loadMetadata();
 			gameDayChannel.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}", guild.getId().asLong());

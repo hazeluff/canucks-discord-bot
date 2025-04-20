@@ -64,7 +64,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		hatTrick("https://cdn.discordapp.com/attachments/1170084611422949396/1220227160254451713/boeser_petey_cele_smile.gif", 8478444); // Brock cele smile 2023
 
 		// J.T. Miller
-		playerGoalmessages.put(8478444, Arrays.asList(
+		playerGoalmessages.put(8476468, Arrays.asList(
 			"**JONATHAN TONATHAN!**",
 			"**It's Miller Time!**",
 			"https://giphy.com/gifs/canucks-jt-miller-goal-2021-62XQNbTolaM9zokRAP", // Canucks Graphic 2021

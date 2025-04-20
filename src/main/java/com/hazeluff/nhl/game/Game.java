@@ -213,6 +213,16 @@ public class Game {
 		return null;
 	}
 
+	public Team getLosingTeam() {
+		if (getHomeScore() < getAwayScore()) {
+			return getHomeTeam();
+		}
+		if (getHomeScore() > getAwayScore()) {
+			return getAwayTeam();
+		}
+		return null;
+	}
+
 	public RosterPlayer getPlayer(int playerId) {
 		return pbpData.getPlayers().getOrDefault(playerId, null);
 	}

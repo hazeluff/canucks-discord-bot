@@ -219,7 +219,7 @@ public class PlayoffWatchSummaryUpdater extends Thread {
 		}
 
 		strBuilder.append(String.format(
-				"%s᲼᲼%s - %s᲼᲼%s",
+				"%s %s - %s %s",
 				topTeam, topTeamWins, 
 				btmTeamWins, btmTeam
 		));

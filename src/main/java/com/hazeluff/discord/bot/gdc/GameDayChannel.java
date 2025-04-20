@@ -117,7 +117,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		GameDayChannel gameDayChannel = new GameDayChannel(nhlBot, gameTracker, guild, textChannel, preferences, meta);
 
 		if (gameDayChannel.channel != null) {
-			gameDayChannel.loadMetadata();
 			gameDayChannel.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}",
@@ -206,6 +205,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		setName(threadName);
 		LOGGER().info("Started GameDayChannel thread.");
 
+		loadMetadata();
 		this.goalMessages.initEvents(game.getScoringEvents());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
 
@@ -305,6 +305,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		boolean firstPass = true;
 		boolean closeToStart;
 		long timeTillGameMs = Long.MAX_VALUE;
+		Map<Long, String> reminders = getReminders();
 		do {
 			timeTillGameMs = DateUtils.diffMs(ZonedDateTime.now(), game.getStartTime());
 			closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;
@@ -314,7 +315,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				// Check to see if message should be sent.
 				long lowestThreshold = Long.MAX_VALUE;
 				String message = null;
-				Iterator<Entry<Long, String>> it = getReminders().entrySet().iterator();
+				Iterator<Entry<Long, String>> it = reminders.entrySet().iterator();
 				while (it.hasNext()) {
 					Entry<Long, String> entry = it.next();
 					long threshold = entry.getKey();

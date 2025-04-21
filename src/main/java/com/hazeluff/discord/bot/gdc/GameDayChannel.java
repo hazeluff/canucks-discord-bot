@@ -285,7 +285,6 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	protected void updateMessages() {
-		LOGGER.info("Updating Messages");
 		try {
 			List<GoalEvent> goalEvents = game.getScoringEvents();
 			List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();

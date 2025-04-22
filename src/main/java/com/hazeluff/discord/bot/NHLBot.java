@@ -228,14 +228,15 @@ public class NHLBot extends Thread {
 	@SuppressWarnings("unused")
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
-		getDiscordManager().getClient().getGuilds().subscribe(guild -> FourNationsChannel.createChannel(this, guild));
+		getDiscordManager().getClient().getGuilds()
+				.subscribe(guild -> FourNationsChannel.createChannel(this, guild));
 	}
 
 	private void initPlayoffWatchChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
+		getDiscordManager().getClient().getGuilds()
+				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+				.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {

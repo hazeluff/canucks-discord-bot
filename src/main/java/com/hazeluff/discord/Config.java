@@ -116,7 +116,32 @@ public class Config {
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
 
 	public static final List<String> STATUS_MESSAGES = Arrays.asList(
-			"/help for commands", "Slava "
+		"/help for commands",
+		"Go Canucks Go!",
+		"We are all Canucks",
+		"Costco Hotdogs: $1.50",
+		"Coconuts Glow!",
+		"Fuck messier",
+		"foundrybc.ca",
+		"Elbows Up",
+		"Je suis Canadien",
+		"Fuck the oilers",
+		"Fuck the leafs",
+		"\"I am not a cat\"",
+		"Can't stop, won't stop",
+		"from No Fun City",
+		"[18blahaj] Looking for love",
+		"\"Follow your dreams. Listen to your heart. Obey your passion.\"", // Pat Quinn
+		"LIVE SPORTS! ESPN+ ORIGINALS! THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
+		"at the combination hockey game and grocery store",
+		"The Lego Movie (2014)",
+		"Lucky Star",
+		"Mewtwo Strikes Back (1999)",
+		"No items, Fox only, Final Destination",
+		"There's a creeper on the roof. LA-LA-LA-LA-LA",
+		"It was 4-1",
+		"Do your dekes",
+		"self tell you this for free"
 	);
 	
 	/*

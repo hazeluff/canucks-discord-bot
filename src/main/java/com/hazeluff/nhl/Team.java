@@ -6,6 +6,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -352,7 +353,7 @@ public enum Team {
 
 	private static final Map<Integer, Team> VALUES_MAP = new HashMap<>();
 	private static final Map<String, Team> CODES_MAP = new HashMap<>();
-	private static final List<Team> SORTED_VALUES;
+	private static final List<Team> SORTED_NHL_VALUES;
 
 	static {
 		for (Team t : Team.values()) {
@@ -362,8 +363,10 @@ public enum Team {
 			CODES_MAP.put(t.code, t);
 		}
 
-		SORTED_VALUES = new ArrayList<>(EnumSet.allOf(Team.class));
-		SORTED_VALUES.sort((t1, t2) -> t1.getFullName().compareTo(t2.getFullName()));
+		List<Team> allTeams = new ArrayList<>(EnumSet.allOf(Team.class));
+		SORTED_NHL_VALUES = new ArrayList<>(allTeams).stream().filter(team -> team.isNHLTeam())
+				.collect(Collectors.toList());
+		SORTED_NHL_VALUES.sort((t1, t2) -> t1.getFullName().compareTo(t2.getFullName()));
 	}
 
 	private Team(int id, String location, String name, String code, Division division, String cheer, Color color,
@@ -505,7 +508,12 @@ public enum Team {
 		return result;
 	}
 
-	public static List<Team> getSortedValues() {
-		return new ArrayList<>(SORTED_VALUES);
+	public static List<Team> getSortedNHLValues() {
+		return new ArrayList<>(SORTED_NHL_VALUES);
+	}
+
+	public static List<Team> getNonCanucksValues() {
+		return new ArrayList<>(SORTED_NHL_VALUES).stream().filter(team -> team != Team.VANCOUVER_CANUCKS)
+				.collect(Collectors.toList());
 	}
 }

@@ -302,7 +302,7 @@ public class DiscordManager {
 
 		return block(guild.createTextChannel(channelSpec).onErrorReturn(null));
 	}
-	
+
 	public static TextChannel getTextChannel(Guild guild, String channelName) {
 
 		if (guild == null) {
@@ -314,7 +314,7 @@ public class DiscordManager {
 			logNullArgumentsStackTrace("`spec` was null.");
 			return null;
 		}
-		
+
 		return block(guild.getChannels()
 				.filter(TextChannel.class::isInstance)
 				.filter(txtchnl -> txtchnl.getName().equals(channelName))
@@ -458,7 +458,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(guild.getChannels()				
+		return block(guild.getChannels()
 				.filter(channel -> (channel instanceof TextChannel))
 				.cast(TextChannel.class));
 	}

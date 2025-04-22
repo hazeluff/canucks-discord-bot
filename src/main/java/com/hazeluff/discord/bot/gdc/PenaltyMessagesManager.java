@@ -172,7 +172,7 @@ public class PenaltyMessagesManager {
 
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		if (game.getGameType().isFourNations()) {
-			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));			
+			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));
 		}
 		return builder
 				.color(Color.BLACK)

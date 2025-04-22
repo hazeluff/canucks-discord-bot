@@ -73,7 +73,7 @@ public class GDCMeta {
 
 	static GDCMeta findFromCollection(MongoCollection<Document> collection, long channelId, long gameId) {
 		return findFromCollection(
-			collection, 
+				collection,
 			new Document()
 				.append(CHANNEL_ID_KEY, channelId)
 				.append(GAME_ID_KEY, gameId)

@@ -224,7 +224,7 @@ public class GoalMessagesManager {
 	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		if (game.getGameType().isFourNations()) {
-			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));			
+			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));
 		}
 		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 		Color embedColor = scorer != null
@@ -240,8 +240,7 @@ public class GoalMessagesManager {
 					.addField(scorerName, "Shootout goal", false)
 					.footer("Shootout", null).build();
 		} else {
-			String teamName = game.getGameType().isFourNations() 
-					? event.getTeam().getLocation() 
+			String teamName = game.getGameType().isFourNations() ? event.getTeam().getLocation()
 					: event.getTeam().getFullName();
 			String description = teamName + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()

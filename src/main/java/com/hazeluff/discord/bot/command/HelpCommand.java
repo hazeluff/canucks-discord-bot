@@ -76,7 +76,7 @@ public class HelpCommand extends Command {
 			+ "General\n"
 			+ "  `schedule`          - Displays information about the most recent and coming up games of your subscribed teams.\n"
 			+ "  `about`             - Displays information about me."
-			+ "```";
+			+ "Join the support/demo server for help! https://discord.gg/vFV6DHcz";
 
 	static final String TEAMS_MESSAGE = "Here are your teams:\n" + listOfTeams();
 

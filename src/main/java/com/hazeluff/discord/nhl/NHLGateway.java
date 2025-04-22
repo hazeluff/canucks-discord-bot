@@ -230,7 +230,7 @@ public class NHLGateway {
 					.map(BsonValue::asDocument)
 					.map(PlayoffSeries::parse)
 					.collect(Collectors.toMap(
-						series -> series.getSeriesLetter(), 
+							series -> series.getSeriesLetter(),
 						UnaryOperator.identity()
 					));
 		} catch (HttpException e) {

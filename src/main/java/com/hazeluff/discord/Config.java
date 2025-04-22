@@ -114,8 +114,10 @@ public class Config {
 	public static final String MONGO_DATABASE_NAME = "CanucksBot";
 	public static final String MONGO_TEST_DATABASE_NAME = "CanucksBotIntegrationTest";
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
-	
-	public static final String STATUS_MESSAGE = "/help for commands";
+
+	public static final List<String> STATUS_MESSAGES = Arrays.asList(
+			"/help for commands", "Slava "
+	);
 	
 	/*
 	 * About

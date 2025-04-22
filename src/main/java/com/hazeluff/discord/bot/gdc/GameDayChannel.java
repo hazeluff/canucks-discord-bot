@@ -622,7 +622,7 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				sendMessage(message);
 			}
 		} catch (Exception e) {
-			LOGGER().error("Could not send EOG Custom Message.");
+			LOGGER().error("Could not send EoG Custom Message.");
 		}
 	}
 

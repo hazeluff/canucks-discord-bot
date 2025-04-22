@@ -74,7 +74,7 @@ public class GDCCommand extends Command {
                         .build())
 				.build();
 	}
-	
+
 	private final static List<ApplicationCommandOptionChoiceData> CHOICES = PUBLIC_COMMANDS.entrySet().stream()
 			.map(entry -> entry.getValue().getName())
 			.map(name -> ApplicationCommandOptionChoiceData.builder()
@@ -94,7 +94,7 @@ public class GDCCommand extends Command {
 					.build();
 			return event.reply(spec);
 		}
-		
+
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			// Not in game day channel

@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.event.GameEvent;
-
 public class BoxScoreData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BoxScoreData.class);
 
@@ -50,7 +49,7 @@ public class BoxScoreData {
 					player.getDocument("firstName").getString("default").getValue(),
 					player.getDocument("lastName").getString("default").getValue(),
 					player.getString("positionCode").getValue(),
-					player.getInt32("sweaterNumber").getValue(), 
+					player.getInt32("sweaterNumber").getValue(),
 					Team.parse(player.getInt32("teamId").getValue())
 			);
 			players.put(rosterPlayer.getPlayerId(), rosterPlayer);

@@ -260,28 +260,25 @@ public abstract class Command extends ReactiveEventAdapter {
 		return DiscordUtils.getOptionAsLong(event, option);
 	}
 
-	public static Mono<Void> reply(ChatInputInteractionEvent event, 
-			String message) {
+	public static Mono<Void> reply(ChatInputInteractionEvent event, String message) {
 		return reply(event, message, null, false);
 	}
 
-	public static Mono<Void> reply(ChatInputInteractionEvent event, 
-			String message, boolean ephermeral) {
+	public static Mono<Void> reply(ChatInputInteractionEvent event, String message, boolean ephermeral) {
 		return reply(event, message, null, ephermeral);
 	}
 
-	public static Mono<Void> reply(ChatInputInteractionEvent event, 
-			EmbedCreateSpec embedCreateSpec) {
+	public static Mono<Void> reply(ChatInputInteractionEvent event, EmbedCreateSpec embedCreateSpec) {
 		return reply(event, null, embedCreateSpec, false);
 	}
 
-	public static Mono<Void> reply(ChatInputInteractionEvent event, 
-			EmbedCreateSpec embedCreateSpec, boolean ephermeral) {
+	public static Mono<Void> reply(ChatInputInteractionEvent event, EmbedCreateSpec embedCreateSpec,
+			boolean ephermeral) {
 		return reply(event, null, embedCreateSpec, ephermeral);
 	}
 
-	public static Mono<Void> reply(ChatInputInteractionEvent event, 
-			String message, EmbedCreateSpec embedCreateSpec, boolean ephermeral) {
+	public static Mono<Void> reply(ChatInputInteractionEvent event, String message, EmbedCreateSpec embedCreateSpec,
+			boolean ephermeral) {
 		InteractionApplicationCommandCallbackSpec spec = buildReplySpec(message, embedCreateSpec, ephermeral);
 		return event.reply(spec);
 	}

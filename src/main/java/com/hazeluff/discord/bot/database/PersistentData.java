@@ -42,7 +42,7 @@ public class PersistentData {
 		ChannelMessagesData channelMessagesData = ChannelMessagesData.load(database);
 		GDCMetaData gdcMetaData = GDCMetaData.load(database);
 		PlayoffWatchMetaData playoffWatchMetaData = PlayoffWatchMetaData.load(database);
-		return new PersistentData(database, preferencesManager, channelMessagesData, 
+		return new PersistentData(database, preferencesManager, channelMessagesData,
 				gdcMetaData, playoffWatchMetaData);
 	}
 

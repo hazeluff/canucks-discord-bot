@@ -27,7 +27,7 @@ public class PlayoffSeries {
 	public String getSeriesAbbrev() {
 		return seriesAbbrev;
 	}
-	
+
 	public boolean hasParticipant() {
 		return jsonDoc.containsKey("topSeedTeam") || jsonDoc.containsKey("bottomSeedTeam");
 	}

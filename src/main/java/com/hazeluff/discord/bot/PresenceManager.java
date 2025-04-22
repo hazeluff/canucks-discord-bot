@@ -54,7 +54,7 @@ public class PresenceManager extends Thread {
 	}
 
 	private ClientPresence getOnlineStatus() {
-		String status = Config.STATUS_MESSAGE;
+		String status = Utils.getRandom(Config.STATUS_MESSAGES);
 		Team team = Config.DEFAULT_TEAM;
 		Game nextGame = nhlBot.getGameScheduler().getNextGame(team);
 		if(nextGame != null) {

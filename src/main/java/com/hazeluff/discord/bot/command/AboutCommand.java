@@ -20,11 +20,11 @@ public class AboutCommand extends Command {
 	public AboutCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
-	
+
 	public String getName() {
 		return NAME;
 	}
-	
+
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 				.name(getName())

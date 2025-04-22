@@ -42,7 +42,7 @@ public class PlayoffWatchMeta {
 
 	static PlayoffWatchMeta findFromCollection(MongoCollection<Document> collection, long channelId) {
 		return findFromCollection(
-			collection, 
+				collection,
 			new Document()
 				.append(CHANNEL_ID_KEY, channelId)
 		);
@@ -54,7 +54,7 @@ public class PlayoffWatchMeta {
 			new Document("$set", new Document()
 				.append(SUMMARY_MESSAGE_ID_KEY, summaryMessageId)
 			),
-			new UpdateOptions().upsert(true)		
+				new UpdateOptions().upsert(true)
 		);
 	}
 

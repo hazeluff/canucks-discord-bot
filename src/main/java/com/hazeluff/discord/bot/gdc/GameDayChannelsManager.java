@@ -176,7 +176,7 @@ public class GameDayChannelsManager extends Thread {
 	}
 
 	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
-		LOGGER.info("Creating channel. channelName={}, guild={}", 
+		LOGGER.info("Creating channel. channelName={}, guild={}",
 				GameDayChannel.buildChannelName(gameTracker.getGame()), guild.getName());
 		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
 		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
@@ -242,7 +242,7 @@ public class GameDayChannelsManager extends Thread {
 					.getGuildPreferences(guild.getId().asLong())
 					.getTeams();
 
-			LOGGER.info("Updating Channels for [{}]: activeGames={}", 
+			LOGGER.info("Updating Channels for [{}]: activeGames={}",
 					guild.getId().asLong(),
 					nhlBot.getGameScheduler().getActiveGames(teams).stream()
 							.map(GameDayChannel::buildChannelName)

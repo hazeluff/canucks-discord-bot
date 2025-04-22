@@ -24,7 +24,7 @@ import discord4j.core.object.entity.channel.TextChannel;
 public class PlayoffWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchChannel.class);
 
-	public static final String CHANNEL_NAME = "playoffs";
+	public static final String CHANNEL_NAME = "playoffs-watch";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;

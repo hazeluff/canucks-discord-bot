@@ -17,6 +17,8 @@ import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
+import com.hazeluff.discord.bot.gdc.fournations.FourNationsChannel;
+import com.hazeluff.discord.bot.gdc.playoff.PlayoffWatchChannel;
 import com.hazeluff.discord.nhl.GameScheduler;
 import com.hazeluff.discord.utils.Utils;
 
@@ -24,8 +26,6 @@ import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.presence.ClientActivity;
-import discord4j.core.object.presence.ClientPresence;
 import discord4j.discordjson.json.ApplicationCommandData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -37,13 +37,8 @@ import reactor.core.publisher.Mono;
 public class NHLBot extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLBot.class);
 
-	private static final ClientPresence STARTING_UP_PRESENCE = ClientPresence.doNotDisturb(
-			ClientActivity.watching("itself starting up..."));
-	private static final ClientPresence ONLINE_PRESENCE = ClientPresence.online(
-			ClientActivity.streaming(Config.STATUS_MESSAGE, Config.GIT_URL));
-	private static long UPDATE_PLAY_STATUS_INTERVAL = 3600000l;
-
 	private AtomicReference<DiscordManager> discordManager = new AtomicReference<>();
+	private PresenceManager presenceManager;
 	private PersistentData persistantData;
 	private GameScheduler gameScheduler;
 	private GameDayChannelsManager gameDayChannelsManager;
@@ -51,6 +46,7 @@ public class NHLBot extends Thread {
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 	
 	private NHLBot() {
+		presenceManager = new PresenceManager(this);
 		persistantData = null;
 		gameScheduler = null;
 		gameDayChannelsManager = null;
@@ -64,8 +60,8 @@ public class NHLBot extends Thread {
 	 * @return
 	 */
 	public static NHLBot create(GameScheduler gameScheduler, String botToken) {
-		LOGGER.info("Creating NHLBot v" + Config.VERSION);
-		Thread.currentThread().setName("NHLBot");
+		LOGGER.info("Creating " + Config.APPLICATION_NAME + " v" + Config.VERSION);
+		Thread.currentThread().setName(Config.APPLICATION_NAME);
 
 		NHLBot nhlBot = new NHLBot();
 		nhlBot.gameScheduler = gameScheduler;
@@ -89,7 +85,7 @@ public class NHLBot extends Thread {
 	public void run() {
 		LOGGER.info("NHLBot is being intialized.");
 		// Set starting up status
-		getDiscordManager().changePresence(STARTING_UP_PRESENCE);
+		presenceManager.changePresenceToStartup();
 
 		// Init MongoClient/GuildPreferences
 		initPersistentData();
@@ -97,18 +93,15 @@ public class NHLBot extends Thread {
 		// Attach Listeners for Bot Slash Commands
 		attachSlashCommandListeners(this);
 
+		// Start Presence/Status updates
+		presenceManager.start();
+
 		/*
 		 * Setup Categories and Channels
 		 */
 		initCategoriesAndChannels();
 
 		LOGGER.info("NHLBot completed initialization.");
-		getDiscordManager().changePresence(ONLINE_PRESENCE);
-
-		while (!isInterrupted()) {
-			getDiscordManager().changePresence(ONLINE_PRESENCE);
-			Utils.sleep(UPDATE_PLAY_STATUS_INTERVAL);
-		}
 	}
 
 	void initCategoriesAndChannels() {
@@ -121,8 +114,14 @@ public class NHLBot extends Thread {
 		// Start the Game Day Channels Manager
 		initGameDayChannelsManager();
 
+		// (Special) Create Four Nations Channel
+		// initFourNationsChannel();
+
+		// (Special) Create Playoff watch Channel
+		initPlayoffWatchChannel();
+
 		// Manage WelcomeChannels (Only for my dev servers)
-		updateWelcomeChannel();
+		initWelcomeChannel();
 	}
 
 	void initPersistentData() {
@@ -176,7 +175,6 @@ public class NHLBot extends Thread {
 		DiscordManager discordManager = getDiscordManager();
 
 		List<Command> commands = getSlashCommands(this);
-		LOGGER.info("Commands" + commands);
 
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
@@ -220,11 +218,24 @@ public class NHLBot extends Thread {
 		}
 	}
 
-	private void updateWelcomeChannel() {
+	private void initWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
+	}
+
+	@SuppressWarnings("unused")
+	private void initFourNationsChannel() {
+		LOGGER.info("Updating 'Four Nations' channels.");
+		getDiscordManager().getClient().getGuilds().subscribe(guild -> FourNationsChannel.createChannel(this, guild));
+	}
+
+	private void initPlayoffWatchChannel() {
+		LOGGER.info("Updating 'Four Nations' channels.");
+		getDiscordManager().getClient()
+			.getGuilds()
+			.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {

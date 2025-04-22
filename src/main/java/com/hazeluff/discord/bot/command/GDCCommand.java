@@ -1,19 +1,23 @@
 package com.hazeluff.discord.bot.command;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
+import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.bot.gdc.fournations.FourNationsChannel;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -22,6 +26,7 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
+import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
@@ -35,7 +40,8 @@ public class GDCCommand extends Command {
 			Arrays.asList(
 				new GDCScoreCommand(),
 				new GDCGoalsCommand(),
-				new GDCStatusCommand()
+				new GDCStatusCommand(),
+				new GDCStatsCommand()
 			)
 			.stream()
 			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));
@@ -63,18 +69,37 @@ public class GDCCommand extends Command {
                         .name("subcommand")
 						.description("Subcommand to execute. Help: `/gdc subcommand:help`")
 						.type(ApplicationCommandOption.Type.STRING.getValue())
+						.addAllChoices(CHOICES)
 						.required(false)
                         .build())
 				.build();
 	}
 
+	private final static List<ApplicationCommandOptionChoiceData> CHOICES = PUBLIC_COMMANDS.entrySet().stream()
+			.map(entry -> entry.getValue().getName())
+			.map(name -> ApplicationCommandOptionChoiceData.builder()
+					.name(StringUtils.capitalize(name))
+					.value(name)
+					.build())
+			.collect(Collectors.toList());
+
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		TextChannel channel = getChannel(event);
+		if (channel.getName().equals(FourNationsChannel.CHANNEL_NAME)) {
+			// Not in game day channel
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.content("GDC Commands not supported for Four Nations channel.")
+					.ephemeral(true)
+					.build();
+			return event.reply(spec);
+		}
+
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			// Not in game day channel
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.content("GDC Commands must be used in a Game Day Channel.")
 					.addEmbed(HELP_MESSAGE_EMBED)
 					.ephemeral(true)
 					.build();

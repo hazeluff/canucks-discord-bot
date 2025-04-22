@@ -20,11 +20,11 @@ public class AboutCommand extends Command {
 	public AboutCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
-	
+
 	public String getName() {
 		return NAME;
 	}
-	
+
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 				.name(getName())
@@ -54,7 +54,7 @@ public class AboutCommand extends Command {
 					"Donations",
 					"I support this bot personally. "
 					+ "Donations will help offset my costs of running the server."
-					+ "\n**Paypal**: " + Config.DONATION_URL 
+					+ "\n**Paypal**: " + Config.DONATION_URL
 					+ "\n**Ethereum (ETH)**: " + Config.DONATION_ETH
 					+ "\n**Polygon (MATIC)**: " + Config.DONATION_MATIC,
 					false)

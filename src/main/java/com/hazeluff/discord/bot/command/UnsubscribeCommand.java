@@ -63,17 +63,24 @@ public class UnsubscribeCommand extends Command {
 		}
 
 		Team team = Team.parse(strTeam);
+		if (!team.isNHLTeam()) {
+			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
+		}
 		return replyAndDefer(event, "Unsubscribing...", () -> buildUnsubscribeFollowUp(event, guild, team));
 	}
 
 	InteractionFollowupCreateSpec buildUnsubscribeAllFollowUp(ChatInputInteractionEvent event, Guild guild) {
 		unsubscribeGuild(guild, null);
-		return InteractionFollowupCreateSpec.builder().content(UNSUBSCRIBED_FROM_ALL_MESSAGE).build();
+		return InteractionFollowupCreateSpec.builder()
+				.content(UNSUBSCRIBED_FROM_ALL_MESSAGE)
+				.build();
 	}
 
 	InteractionFollowupCreateSpec buildUnsubscribeFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
 		unsubscribeGuild(guild, team);
-		return InteractionFollowupCreateSpec.builder().content(buildUnsubscribeMessage(team)).build();
+		return InteractionFollowupCreateSpec.builder()
+				.content(buildUnsubscribeMessage(team))
+				.build();
 	}
 
 	static final String HELP_MESSAGE = "Unsubscribe from Game Day Channels of the specified team."

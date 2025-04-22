@@ -299,7 +299,43 @@ public enum Team {
 			Division.CENTRAL,
 			"Lets Go Utah!",
 			Color.of(0x6CACE4),
-			ZoneId.of("America/Denver"));
+			ZoneId.of("America/Denver")),
+	TEAM_CANADA(
+			60,
+			"Canada",
+			null,
+			"CAN",
+			null,
+			"Go Canada Go!",
+			Color.of(0xC70D31),
+			ZoneId.of("America/Toronto")),
+	TEAM_USA(
+			67,
+			"USA",
+			null,
+			"USA",
+			null,
+			"U-S-A! U-S-A! U-S-A!",
+			Color.of(0x053185),
+			ZoneId.of("America/Toronto")),
+	TEAM_SWEDEN(
+			66,
+			"Sweden",
+			null,
+			"SWE",
+			null,
+			"Lets go Sweden!",
+			Color.of(0xFDCC32),
+			ZoneId.of("America/Toronto")),
+	TEAM_FINLAND(
+			62,
+			"Finland",
+			null,
+			"FIN",
+			null,
+			"Lets go Finland!",
+			Color.of(0x0C366F),
+			ZoneId.of("America/Toronto"));
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Team.class);
 
@@ -351,10 +387,16 @@ public enum Team {
 	}
 
 	public String getName() {
+		if (name == null) {
+			return location;
+		}
 		return name;
 	}
 
 	public String getFullName() {
+		if (name == null) {
+			return location;
+		}
 		return location + " " + name;
 	}
 
@@ -393,6 +435,58 @@ public enum Team {
 		return CODES_MAP.get(code.toUpperCase()) != null;
 	}
 
+	public boolean isNHLTeam() {
+		switch (this) {
+		case NEW_JERSEY_DEVILS:
+		case NEW_YORK_ISLANDERS:
+		case NEW_YORK_RANGERS:
+		case PHILADELPHIA_FLYERS:
+		case PITTSBURGH_PENGUINS:
+		case BOSTON_BRUINS:
+		case BUFFALO_SABRES:
+		case MONTREAL_CANADIENS:
+		case OTTAWA_SENATORS:
+		case TORONTO_MAPLE_LEAFS:
+		case CAROLINA_HURRICANES:
+		case FLORIDA_PANTHERS:
+		case TAMPA_BAY_LIGHTNING:
+		case WASHINGTON_CAPITALS:
+		case CHICAGO_BLACKHAWKS:
+		case DETROIT_RED_WINGS:
+		case NASHVILLE_PREDATORS:
+		case ST_LOUIS_BLUES:
+		case CALGARY_FLAMES:
+		case COLORADO_AVALANCH:
+		case EDMONTON_OILERS:
+		case VANCOUVER_CANUCKS:
+		case ANAHEIM_DUCKS:
+		case DALLAS_STARS:
+		case LA_KINGS:
+		case SAN_JOSE_SHARKS:
+		case COLUMBUS_BLUE_JACKETS:
+		case MINNESOTA_WILD:
+		case WINNIPEG_JETS:
+		case VEGAS_GOLDEN_KNIGHTS:
+		case SEATTLE_KRAKEN:
+		case UTAH_HC:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	public boolean isFourNationsTeam() {
+		switch (this) {
+		case TEAM_CANADA:
+		case TEAM_USA:
+		case TEAM_SWEDEN:
+		case TEAM_FINLAND:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	/**
 	 * Parse's a team's code into a Team object
 	 * 
@@ -411,7 +505,7 @@ public enum Team {
 		return result;
 	}
 
-	public static List<Team> getSortedLValues() {
+	public static List<Team> getSortedValues() {
 		return new ArrayList<>(SORTED_VALUES);
 	}
 }

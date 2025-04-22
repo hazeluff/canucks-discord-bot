@@ -302,7 +302,7 @@ public class DiscordManager {
 
 		return block(guild.createTextChannel(channelSpec).onErrorReturn(null));
 	}
-	
+
 	public static TextChannel getTextChannel(Guild guild, String channelName) {
 
 		if (guild == null) {
@@ -314,7 +314,7 @@ public class DiscordManager {
 			logNullArgumentsStackTrace("`spec` was null.");
 			return null;
 		}
-		
+
 		return block(guild.getChannels()
 				.filter(TextChannel.class::isInstance)
 				.filter(txtchnl -> txtchnl.getName().equals(channelName))
@@ -343,6 +343,21 @@ public class DiscordManager {
 		}
 
 		subscribe(message.pin());
+	}
+
+	/**
+	 * Pins the message to the specified channels
+	 * 
+	 * @param message
+	 *            existing message in Discord
+	 */
+	public static void unpinMessage(Message message) {
+		if (message == null) {
+			logNullArgumentsStackTrace("`message` was null.");
+			return;
+		}
+
+		subscribe(message.unpin());
 	}
 
 	/**
@@ -443,7 +458,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(guild.getChannels()				
+		return block(guild.getChannels()
 				.filter(channel -> (channel instanceof TextChannel))
 				.cast(TextChannel.class));
 	}
@@ -464,7 +479,7 @@ public class DiscordManager {
 
 	public static <T> void subscribe(Mono<T> mono) {
 		mono.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofMinutes(1)))
+				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(20)))
 				.subscribe();
 	}
 
@@ -478,7 +493,7 @@ public class DiscordManager {
 
 	public static <T> void subscribe(Flux<T> flux) {
 		flux.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofMinutes(1)))
+				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(20)))
 				.subscribe();
 	}
 

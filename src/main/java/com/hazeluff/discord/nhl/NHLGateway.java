@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import org.bson.BsonArray;
@@ -65,6 +66,10 @@ public class NHLGateway {
 		return Config.NHL_API_URL + "/standings/" + seasonEnd;
 	}
 
+	static String getPlayoffBracketUrl(String seasonEnd) {
+		return Config.NHL_API_URL + "/playoff-bracket/" + seasonEnd;
+	}
+
 	// Fetchers
 	static String fetchRawGames(Team team, Season season) throws HttpException {
 		URI uri = HttpUtils.buildUri(getClubScheduleSeasonUrl(team.getCode(), season.getStartYear()));
@@ -98,6 +103,11 @@ public class NHLGateway {
 
 	static String fetchStandings(String seasonEnd) throws HttpException {
 		URI uri = HttpUtils.buildUri(getStandingsUrl(seasonEnd));
+		return HttpUtils.get(uri);
+	}
+
+	static String fetchPlayoffBracket(String seasonEnd) throws HttpException {
+		URI uri = HttpUtils.buildUri(getPlayoffBracketUrl(seasonEnd));
 		return HttpUtils.get(uri);
 	}
 
@@ -208,6 +218,23 @@ public class NHLGateway {
 					.collect(Collectors.toList());
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
+			return null;
+		}
+	}
+
+	public static Map<String, PlayoffSeries> getPlayoffBracket(String endDate) {
+		try {
+			String strJsonBracket = fetchPlayoffBracket(endDate);
+			BsonArray jsonBracket = BsonDocument.parse(strJsonBracket).getArray("series");
+			return jsonBracket.stream()
+					.map(BsonValue::asDocument)
+					.map(PlayoffSeries::parse)
+					.collect(Collectors.toMap(
+						series -> series.getSeriesLetter(),
+						UnaryOperator.identity()
+					));
+		} catch (HttpException e) {
+			LOGGER.error("Exception occured fetching playoff bracket.", e);
 			return null;
 		}
 	}

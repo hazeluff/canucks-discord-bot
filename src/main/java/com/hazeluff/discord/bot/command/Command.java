@@ -55,6 +55,8 @@ public abstract class Command extends ReactiveEventAdapter {
 					+ "To see a list of [team] codes use command `?subscribe help`";
 	static final String RUN_IN_SERVER_CHANNEL_MESSAGE = 
 			"This can only be run on a server's 'Game Day Channel'.";
+	public static final String NON_NHL_TEAM_MESSAGE = 
+			"The team must be an NHL Team.";
 	
 	protected final NHLBot nhlBot;
 
@@ -70,7 +72,10 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	static ApplicationCommandOptionChoiceData buildChoice(String value) {
-		return ApplicationCommandOptionChoiceData.builder().name(StringUtils.capitalize(value)).value(value).build();
+		return ApplicationCommandOptionChoiceData.builder()
+			.name(StringUtils.capitalize(value))
+			.value(value)
+			.build();
 	}
 
 	public abstract Publisher<?> onChatCommandInput(ChatInputInteractionEvent event);
@@ -205,7 +210,7 @@ public abstract class Command extends ReactiveEventAdapter {
 	 *            command to tell user to invoke help of
 	 * @return
 	 */
-	String getInvalidTeamCodeMessage(String incorrectCode) {
+	public static String getInvalidTeamCodeMessage(String incorrectCode) {
 		return String.format("`%s` is not a valid team code.\nUse `/help teams` to get a full list of team",
 				incorrectCode);
 	}
@@ -278,8 +283,7 @@ public abstract class Command extends ReactiveEventAdapter {
 		return event.reply(spec);
 	}
 
-	static InteractionApplicationCommandCallbackSpec buildReplySpec(String message,
-			EmbedCreateSpec embedCreateSpec,
+	static InteractionApplicationCommandCallbackSpec buildReplySpec(String message, EmbedCreateSpec embedCreateSpec,
 			boolean ephermeral) {
 		InteractionApplicationCommandCallbackSpec.Builder builder = InteractionApplicationCommandCallbackSpec.builder();
 		if (message != null) {
@@ -294,8 +298,8 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	public static Mono<Message> replyAndDefer(ChatInputInteractionEvent event, String initialReply,
 			Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
-		return event.reply(buildReplySpec(initialReply, null,
-				true))
+		return event
+				.reply(buildReplySpec(initialReply, null, true))
 				.then(createSlowFollowUp(event, defferedReplySupplier));
 	}
 

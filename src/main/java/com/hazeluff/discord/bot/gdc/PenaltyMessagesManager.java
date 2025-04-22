@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.fournations.FourNationsGameDayThread;
 import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.RosterPlayer;
@@ -141,7 +142,7 @@ public class PenaltyMessagesManager {
 	}
 
 	void updateMessage(PenaltyEvent event) {
-		LOGGER.debug("Updating message for event [" + event.getId() + "].");
+		LOGGER.info("Updating message for event [" + event.getId() + "].");
 		if (!eventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
@@ -168,7 +169,12 @@ public class PenaltyMessagesManager {
 				StringUtils.capitalize(event.getDescription()), event.getDuration()));
 
 		String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
-		return EmbedCreateSpec.builder()
+
+		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
+		if (game.getGameType().isFourNations()) {
+			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));
+		}
+		return builder
 				.color(Color.BLACK)
 				.addField(header, description.toString(), false)
 				.footer(time, null)

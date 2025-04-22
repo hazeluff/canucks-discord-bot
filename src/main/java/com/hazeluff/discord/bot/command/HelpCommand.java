@@ -76,13 +76,14 @@ public class HelpCommand extends Command {
 			+ "General\n"
 			+ "  `schedule`          - Displays information about the most recent and coming up games of your subscribed teams.\n"
 			+ "  `about`             - Displays information about me."
-			+ "```";
+			+ "```\n"
+			+ "Join the support/demo server for help! https://discord.gg/vFV6DHcz";
 
 	static final String TEAMS_MESSAGE = "Here are your teams:\n" + listOfTeams();
 
 	public static String listOfTeams() {
 		StringBuilder response = new StringBuilder("```");
-		List<Team> teams = Team.getSortedLValues();
+		List<Team> teams = Team.getSortedValues();
 		for (Team team : teams) {
 			response.append("\n").append(team.getCode()).append(" - ").append(team.getFullName());
 		}

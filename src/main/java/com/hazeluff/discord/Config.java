@@ -51,15 +51,20 @@ public class Config {
 	 */
 	public static final Season CURRENT_SEASON = Seasons.S24_25;
 
-	// List of guilds allowed to access the bot. (not strictly enforced access)
 	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
 			268247727400419329l, 
 			276953120964083713l
+	);
+
+	// List of guilds allowed to access the bot. (not strictly enforced access)
+	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(
+			238870084003561472l // /r/canucks
 	);
 	
 	/*
 	 *  Technical Config
 	 */
+	public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
 	public static final int HTTP_REQUEST_RETRIES = 5;
 	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";	
 	
@@ -77,7 +82,7 @@ public class Config {
 	public static final String HAZELUFF_SITE = "http://www.hazeluff.com";
 	public static final String HAZELUFF_EMAIL = "me@hazeluff.com";
 	public static final String HAZELUFF_TWITTER = "@Hazeluff";
-	
+
 	public static final String VERSION = ProjectInfo.VERSION;
 
 	private static final String MONGO_HOST_KEY = "mongo.host";
@@ -124,9 +129,18 @@ public class Config {
 	public static final String MONGO_DATABASE_NAME = "NHLBot";
 	public static final String MONGO_TEST_DATABASE_NAME = "NHLBotIntegrationTest";
 	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
-	
-	public static final String STATUS_MESSAGE = "/help for commands";
-	
+
+	public static final List<String> STATUS_MESSAGES = Arrays.asList(
+		"/help for commands",
+		"Слава Україні!",
+		"Slava Ukraini",
+		"光復香港 時代革命",
+		"香港人加油",
+		"Taiwan #1",
+		"Elbows Up",
+		"\"So let us be loving, hopeful and optimistic. And we'll change the world.\" - Jack Layton"
+	);
+
 	// Slash Commands
 	/**
 	 * <p>

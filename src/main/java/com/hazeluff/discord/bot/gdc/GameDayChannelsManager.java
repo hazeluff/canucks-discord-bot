@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.gdc;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -138,7 +139,9 @@ public class GameDayChannelsManager extends Thread {
 	public List<Guild> getSubscribedGuilds(Team team) {
 		return nhlBot.getDiscordManager().getGuilds().stream().filter(guild -> {
 			long guildId = guild.getId().asLong();
-			return nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId)
+			return nhlBot.getPersistentData()
+					.getPreferencesData()
+					.getGuildPreferences(guildId)
 					.getTeams()
 					.contains(team);
 		}).collect(Collectors.toList());
@@ -152,8 +155,8 @@ public class GameDayChannelsManager extends Thread {
 	 * @param guild
 	 */
 	public GameDayChannel createChannel(Game game, Guild guild) {
-		LOGGER.info("Initializing for channel. channelName={}, guild={}", GameDayChannel.buildChannelName(game),
-				guild.getName());
+		LOGGER.info("Initializing for channel. channelName={}, guild={}",
+				GameDayChannel.buildChannelName(game), guild.getName());
 		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
 
@@ -173,9 +176,8 @@ public class GameDayChannelsManager extends Thread {
 	}
 
 	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
-		long guildId = guild.getId().asLong();
-		LOGGER.debug("Creating channel. channelName={}, guildId={}",
-				GameDayChannel.buildChannelName(gameTracker.getGame()), guildId);
+		LOGGER.info("Creating channel. channelName={}, guild={}",
+				GameDayChannel.buildChannelName(gameTracker.getGame()), guild.getName());
 		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
 		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
 		return channel;
@@ -192,28 +194,31 @@ public class GameDayChannelsManager extends Thread {
 		LOGGER.info("Updating channels for all guilds.");
 		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds().stream()
 				.filter(guild -> !nhlBot.getPersistentData().getPreferencesData()
-						.getGuildPreferences(guild.getId().asLong()).getTeams()
-						.isEmpty())
+						.getGuildPreferences(guild.getId().asLong())
+						.getTeams()
+						.isEmpty()
+				)
 				.collect(Collectors.toList());
 
 		// Update Dev Guilds
-		List<Guild> devGuilds = guilds.stream().filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId()
-				.asLong()))
+		List<Guild> devGuilds = guilds.stream()
+				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.collect(Collectors.toList());
 
 		devGuilds.stream().forEach(devGuild -> {
-			LOGGER.debug("Updating channels of dev guilds: " + devGuild.getId().asLong());
+			LOGGER.info("Updating channels of dev guilds: " + devGuild.getId().asLong());
 			updateChannels(devGuild);
 		});
 
 		// Update Other Guilds
 		List<Guild> otherGuilds = guilds.stream()
-				.filter(guild -> !Config.DEV_GUILD_LIST.contains(guild.getId().asLong())).collect(Collectors.toList());
+				.filter(guild -> !Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+				.collect(Collectors.toList());
 
 		otherGuilds.stream().forEach(guild -> {
-			LOGGER.debug("Updating channels of other guilds: " + guild.getId().asLong());
+			LOGGER.info("Updating channels of other guilds: " + guild.getId().asLong());
 			updateChannels(guild);
-			Utils.sleep(10000);
+			Utils.sleep(1000);
 		});
 	}
 
@@ -234,10 +239,14 @@ public class GameDayChannelsManager extends Thread {
 			GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 					.getGuildPreferences(guild.getId().asLong());
 			List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
-					.getGuildPreferences(guild.getId().asLong()).getTeams();
+					.getGuildPreferences(guild.getId().asLong())
+					.getTeams();
 
-			LOGGER.debug("Updating Channels for [{}]: activeGames={}", guild.getId().asLong(), nhlBot.getGameScheduler()
-					.getActiveGames(teams).stream().map(GameDayChannel::buildChannelName).collect(Collectors.toList()));
+			LOGGER.info("Updating Channels for [{}]: activeGames={}",
+					guild.getId().asLong(),
+					nhlBot.getGameScheduler().getActiveGames(teams).stream()
+							.map(GameDayChannel::buildChannelName)
+							.collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
 			for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
@@ -256,7 +265,7 @@ public class GameDayChannelsManager extends Thread {
 				createChannel(game, guild);
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Issue updating guild: " + guild.getId().asLong());
+			LOGGER.warn("Issue updating guild: " + guild.getId().asLong() + "\n" + e.getMessage());
 		}
 	}
 
@@ -274,10 +283,12 @@ public class GameDayChannelsManager extends Thread {
 	 * #deleteInactiveGuildChannels(IGuild).
 	 */
 	void deleteChannel(TextChannel channel, GuildPreferences preferences) {
-		LOGGER.debug("Remove channel: " + channel.getName());
+		LOGGER.info("Remove channel: " + channel.getName());
 		/*
-		 * Remove games that: - are in the category - have the correct name format for a
-		 * gdc - are not active
+		 * Remove games that:
+		 * - are in the category
+		 * - have the correct name format for a gdc
+		 * - are not active
 		 */
 		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
 		if (game != null) {
@@ -295,7 +306,7 @@ public class GameDayChannelsManager extends Thread {
 		}
 
 		// Does not remove channels that does not have the correct name format
-		if (!GameDayChannel.isChannelNameFormat(channel.getName())) {
+		if (!isChannelNameFormat(channel.getName())) {
 			return false;
 		}
 
@@ -307,13 +318,30 @@ public class GameDayChannelsManager extends Thread {
 		return true;
 	}
 
-	boolean isGameActive(List<Team> teams, String channelName) {
-		return nhlBot.getGameScheduler().isGameActive(teams, channelName);
-	}
-
 	public boolean isInGameDayCategory(TextChannel channel) {
 		Category category = DiscordManager.getCategory(channel);
 		return category == null ? false : category.getName().equalsIgnoreCase(GDCCategoryManager.CATEGORY_NAME);
+	}
+
+	/**
+	 * Determines if the given channel name is that of a possible game. Does not
+	 * factor into account whether or not the game is real.
+	 * 
+	 * @param channelName
+	 *            name of the channel
+	 * @return true, if is of game channel format;<br>
+	 *         false, otherwise.
+	 */
+	public static boolean isChannelNameFormat(String channelName) {
+		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
+				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
+		teamRegex = String.format("(%s)", teamRegex);
+		String regex = String.format("%1$s-vs-%1$s-[0-9]{2}-[0-9]{2}-[0-9]{2}", teamRegex);
+		return channelName.matches(regex);
+	}
+
+	boolean isGameActive(List<Team> teams, String channelName) {
+		return nhlBot.getGameScheduler().isGameActive(teams, channelName);
 	}
 
 	/**

@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.utils.Utils;
 
 public enum GameType {
-	PRESEASON(1), REGULAR(2), PLAYOFF(3);
+	PRESEASON(1), REGULAR(2), PLAYOFF(3), FOUR_NATIONS(19), FOUR_NATIONS_FINAL(20);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameType.class);
 
@@ -52,6 +52,16 @@ public enum GameType {
 		}
 	}
 
+	public boolean isFourNations() {
+		switch (this) {
+		case FOUR_NATIONS:
+		case FOUR_NATIONS_FINAL:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	// TODO: TEST THIS
 	public String getPeriodCode(int period) {
 		switch (this) {
@@ -59,6 +69,10 @@ public enum GameType {
 		case REGULAR:
 			return _regularCode(period);
 		case PLAYOFF:
+			return _playoffCode(period);
+		case FOUR_NATIONS:
+			return _regularCode(period);
+		case FOUR_NATIONS_FINAL:
 			return _playoffCode(period);
 		default:
 			return Utils.getOrdinal(period);

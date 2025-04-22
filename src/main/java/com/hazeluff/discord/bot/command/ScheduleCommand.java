@@ -20,9 +20,6 @@ import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
-/**
- * Lists the closest 10 games (5 previous, 5 future).
- */
 public class ScheduleCommand extends Command {
 	static final String NAME = "schedule";
 
@@ -150,7 +147,7 @@ public class ScheduleCommand extends Command {
 	EmbedCreateSpec.Builder appendGameToEmbed(EmbedCreateSpec.Builder builder, Game game, Team preferedTeam,
 			GameState state) {
 		ZoneId timeZone = preferedTeam.getTimeZone();
-		StringBuilder date = new StringBuilder(GameDayChannel.getNiceDate(game, timeZone));
+		StringBuilder date = new StringBuilder(GameDayChannel.buildNiceDate(game, timeZone));
 		String message;
 		Function<Game, String> getAgainstTeamMessage = g -> {
 			return g.getHomeTeam() == preferedTeam

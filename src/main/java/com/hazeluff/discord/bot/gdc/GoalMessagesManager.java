@@ -16,6 +16,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessages;
+import com.hazeluff.discord.bot.gdc.fournations.FourNationsGameDayThread;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.game.Game;
@@ -141,7 +142,7 @@ public class GoalMessagesManager {
 	}
 
 	void sendMessage(GoalEvent event) {
-		LOGGER.debug("Sending message for event [" + event.getId() + "].");
+		LOGGER.info("Sending message for event [" + event.getId() + "].");
 		if (event.getPeriodType() != PeriodType.SHOOTOUT && isSpam()) {
 			LOGGER.warn("Spam message avoided. eventId={}, periodType={}", event.getId(), event.getPeriodType());
 			eventMessages.put(event.getId(), Pair.with(event, null)); // Pretend to send the message
@@ -149,7 +150,7 @@ public class GoalMessagesManager {
 		}
 
 		if (!isSpam()) {
-			// Custom Message - only send when within the spam cooldown
+			// Custom Message - only send when outside the spam cooldown
 			String messageContent = CustomGoalMessages.getMessage(game.getScoringEvents(), event);
 			if (messageContent != null) {
 				Message customMessage = DiscordManager.sendAndGetMessage(channel, messageContent);
@@ -172,7 +173,7 @@ public class GoalMessagesManager {
 	}
 
 	void updateMessage(GoalEvent event) {
-		LOGGER.debug("Updating message for event [" + event.getId() + "].");
+		LOGGER.info("Updating message for event [" + event.getId() + "].");
 		if (!eventMessages.containsKey(event.getId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
@@ -213,7 +214,7 @@ public class GoalMessagesManager {
 			isRelink = true;
 		}
 		if (isRelink) {
-			LOGGER.debug("Relink message to new event [" + event.getId() + "].");
+			LOGGER.info("Relink message to new event [" + event.getId() + "].");
 			Message message = eventMessage.getValue1();
 			eventMessages.put(event.getId(), Pair.with(event, message));
 		}
@@ -222,7 +223,9 @@ public class GoalMessagesManager {
 
 	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
-
+		if (game.getGameType().isFourNations()) {
+			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));
+		}
 		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 		Color embedColor = scorer != null
 				? scorer.getTeam().getColor()
@@ -237,7 +240,10 @@ public class GoalMessagesManager {
 					.addField(scorerName, "Shootout goal", false)
 					.footer("Shootout", null).build();
 		} else {
-			String description = event.getTeam().getFullName() + " goal!";
+			String teamName = game.getGameType().isFourNations()
+					? event.getTeam().getLocation()
+					: event.getTeam().getFullName();
+			String description = teamName + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()
 					.map(game::getPlayer)
 					.collect(Collectors.toList());

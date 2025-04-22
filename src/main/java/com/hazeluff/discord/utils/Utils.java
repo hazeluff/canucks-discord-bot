@@ -18,6 +18,8 @@ public class Utils {
 
 	private static final Random random = new Random();
 	
+	public static final String INVISIBLE_CHAR = "᲼";
+
 	/**
 	 * Invokes Thread.sleep() and catches the exception.
 	 * 
@@ -46,7 +48,10 @@ public class Utils {
 	}
 
 	public static <T> T getFromList(List<T> list, Predicate<T> test) {
-		return list.stream().filter(test).findAny().orElse(null);
+		return list.stream()
+		  .filter(test)
+		  .findAny()
+		  .orElse(null);
 	}
 
 	/**

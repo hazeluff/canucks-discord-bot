@@ -184,7 +184,6 @@ public class Game {
 		return this.pbpData.getCurrentPeriodType();
 	}
 
-
 	public boolean isInIntermission() {
 		return this.pbpData.isInIntermission();
 	}
@@ -210,6 +209,16 @@ public class Game {
 			return getHomeTeam();
 		}
 		if (getHomeScore() < getAwayScore()) {
+			return getAwayTeam();
+		}
+		return null;
+	}
+
+	public Team getLosingTeam() {
+		if (getHomeScore() < getAwayScore()) {
+			return getHomeTeam();
+		}
+		if (getHomeScore() > getAwayScore()) {
 			return getAwayTeam();
 		}
 		return null;
@@ -244,13 +253,15 @@ public class Game {
 				playerGoals.put(goal.getScorerId(), playerGoals.get(scorer) + 1);
 			}
 		}
-
-		int highestGoals = playerGoals.values().stream().max(Integer::compare).orElse(-1);
-
+		
+		int highestGoals = playerGoals.values().stream()
+				.max(Integer::compare)
+                .orElse(-1);
+		
 		List<Integer> highestScorers = new ArrayList<>();
-		if (highestGoals > 0) {
+		if(highestGoals > 0) {
 			for (Entry<Integer, Integer> entry : playerGoals.entrySet()) {
-				if (entry.getValue() == highestGoals) {
+				if(entry.getValue() == highestGoals) {
 					highestScorers.add(entry.getKey());
 				}
 			}
@@ -272,15 +283,17 @@ public class Game {
 				} else {
 					playerPoints.put(scorer, playerPoints.get(scorer) + 1);
 				}
-			}
+			}			
 		}
-
-		int highestPoints = playerPoints.values().stream().max(Integer::compare).orElse(-1);
-
+		
+		int highestPoints = playerPoints.values().stream()
+				.max(Integer::compare)
+                .orElse(-1);
+		
 		List<Integer> highestScorers = new ArrayList<>();
-		if (highestPoints > 0) {
+		if(highestPoints > 0) {
 			for (Entry<Integer, Integer> entry : playerPoints.entrySet()) {
-				if (entry.getValue() == highestPoints) {
+				if(entry.getValue() == highestPoints) {
 					highestScorers.add(entry.getKey());
 				}
 			}

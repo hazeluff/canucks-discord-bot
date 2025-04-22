@@ -41,23 +41,23 @@ public class GDCStatusCommand extends GDCSubCommand {
 		String fieldDescription;
 		if (game.getGameState().isFinished()) {
 			fieldDescription = "Game has finished";
-			switch (game.getPeriodType()) {
-			case REGULAR:
+			switch(game.getPeriodType()) {
+				case REGULAR:
 					fieldDescription += " in regulation time.";
-				break;
-			case OVERTIME:
-				int numOvertime = game.getPeriodNumber() - 3;
-				if (numOvertime == 1) {
-					fieldDescription += " in overtime.";
-				} else {
-					fieldDescription += " in " + numOvertime + " overtimes.";
-				}
-				break;
-			case SHOOTOUT:
-				fieldDescription += " in shootout.";
-				break;
-			default:
-				fieldDescription += ".";
+					break;
+				case OVERTIME:
+					int numOvertime = game.getPeriodNumber() - 3;
+					if (numOvertime == 1) {
+						fieldDescription += " in overtime.";
+					} else {
+						fieldDescription += " in " + numOvertime + " overtimes.";
+					}
+					break;
+				case SHOOTOUT:
+					fieldDescription += " in shootout.";
+					break;
+				default:
+					fieldDescription += ".";
 			}
 		} else if (game.getGameState().isStarted()) {
 			fieldDescription = "Game is in progress.";
@@ -73,7 +73,6 @@ public class GDCStatusCommand extends GDCSubCommand {
 				} else {
 					fieldDescription += " Currently in " + Utils.getOrdinal(numOvertime) + " overtime.";
 				}
-
 				break;
 			case SHOOTOUT:
 				fieldDescription += " Currently in shootout.";
@@ -86,14 +85,16 @@ public class GDCStatusCommand extends GDCSubCommand {
 			fieldDescription = "Game has not started.";
 		}
 
+		// Append Score Information
 		String score = String.format("%s %s - %s %s",
 				game.getHomeTeam().getName(), game.getHomeScore(),
 				game.getAwayScore(), game.getAwayTeam().getName());
 		embedBuilder.addField(fieldDescription, score, false);
 		
+		// Append Intermission Status
 		if (game.getGameState().isLive()) {
 			if (game.isInIntermission()) {
-				String intermissionTitle = "Currently in an intermission: " + game.getPeriodCode();
+				String intermissionTitle = "Currently in an intermission";
 				String intermissionDescription = String.format("Remaining: %s.", game.getClockRemaining());
 				embedBuilder.addField(intermissionTitle, intermissionDescription, false);
 			}

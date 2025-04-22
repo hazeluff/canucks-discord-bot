@@ -3,7 +3,6 @@ package com.hazeluff.discord.bot.command.stats;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.reactivestreams.Publisher;
@@ -62,30 +61,28 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 			return Command.reply(event, "Season is out of range.");
 		}
 		
-		return Command.replyAndDefer(event, "Fetching Results...", buildReplySpecSupplier(event));
+		return Command.replyAndDefer(event, "Fetching Results...", () -> buildFollowUp(event));
 	}
 
-	Supplier<InteractionFollowupCreateSpec> buildReplySpecSupplier(ChatInputInteractionEvent event) {
-		return () -> {
-			Map<Integer, String> standingsSeasons = getStandingsSeasons();
-			Season season = getSeason(DiscordUtils.getOptionAsLong(event, "season"));
-			String endDate = standingsSeasons.get(season.getStartYear());
-			List<TeamStandings> standings = NHLGateway.getStandings(endDate);
+	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event) {
+		Map<Integer, String> standingsSeasons = getStandingsSeasons();
+		Season season = getSeason(DiscordUtils.getOptionAsLong(event, "season"));
+		String endDate = standingsSeasons.get(season.getStartYear());
+		List<TeamStandings> standings = NHLGateway.getStandings(endDate);
 
-			// Determine the Division the team is in
-			Team team = Team.parse(DiscordUtils.getOptionAsString(event, "team"));
-			Team fTeam = team != null ? team : Team.VANCOUVER_CANUCKS;
-			String division = Utils.getFromList(standings, stdng -> fTeam.equals(stdng.getTeam())).getDivisionName();
+		// Determine the Division the team is in
+		Team team = Team.parse(DiscordUtils.getOptionAsString(event, "team"));
+		Team fTeam = team != null ? team : Team.VANCOUVER_CANUCKS;
+		String division = Utils.getFromList(standings, stdng -> fTeam.equals(stdng.getTeam())).getDivisionName();
 
-			List<TeamStandings> divisionStandings = standings.stream()
-					.filter(standing -> division.equals(standing.getDivisionName()))
-					.sorted((TeamStandings s1, TeamStandings s2) -> s1.getDivisionSequence() - s2.getDivisionSequence())
-					.collect(Collectors.toList());
+		List<TeamStandings> divisionStandings = standings.stream()
+				.filter(standing -> division.equals(standing.getDivisionName()))
+				.sorted((TeamStandings s1, TeamStandings s2) -> s1.getDivisionSequence() - s2.getDivisionSequence())
+				.collect(Collectors.toList());
 
-			return InteractionFollowupCreateSpec.builder()
-					.content(buildReplyMessage(division, divisionStandings))
-					.build();
-		};
+		return InteractionFollowupCreateSpec.builder()
+				.content(buildReplyMessage(division, divisionStandings))
+				.build();
 	}
 
 	static String buildReplyMessage(String division, List<TeamStandings> divisionStandings) {

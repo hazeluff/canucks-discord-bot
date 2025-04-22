@@ -1,12 +1,20 @@
 package com.hazeluff.nhl.game;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
+import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
+import org.bson.BsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.event.GameEvent;
 public class BoxScoreData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BoxScoreData.class);
 
@@ -30,6 +38,23 @@ public class BoxScoreData {
 			LOGGER.error("Could not parse json.", e);
 			return null;
 		}
+	}
+
+	static Map<Integer, RosterPlayer> parseRosterSpots(BsonArray array) {
+		Map<Integer, RosterPlayer> players = new HashMap<>();
+		for (BsonValue arrVal : array) {
+			BsonDocument player = arrVal.asDocument();
+			RosterPlayer rosterPlayer = new RosterPlayer(
+					player.getInt32("playerId").getValue(),
+					player.getDocument("firstName").getString("default").getValue(),
+					player.getDocument("lastName").getString("default").getValue(),
+					player.getString("positionCode").getValue(),
+					player.getInt32("sweaterNumber").getValue(),
+					Team.parse(player.getInt32("teamId").getValue())
+			);
+			players.put(rosterPlayer.getPlayerId(), rosterPlayer);
+		}
+		return players;
 	}
 
 	public void update(BsonDocument playByPlayJson) {
@@ -74,7 +99,7 @@ public class BoxScoreData {
 		return awayStats;
 	}
 
-	public static class TeamStats {
+	static class TeamStats {
 		AtomicReference<BsonDocument> jsonTeamStats;
 
 		TeamStats(BsonDocument jsonTeamStats) {
@@ -117,7 +142,7 @@ public class BoxScoreData {
 			return getJson().getInt32("score").getValue();
 		}
 
-		public int getSog() {
+		public int getSOG() {
 			return getJson().getInt32("sog").getValue();
 		}
 
@@ -146,6 +171,19 @@ public class BoxScoreData {
 			return true;
 		}
 
+	}
+
+	public List<GameEvent> getPlays() {
+		return getJson().getArray("plays")
+			.getValues()
+			.stream()
+			.map(BsonValue::asDocument)
+			.map(GameEvent::parse)
+			.collect(Collectors.toList());
+	}
+
+	public Map<Integer, RosterPlayer> getPlayers() {
+		return parseRosterSpots(this.jsonBoxScore.get().getArray("rosterSpots"));
 	}
 
 	@Override

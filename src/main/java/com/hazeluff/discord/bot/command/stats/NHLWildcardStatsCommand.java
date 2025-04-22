@@ -61,7 +61,7 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 		if (!standingsSeasons.containsKey(season.getStartYear())) {
 			return Command.reply(event, "Season is out of range.");
 		}
-		
+
 		return Command.replyAndDefer(event, "Fetching Results...", buildFollowupSpecSupplier(event));
 	}
 
@@ -72,9 +72,26 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 			String endDate = standingsSeasons.get(season.getStartYear());
 			List<TeamStandings> standings = NHLGateway.getStandings(endDate);
 
+			String strTeam = DiscordUtils.getOptionAsString(event, "team");
+			if (!Team.isValid(strTeam)) {
+				return InteractionFollowupCreateSpec.builder()
+					.content(Command.getInvalidTeamCodeMessage(strTeam))
+					.ephemeral(true)
+					.build();
+			}
+			Team team = Team.parse(strTeam);
+			// Default team
+			if (team == null) {
+				team = Team.VANCOUVER_CANUCKS;
+			}
+			// Only NHL Teams
+			if (!team.isNHLTeam()) {
+				return InteractionFollowupCreateSpec.builder().content(Command.NON_NHL_TEAM_MESSAGE).ephemeral(true)
+						.build();
+			}
+
 			// Determine the Division the team is in
-			Team team = Team.parse(DiscordUtils.getOptionAsString(event, "team"));
-			Team fTeam = team != null ? team : Team.VANCOUVER_CANUCKS;
+			Team fTeam = team;
 			String conference = Utils.getFromList(standings, stdng -> fTeam.equals(stdng.getTeam()))
 					.getConferenceName();
 

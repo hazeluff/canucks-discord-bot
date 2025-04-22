@@ -250,18 +250,16 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	 */
 	protected void initChannel() {
 		initIntroMessage();
-		initSummaryMessage();
-		updateSummaryMessage();
 	}
 
 	protected void updateActive() {
 		updateMessages();
-		updateSummaryMessage();
 	}
 
 	protected void updateEnd() {
 		sendEndOfGameMessage();
 		sendStatsMessage();
+		sendSummaryMessage();
 	}
 
 	protected void updateFinish() {

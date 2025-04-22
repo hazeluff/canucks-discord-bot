@@ -125,6 +125,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 	}
 
 	static TextChannel getTextChannel(Guild guild, Game game, NHLBot nhlBot, GuildPreferences preferences) {
+		if (game.getGameState().isFinished()) {
+			return null;
+		}
+
 		TextChannel channel = null;
 		try {
 			String channelName = buildChannelName(game);
@@ -202,15 +206,15 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		String channelName = buildChannelName(this.game);
 		String threadName = String.format("<%s> <%s>", guild.getName(), channelName);
 		setName(threadName);
-		LOGGER().info("Started GameDayChannel thread.");
-
-		loadMetadata();
-		this.goalMessages.initEvents(game.getScoringEvents());
-		this.penaltyMessages.initEvents(game.getPenaltyEvents());
-
-		initChannel(); // ## Overridable ##
 
 		if (!game.getGameState().isFinished()) {
+			LOGGER().info("Started GameDayChannel thread.");
+			loadMetadata();
+			this.goalMessages.initEvents(game.getScoringEvents());
+			this.penaltyMessages.initEvents(game.getPenaltyEvents());
+
+			initChannel(); // ## Overridable ##
+
 			// Wait until close to start of game
 			LOGGER().info("Idling until near game start.");
 			if (!game.isStartTimeTBD()) {

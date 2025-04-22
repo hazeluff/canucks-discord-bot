@@ -72,7 +72,7 @@ public class Config {
 	 *  About
 	 */
 	public static final String APPLICATION_NAME = ProjectInfo.APPLICATION_NAME;
-	public static final String GIT_URL = "http://nhlbot.hazeluff.com/";
+	public static final String GIT_URL = "https://github.com/hazeluff/canucks-discord-bot/tree/nhlbot";
 	
 	public static final String DONATION_URL = "https://paypal.me/hazeluff";
 	public static final String DONATION_ETH = "hazeluff.eth (0x313faE0D36BFf3F7a4817E52a71B74e2924D4b97)";

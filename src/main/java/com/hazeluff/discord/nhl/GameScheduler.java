@@ -278,7 +278,7 @@ public class GameScheduler extends Thread {
 	}
 
 	public List<Game> getActivePlayoffGames() {
-		return getActivePlayoffGames(Team.getSortedValues());
+		return getActivePlayoffGames(Team.getSortedNHLValues());
 	}
 
 

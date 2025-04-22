@@ -138,7 +138,24 @@ public class Config {
 		"香港人加油",
 		"Taiwan #1",
 		"Elbows Up",
-		"\"So let us be loving, hopeful and optimistic. And we'll change the world.\" - Jack Layton"
+		"Je suis Canadien",
+		"\"So let us be loving, hopeful and optimistic. And we'll change the world.\"", // Jack Layton
+		"Free Palestine",
+		"Stay safe, stay legal.",
+		"Fuck messier",
+		"Fuck the oilers",
+		"Fuck the leafs",
+		"\"I am not a cat\"",
+		"Can't stop, won't stop",
+		"To the moon!",
+		"So fake. No room.",
+		"\"Follow your dreams. Listen to your heart. Obey your passion.\"", // Pat Quinn
+		"The Lego Movie (2014)",
+		"Lucky Star",
+		"Mewtwo Strikes Back (1999)",
+		"No items, Fox only, Final Destination",
+		"There's a creeper on the roof. LA-LA-LA-LA-LA",
+		"It was 4-1"
 	);
 
 	// Slash Commands

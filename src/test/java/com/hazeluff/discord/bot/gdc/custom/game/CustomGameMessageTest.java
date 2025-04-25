@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 public class CustomGameMessageTest {

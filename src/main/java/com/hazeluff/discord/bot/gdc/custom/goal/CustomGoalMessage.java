@@ -5,8 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import com.hazeluff.nhl.Team;
-import com.hazeluff.nhl.event.GoalEvent;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.nhl.game.event.GoalEvent;
 
 public class CustomGoalMessage {
 

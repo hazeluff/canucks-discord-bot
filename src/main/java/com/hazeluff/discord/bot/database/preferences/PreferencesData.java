@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.database.DatabaseManager;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;

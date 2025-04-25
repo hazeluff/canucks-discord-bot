@@ -18,8 +18,8 @@ import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.GameTracker;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
@@ -218,7 +218,7 @@ public class GameDayChannelsManager extends Thread {
 		otherGuilds.stream().forEach(guild -> {
 			LOGGER.info("Updating channels of other guilds: " + guild.getId().asLong());
 			updateChannels(guild);
-			Utils.sleep(1000);
+			Utils.sleep(500);
 		});
 	}
 
@@ -336,7 +336,8 @@ public class GameDayChannelsManager extends Thread {
 		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
 				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
 		teamRegex = String.format("(%s)", teamRegex);
-		String regex = String.format("%1$s-vs-%1$s-[0-9]{2}-[0-9]{2}-[0-9]{2}", teamRegex);
+		String year = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
+		String regex = String.format("%1$s-vs-%1$s-%2$s-[0-9]{2}-[0-9]{2}", teamRegex, year);
 		return channelName.matches(regex);
 	}
 

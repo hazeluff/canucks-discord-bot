@@ -5,7 +5,7 @@ import java.util.List;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;

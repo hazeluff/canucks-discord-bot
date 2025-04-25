@@ -1,10 +1,10 @@
-package com.hazeluff.discord.nhl.stats;
+package com.hazeluff.nhl.stats;
 
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 import org.bson.BsonString;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class TeamStandings {
 	private final Team team;

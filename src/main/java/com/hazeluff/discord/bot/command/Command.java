@@ -13,8 +13,8 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DiscordUtils;
-import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.common.util.Snowflake;

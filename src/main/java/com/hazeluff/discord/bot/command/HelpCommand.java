@@ -6,7 +6,8 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -82,7 +83,7 @@ public class HelpCommand extends Command {
 
 	public static String listOfTeams() {
 		StringBuilder response = new StringBuilder("```");
-		List<Team> teams = Team.getSortedNHLValues();
+		List<Team> teams = NHLTeams.getSortedValues();
 		for (Team team : teams) {
 			response.append("\n").append(team.getCode()).append(" - ").append(team.getFullName());
 		}

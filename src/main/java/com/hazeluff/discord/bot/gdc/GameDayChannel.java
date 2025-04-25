@@ -31,9 +31,9 @@ import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.event.GoalEvent;
-import com.hazeluff.nhl.event.PenaltyEvent;
 import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.event.GoalEvent;
+import com.hazeluff.nhl.game.event.PenaltyEvent;
 
 import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
@@ -132,6 +132,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 			Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
 			Category category = nhlBot.getGdcCategoryManager().get(guild);
 			if (!DiscordManager.getTextChannels(guild).stream().anyMatch(channelMatcher)) {
+				if (game.getGameState().isFinished()) {
+					return null;
+				}
 				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
 				channelSpecBuilder.name(channelName);
 				channelSpecBuilder.topic(preferences.getCheer());
@@ -205,13 +208,13 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		setName(threadName);
 		LOGGER().info("Started GameDayChannel thread.");
 
-		loadMetadata();
-		this.goalMessages.initEvents(game.getScoringEvents());
-		this.penaltyMessages.initEvents(game.getPenaltyEvents());
-
-		initChannel(); // ## Overridable ##
-
 		if (!game.getGameState().isFinished()) {
+			loadMetadata();
+			this.goalMessages.initEvents(game.getScoringEvents());
+			this.penaltyMessages.initEvents(game.getPenaltyEvents());
+
+			initChannel(); // ## Overridable ##
+
 			// Wait until close to start of game
 			LOGGER().info("Idling until near game start.");
 			if (!game.isStartTimeTBD()) {

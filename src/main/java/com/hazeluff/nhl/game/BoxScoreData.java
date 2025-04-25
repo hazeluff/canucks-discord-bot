@@ -13,8 +13,8 @@ import org.bson.BsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.nhl.Team;
-import com.hazeluff.nhl.event.GameEvent;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.nhl.game.event.GameEvent;
 public class BoxScoreData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BoxScoreData.class);
 

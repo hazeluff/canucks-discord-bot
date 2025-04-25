@@ -9,7 +9,7 @@ import org.bson.BsonInt64;
 import org.bson.Document;
 import org.javatuples.Pair;
 
-import com.hazeluff.nhl.event.GoalEvent;
+import com.hazeluff.nhl.game.event.GoalEvent;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 

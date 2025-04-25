@@ -145,7 +145,7 @@ public class FourNationsGameDayThread extends GameDayChannel {
 	public static String buildFourNationsMatchupName(Game game) {
 		return String.format(
 				"**%s** vs **%s**", 
-				game.getHomeTeam().getLocation(), game.getAwayTeam().getLocation()
+				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
 			);
 	}
 
@@ -166,7 +166,7 @@ public class FourNationsGameDayThread extends GameDayChannel {
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
 		String message = String.format(
 				"**%s** vs **%s** at %s", 
-				game.getHomeTeam().getLocation(), game.getAwayTeam().getLocation(), 
+				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName(), 
 				time
 			);
 		return message;

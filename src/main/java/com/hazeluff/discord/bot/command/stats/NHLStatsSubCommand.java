@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.nhl.Seasons.Season;
+import com.hazeluff.discord.nhl.NHLSeasons.Season;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 
@@ -24,13 +24,13 @@ public abstract class NHLStatsSubCommand {
 	static Season getSeason(Long startYear) {
 		if (startYear != null) {
 			int year = startYear.intValue();
-			if (year >= 0 && year < (Config.CURRENT_SEASON.getStartYear() - 2000)) {
+			if (year >= 0 && year < (Config.NHL_CURRENT_SEASON.getStartYear() - 2000)) {
 				year = year + 2000;
-			} else if (year >= (Config.CURRENT_SEASON.getStartYear() - 2000) && year < 100) {
+			} else if (year >= (Config.NHL_CURRENT_SEASON.getStartYear() - 2000) && year < 100) {
 				year = year + 1900;
 			}
 			return Season.mock(year);
 		}
-		return Config.CURRENT_SEASON;
+		return Config.NHL_CURRENT_SEASON;
 	}
 }

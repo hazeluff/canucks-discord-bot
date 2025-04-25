@@ -1,9 +1,9 @@
-package com.hazeluff.nhl.event;
+package com.hazeluff.nhl.game.event;
 
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class PenaltyEvent extends GameEvent {
 	protected PenaltyEvent(GameEvent gameEvent) {

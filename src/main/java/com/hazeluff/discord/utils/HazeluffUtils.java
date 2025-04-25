@@ -1,10 +1,14 @@
 package com.hazeluff.discord.utils;
 
-import com.hazeluff.discord.nhl.NHLGateway;
+import org.bson.BsonDocument;
+
+import com.hazeluff.ahl.AHLGateway;
+import com.hazeluff.ahl.game.GameSummaryData;
 
 public class HazeluffUtils {
 
 	public static void main(String[] argv) {
-		System.out.println(NHLGateway.getPlayoffBracket("2025"));
+		BsonDocument jsonSummary = AHLGateway.getGameSummary(1027535);
+		System.out.println(GameSummaryData.parse(jsonSummary));
 	}
 }

@@ -13,9 +13,9 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.nhl.NHLGateway;
-import com.hazeluff.discord.nhl.PlayoffSeries;
 import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.nhl.NHLGateway;
+import com.hazeluff.nhl.PlayoffSeries;
 
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
@@ -123,10 +123,10 @@ public class PlayoffWatchSummaryUpdater extends Thread {
 
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
 		Map<String, PlayoffSeries> playoffBracket = NHLGateway
-				.getPlayoffBracket(String.valueOf(Config.CURRENT_SEASON.getEndYear()));
+				.getPlayoffBracket(String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()));
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		
-		embedBuilder.title("Stanley Cup Playoffs - " + Config.CURRENT_SEASON.getEndYear());
+		embedBuilder.title("Stanley Cup Playoffs - " + Config.NHL_CURRENT_SEASON.getEndYear());
 		
 		/*
 		 * Round 1

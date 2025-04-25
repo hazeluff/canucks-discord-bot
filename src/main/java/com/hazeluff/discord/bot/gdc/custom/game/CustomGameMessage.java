@@ -3,7 +3,7 @@ package com.hazeluff.discord.bot.gdc.custom.game;
 import java.util.ArrayList;
 import java.util.function.Predicate;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 public class CustomGameMessage {

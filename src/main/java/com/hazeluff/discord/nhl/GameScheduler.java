@@ -24,9 +24,10 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.GameType;
 
@@ -286,7 +287,7 @@ public class GameScheduler extends Thread {
 	}
 
 	public List<Game> getActivePlayoffGames() {
-		return getActivePlayoffGames(Team.getSortedNHLValues());
+		return getActivePlayoffGames(NHLTeams.getSortedValues());
 	}
 	
 

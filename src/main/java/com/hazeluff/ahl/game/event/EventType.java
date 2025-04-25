@@ -1,10 +1,10 @@
-package com.hazeluff.nhl.game;
+package com.hazeluff.ahl.game.event;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public enum EventType {
-	GOAL("goal"), PENALTY("penalty");
+	GOAL("goal"), PENALTY("penalty"), SHOOTOUT("shootout");
 
 	private final String typeId;
 

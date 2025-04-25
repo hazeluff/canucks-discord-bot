@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import com.hazeluff.ahl.AHLGateway;
+import com.hazeluff.discord.ahl.AHLSeasons;
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.BotStatsCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
@@ -15,9 +17,9 @@ import com.hazeluff.discord.bot.command.ScheduleCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
 import com.hazeluff.discord.bot.command.WordcloudCommand;
-import com.hazeluff.discord.nhl.Seasons;
-import com.hazeluff.discord.nhl.Seasons.Season;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLSeasons;
+import com.hazeluff.discord.nhl.NHLSeasons.Season;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class Config {
 	public static class Debug {
@@ -48,16 +50,42 @@ public class Config {
 
 	private static final Properties systemProperties = System.getProperties();
 
-	/* 
-	 * Season Config
+	/*
+	 * NHL Config
 	 */
-	public static final Season CURRENT_SEASON = Seasons.S24_25;
+	public static final Season NHL_CURRENT_SEASON = NHLSeasons.S24_25;
+	public static final Team DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
+	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";
+
+	/*
+	 * NHL Config
+	 */
+	public static final AHLSeasons.Season AHL_CURRENT_SEASON = AHLSeasons.S24_25;
+	public static final Team AHL_DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
+	public static final String AHL_API_CONFIG_URL = 
+			"https://lscluster.hockeytech.com/statview-1.4.1/js/client/ahl/base.r3.js"; // Used to fetch client key.
+	public static final String AHL_API_KEY;
+	public static final String AHL_API_CLIENT_CODE;
+	static {
+		String[] config = AHLGateway.getConfig();
+		AHL_API_KEY = config[0];
+		AHL_API_CLIENT_CODE = config[1];
+		if (AHL_API_KEY == null || AHL_API_CLIENT_CODE == null) {
+			throw new NullPointerException(
+					"AHL API Config returned null value(s):" + AHL_API_KEY + "," + AHL_API_CLIENT_CODE);
+		}
+	}
+	public static final String AHL_API_URL = "https://lscluster.hockeytech.com/";
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(268247727400419329l, 276953120964083713l);
+	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
+		268247727400419329l,
+		276953120964083713l
+	);
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(238870084003561472l // /r/canucks
+	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(
+		238870084003561472l // /r/canucks
 	);
 	
 	/*
@@ -65,10 +93,8 @@ public class Config {
 	 */
 	public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
 	public static final long GUILD_ID = 238870084003561472l;
-	public static final Team DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
-	public static final int HTTP_REQUEST_RETRIES = 3;
-	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";	
 
+	public static final int HTTP_REQUEST_RETRIES = 3;
 	
 	private static final String MONGO_HOST_KEY = "mongo.host";
 	private static final String MONGO_HOST_DEFAULT = "localhost";

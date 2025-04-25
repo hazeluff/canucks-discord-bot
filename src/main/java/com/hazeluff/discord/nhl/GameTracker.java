@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.game.Game;
 
 /**

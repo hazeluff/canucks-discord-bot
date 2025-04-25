@@ -1,4 +1,4 @@
-package com.hazeluff.nhl.event;
+package com.hazeluff.nhl.game.event;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.List;
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class GoalEvent extends GameEvent {
 	protected GoalEvent(GameEvent gameEvent) {

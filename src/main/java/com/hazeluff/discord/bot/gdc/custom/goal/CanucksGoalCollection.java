@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 @SuppressWarnings("serial")
 public class CanucksGoalCollection extends CustomGoalMessage.Collection {

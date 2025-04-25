@@ -18,10 +18,10 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessages;
 import com.hazeluff.discord.bot.gdc.fournations.FourNationsGameDayThread;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.event.GoalEvent;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.PeriodType;
 import com.hazeluff.nhl.game.RosterPlayer;
+import com.hazeluff.nhl.game.event.GoalEvent;
 
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
@@ -240,7 +240,7 @@ public class GoalMessagesManager {
 					.addField(scorerName, "Shootout goal", false)
 					.footer("Shootout", null).build();
 		} else {
-			String teamName = game.getGameType().isFourNations() ? event.getTeam().getLocation()
+			String teamName = game.getGameType().isFourNations() ? event.getTeam().getLocationName()
 					: event.getTeam().getFullName();
 			String description = teamName + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()

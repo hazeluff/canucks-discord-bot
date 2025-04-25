@@ -1,17 +1,14 @@
-package com.hazeluff.nhl.event;
-
-import java.util.concurrent.atomic.AtomicReference;
+package com.hazeluff.nhl.game.event;
 
 import org.bson.BsonDocument;
 
-import com.hazeluff.nhl.game.EventType;
 import com.hazeluff.nhl.game.PeriodType;
 
 public class GameEvent {
-	protected AtomicReference<BsonDocument> jsonEvent;
+	protected final BsonDocument jsonEvent;
 
 	private GameEvent(BsonDocument jsonEvent) {
-		this.jsonEvent = new AtomicReference<>(jsonEvent);
+		this.jsonEvent = jsonEvent;
 	}
 
 	protected GameEvent(GameEvent jsonEvent) {
@@ -34,7 +31,7 @@ public class GameEvent {
 	}
 
 	public BsonDocument getJson() {
-		return this.jsonEvent.get();
+		return this.jsonEvent;
 	}
 
 	public EventType getType() {

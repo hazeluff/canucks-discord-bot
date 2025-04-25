@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Team;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.presence.ClientActivity;

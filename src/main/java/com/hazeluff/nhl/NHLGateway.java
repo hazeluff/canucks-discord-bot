@@ -1,6 +1,6 @@
-package com.hazeluff.discord.nhl;
+package com.hazeluff.nhl;
 
-import static com.hazeluff.discord.Config.CURRENT_SEASON;
+import static com.hazeluff.discord.Config.NHL_CURRENT_SEASON;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -17,14 +17,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.nhl.Seasons.Season;
-import com.hazeluff.discord.nhl.stats.GoalieStats;
-import com.hazeluff.discord.nhl.stats.SkaterStats;
-import com.hazeluff.discord.nhl.stats.TeamPlayerStats;
-import com.hazeluff.discord.nhl.stats.TeamStandings;
+import com.hazeluff.discord.nhl.GameScheduler;
+import com.hazeluff.discord.nhl.NHLSeasons;
+import com.hazeluff.discord.nhl.NHLTeams;
+import com.hazeluff.discord.nhl.NHLSeasons.Season;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.HttpUtils;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.stats.GoalieStats;
+import com.hazeluff.nhl.stats.SkaterStats;
+import com.hazeluff.nhl.stats.TeamPlayerStats;
+import com.hazeluff.nhl.stats.TeamStandings;
 
 /**
  * Access to NHL API
@@ -115,7 +118,7 @@ public class NHLGateway {
 	public static Map<Integer, BsonDocument> getAllTeamRawGames() {
 		Map<Integer, BsonDocument> allGames = new HashMap<>();
 		for (Team team : Team.values()) {
-			Map<Integer, BsonDocument> teamGames = NHLGateway.getTeamRawGames(team, CURRENT_SEASON);
+			Map<Integer, BsonDocument> teamGames = NHLGateway.getTeamRawGames(team, NHL_CURRENT_SEASON);
 			allGames.putAll(teamGames);
 		}
 		return allGames;

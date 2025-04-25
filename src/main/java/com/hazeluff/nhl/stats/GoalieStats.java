@@ -1,4 +1,4 @@
-package com.hazeluff.discord.nhl.stats;
+package com.hazeluff.nhl.stats;
 
 import org.bson.BsonDocument;
 

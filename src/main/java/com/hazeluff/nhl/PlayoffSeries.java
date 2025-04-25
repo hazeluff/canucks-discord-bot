@@ -1,9 +1,9 @@
-package com.hazeluff.discord.nhl;
+package com.hazeluff.nhl;
 
 import org.bson.BsonDocument;
 import org.bson.BsonInt32;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class PlayoffSeries {
 	private final BsonDocument jsonDoc;

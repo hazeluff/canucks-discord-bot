@@ -1,6 +1,6 @@
 package com.hazeluff.ahl.game.event;
 
-import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.ahl.AHLTeams.Team;
 
 public class PenaltyEvent extends GameEvent {
 	protected PenaltyEvent(GameEvent gameEvent) {
@@ -12,11 +12,11 @@ public class PenaltyEvent extends GameEvent {
 	}
 
 	public int getPeriod() {
-		return Integer.valueOf(getJson().getDocument("period").getString("id").getValue());
+		return Integer.valueOf(getDetails().getDocument("period").getString("id").getValue());
 	}
 
 	public String getPeriodLongName() {
-		return getJson().getDocument("period").getString("longName").getValue();
+		return getDetails().getDocument("period").getString("longName").getValue();
 	}
 
 	public String getTime() {
@@ -41,4 +41,15 @@ public class PenaltyEvent extends GameEvent {
 	public Player getServedBy() {
 		return Player.parse(getDetails().getDocument("servedBy"));
 	}
+
+	@Override
+	public String toString() {
+		return String.format(
+				"PenaltyEvent [getTeam()=%s, getPeriod()=%s, getPeriodLongName()=%s, getTime()=%s, getPenaltyId()=%s,"
+						+ " getDuration()=%s, getTakenBy()=%s, getServedBy()=%s]",
+				getTeam(), getPeriod(), getPeriodLongName(), getTime(), getPenaltyId(), getDuration(), getTakenBy(),
+				getServedBy()
+		);
+	}
+
 }

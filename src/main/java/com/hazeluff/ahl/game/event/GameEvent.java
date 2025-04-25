@@ -3,20 +3,24 @@ package com.hazeluff.ahl.game.event;
 import org.bson.BsonDocument;
 
 public class GameEvent {
-	protected final BsonDocument jsonEvent;
+	protected final BsonDocument jsonWrapper;
+	protected final EventType type;
 
-	protected GameEvent(BsonDocument jsonEvent) {
-		this.jsonEvent = jsonEvent;
+	protected GameEvent(BsonDocument jsonWrapper) {
+		this.jsonWrapper = jsonWrapper;
+		this.type = EventType.parse(jsonWrapper.getString("event").getValue());
 	}
 
-	protected GameEvent(GameEvent jsonEvent) {
-		this.jsonEvent = jsonEvent.jsonEvent;
+	protected GameEvent(GameEvent event) {
+		this.jsonWrapper = event.jsonWrapper;
+		this.type = event.type;
 	}
 
-	public static GameEvent parse(BsonDocument rawJson) {
-		GameEvent event = new GameEvent(rawJson);
+	public static GameEvent parse(BsonDocument jsonWrapper) {
+		GameEvent event = new GameEvent(jsonWrapper);
 		if (event.getType() == null) {
-			return event;
+			// Unknown EventType
+			return null;
 		}
 		switch (event.getType()) {
 		case GOAL:
@@ -31,7 +35,7 @@ public class GameEvent {
 	}
 
 	protected BsonDocument getJson() {
-		return this.jsonEvent;
+		return this.jsonWrapper;
 	}
 
 	protected BsonDocument getDetails() {

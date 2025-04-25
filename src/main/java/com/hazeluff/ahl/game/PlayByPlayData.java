@@ -1,6 +1,7 @@
 package com.hazeluff.ahl.game;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -38,10 +39,16 @@ public class PlayByPlayData {
 		return getJson().getValues().stream()
 			.map(BsonValue::asDocument)
 			.map(GameEvent::parse)
+			.filter(Objects::nonNull)
 			.collect(Collectors.toList());
 	}
 
 	public BsonArray getJson() {
 		return this.jsonPbp.get();
+	}
+
+	@Override
+	public String toString() {
+		return String.format("PlayByPlayData [getPlays()=%s]", getPlays());
 	}
 }

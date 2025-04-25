@@ -1,14 +1,14 @@
 package com.hazeluff.discord.utils;
 
-import org.bson.BsonDocument;
+import org.bson.BsonArray;
 
 import com.hazeluff.ahl.AHLGateway;
-import com.hazeluff.ahl.game.GameSummaryData;
+import com.hazeluff.ahl.game.PlayByPlayData;
 
 public class HazeluffUtils {
 
 	public static void main(String[] argv) {
-		BsonDocument jsonSummary = AHLGateway.getGameSummary(1027535);
-		System.out.println(GameSummaryData.parse(jsonSummary));
+		BsonArray jsonPbp = AHLGateway.getGamePlayByPlay(1027535);
+		System.out.println(PlayByPlayData.parse(jsonPbp));
 	}
 }

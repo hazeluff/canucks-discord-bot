@@ -18,10 +18,16 @@ public class Player {
 	}
 
 	public String getFirstName() {
+		if (jsonPlayer.isNull("firstName")) {
+			return "";
+		}
 		return jsonPlayer.getString("firstName").getValue();
 	}
 
 	public String getLastName() {
+		if (jsonPlayer.isNull("lastName")) {
+			return "";
+		}
 		return jsonPlayer.getString("lastName").getValue();
 	}
 

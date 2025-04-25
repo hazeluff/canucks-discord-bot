@@ -399,8 +399,10 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				"Be Kind, Be Calm, Be Safe",
 				"Be woke, be cool, a calm spirit is smarter.",
 				"Get ready, go to the washroom, get your snacks, "
-				+ "get your drinks, get your ????, "
-				+ "get comfy, and watch us play."
+						+ "get your drinks, get your ????, "
+						+ "get comfy, and watch us play.",
+				"I just hope everybody has fun", 
+				"Good Luck; Have Fun"
 		);
 		return Utils.getRandom(messageList);
 	}

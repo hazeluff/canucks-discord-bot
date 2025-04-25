@@ -42,6 +42,12 @@ public class AHLGateway {
 		return appendApiKey(url);
 	}
 
+	static String buildPlayByPlayUrl(int gameId) {
+		String url = Config.AHL_API_URL + "/feed/index.php?feed=statviewfeed&view=gameCenterPlayByPlay"
+				+ "&game_id=" + gameId;
+		return appendApiKey(url);
+	}
+
 	// Fetchers
 	static String fetchConfig() throws HttpException {
 		URI uri = HttpUtils.buildUri(getConfigUrl());
@@ -55,6 +61,11 @@ public class AHLGateway {
 
 	static String fetchGameSummary(int gameId) throws HttpException {
 		URI uri = HttpUtils.buildUri(buildGameSummaryUrl(gameId));
+		return HttpUtils.get(uri);
+	}
+
+	static String fetchGamePlayByPlay(int gameId) throws HttpException {
+		URI uri = HttpUtils.buildUri(buildPlayByPlayUrl(gameId));
 		return HttpUtils.get(uri);
 	}
 
@@ -88,6 +99,17 @@ public class AHLGateway {
 			String strJsonBracket = fetchGameSummary(gameId);
 			strJsonBracket = stripParentheses(strJsonBracket);
 			return BsonDocument.parse(strJsonBracket);
+		} catch (HttpException e) {
+			LOGGER.error("Exception occured fetching game summary.", e);
+			return null;
+		}
+	}
+
+	public static BsonArray getGamePlayByPlay(int gameId) {
+		try {
+			String strJsonBracket = fetchGamePlayByPlay(gameId);
+			strJsonBracket = stripParentheses(strJsonBracket);
+			return BsonArray.parse(strJsonBracket);
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game summary.", e);
 			return null;

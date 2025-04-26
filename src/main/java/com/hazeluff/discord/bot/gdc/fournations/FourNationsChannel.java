@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.nhl.GameTracker;
+import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
@@ -73,7 +73,7 @@ public class FourNationsChannel extends Thread {
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
 			try {
-				LocalDate schedulerUpdate = nhlBot.getGameScheduler().getLastUpdate();
+				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
 					Utils.sleep(INIT_UPDATE_RATE);
@@ -92,10 +92,10 @@ public class FourNationsChannel extends Thread {
 	}
 
 	void updateChannel() {
-		List<Game> games = nhlBot.getGameScheduler().getFourNationsGames();
+		List<Game> games = nhlBot.getNHLGameScheduler().getFourNationsGames();
 		for (Game game : games) {
 			int gamePk = game.getGameId();
-			GameTracker gameTracker = nhlBot.getGameScheduler().getFourNationsGameTracker(game);
+			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getFourNationsGameTracker(game);
 			if (!game.getGameState().isFinished()) {
 				// Start/Maintain gdc if they have not finished.
 				FourNationsGameDayThread gdt = null;

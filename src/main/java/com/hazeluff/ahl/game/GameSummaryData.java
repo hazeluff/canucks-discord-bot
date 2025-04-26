@@ -68,7 +68,7 @@ public class GameSummaryData {
 		return getJson().getDocument("homeTeam").getDocument("stats").getInt32("goals").getValue();
 	}
 
-	public int getAwayGoalCount() {
+	public int getAwayGoals() {
 		return getJson().getDocument("visitingTeam").getDocument("stats").getInt32("goals").getValue();
 	}
 
@@ -90,7 +90,7 @@ public class GameSummaryData {
 						+ " isFinal()=%s, getMVPs()=%s, getHomeGoals()=%s, getAwayGoalCount()=%s,"
 						+ " getPeriodSummary()=%s, getShootoutDetails()=%s]",
 				getStartTime(), isStarted(), isFinal(), getMVPs(), getHomeGoals(),
-				getAwayGoalCount(), getPeriodSummary(), getShootoutDetails());
+				getAwayGoals(), getPeriodSummary(), getShootoutDetails());
 	}
 
 }

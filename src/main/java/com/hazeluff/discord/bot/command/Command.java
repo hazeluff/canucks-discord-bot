@@ -12,7 +12,7 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DiscordUtils;
 import com.hazeluff.nhl.game.Game;
@@ -117,7 +117,7 @@ public abstract class Command extends ReactiveEventAdapter {
 		if (game == null) {
 			return null;
 		}
-		String channelName = GameDayChannel.buildChannelName(game).toLowerCase();
+		String channelName = NHLGameDayChannelsManager.buildChannelName(game).toLowerCase();
 
 		List<TextChannel> channels = DiscordManager.getTextChannels(guild);
 		if(channels != null && !channels.isEmpty()) {
@@ -134,9 +134,9 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	Game getLatestGame(Team team) {
-		Game game = nhlBot.getGameScheduler().getCurrentLiveGame(team);
+		Game game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
 		if (game == null) {
-			game = nhlBot.getGameScheduler().getLastGame(team);
+			game = nhlBot.getNHLGameScheduler().getLastGame(team);
 		}
 		return game;
 	}

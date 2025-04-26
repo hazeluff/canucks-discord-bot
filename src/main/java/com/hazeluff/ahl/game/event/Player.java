@@ -31,6 +31,10 @@ public class Player {
 		return jsonPlayer.getString("lastName").getValue();
 	}
 
+	public String getFullName() {
+		return getFirstName() + " " + getLastName();
+	}
+
 	public int getJerseyNumber() {
 		return jsonPlayer.getInt32("jerseyNumber").getValue();
 	}

@@ -1,6 +1,8 @@
 package com.hazeluff.ahl.game;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -53,11 +55,37 @@ public class Game {
 		return awayTeam;
 	}
 
+	public Team getOppossingTeam(Team team) {
+		if (!containsTeam(team)) {
+			return null;
+		}
+		return getTeams().stream().filter(gameTeam -> !gameTeam.equals(team)).findAny().orElse(null);
+	}
+
+	/**
+	 * Gets both home and aways teams as a list
+	 * 
+	 * @return list containing both home and away teams
+	 */
+	public List<Team> getTeams() {
+		return Arrays.asList(getHomeTeam(), getAwayTeam());
+	}
+
+	/**
+	 * Determines if the given team is participating in this game
+	 * 
+	 * @param team
+	 * @return true, if team is a participant<br>
+	 *         false, otherwise
+	 */
+	public boolean containsTeam(Team team) {
+		boolean isHome = getHomeTeam() != null && getHomeTeam().equals(team);
+		boolean isAway = getAwayTeam() != null && getAwayTeam().equals(team);
+		return isHome || isAway;
+	}
+
 	public static Game parse(BsonDocument jsonScheduleGame) {
-		int id = Integer.valueOf(
-				jsonScheduleGame.getDocument("row")
-						.getString("game_id")
-						.getValue());
+		int id = parseId(jsonScheduleGame);
 		LocalDate date = parseDate(
 				jsonScheduleGame.getDocument("row")
 						.getString("date_with_day")
@@ -73,6 +101,14 @@ public class Game {
 						.getString("teamLink")
 						.getValue()));
 		return new Game(id, date, homeTeam, awayTeam);
+	}
+
+	public static int parseId(BsonDocument jsonSceduleGame) {
+		return Integer.valueOf(jsonSceduleGame
+				.getDocument("row")
+				.getString("game_id")
+				.getValue()
+		);
 	}
 
 	private static LocalDate parseDate(String strDate) {
@@ -125,6 +161,79 @@ public class Game {
 			return Config.AHL_CURRENT_SEASON.getStartYear();
 		}
 		return Config.AHL_CURRENT_SEASON.getEndYear();
+	}
+
+	// Game Summary
+	void initGameSummary(BsonDocument jsonSummary) {
+		GameSummaryData newSummaryData = GameSummaryData.parse(jsonSummary);
+		if (newSummaryData != null) {
+			this.gsData = newSummaryData;
+		} else {
+			LOGGER.error("Could not parse json: jsonSummary=" + jsonSummary);
+		}
+	}
+
+	public void updateGameSummary(BsonDocument jsonSummary) {
+		LOGGER.debug("Updating Game Summary Data. [" + getId() + "]");
+		if (this.gsData != null) {
+			this.gsData.update(jsonSummary);
+		} else {
+			initGameSummary(jsonSummary);
+		}
+	}
+
+	public int getHomeScore() {
+		if (gsData == null) {
+			return 0;
+		}
+		return gsData.getHomeGoals();
+	}
+
+	public int getAwayScore() {
+		if (gsData == null) {
+			return 0;
+		}
+		return gsData.getAwayGoals();
+	}
+
+	public ZonedDateTime getStartTime() {
+		if (gsData == null) {
+			return null;
+		}
+		return gsData.getStartTime();
+	}
+
+	public boolean isStarted() {
+		if (gsData == null) {
+			return false;
+		}
+		return gsData.isStarted();
+	}
+
+	public boolean isFinished() {
+		if (gsData == null) {
+			return false;
+		}
+		return gsData.isFinal();
+	}
+
+	public boolean isLive() {
+		if (gsData == null) {
+			return false;
+		}
+		return gsData.isStarted() && !gsData.isFinal();
+	}
+
+	public String getStatus() {
+		if (isLive()) {
+			return "LIVE";
+		} else if (isFinished()) {
+			return "FINAL";
+		} else if (!isStarted()) {
+			return "NOTSTARTED";
+		}
+
+		return "UNKNOWN";
 	}
 
 	// Play By Play

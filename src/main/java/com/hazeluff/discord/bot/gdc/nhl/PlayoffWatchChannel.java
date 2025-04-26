@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.playoff;
+package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -13,7 +13,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.nhl.GameTracker;
+import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
@@ -90,7 +90,7 @@ public class PlayoffWatchChannel extends Thread {
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
 			try {
-				LocalDate schedulerUpdate = nhlBot.getGameScheduler().getLastUpdate();
+				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
 					Utils.sleep(INIT_UPDATE_RATE);
@@ -113,10 +113,10 @@ public class PlayoffWatchChannel extends Thread {
 	}
 
 	void updateChannel() {
-		List<Game> activeGames = nhlBot.getGameScheduler().getActivePlayoffGames();
+		List<Game> activeGames = nhlBot.getNHLGameScheduler().getActivePlayoffGames();
 		for (Game game : activeGames) {
 			int gamePk = game.getGameId();
-			GameTracker gameTracker = nhlBot.getGameScheduler().getGameTracker(game);
+			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				if (!gameDayThreads.containsKey(gamePk)) {
 					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.get(nhlBot, channel, gameTracker, guild);
@@ -125,7 +125,7 @@ public class PlayoffWatchChannel extends Thread {
 			}
 		}
 		
-		List<Game> inactivePlayoffGames = nhlBot.getGameScheduler().getPlayoffGames().stream()
+		List<Game> inactivePlayoffGames = nhlBot.getNHLGameScheduler().getPlayoffGames().stream()
 				.filter(game -> !activeGames.contains(game))
 				.collect(Collectors.toList());
 		for (Game inactiveGame : inactivePlayoffGames) {

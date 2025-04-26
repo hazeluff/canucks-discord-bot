@@ -17,9 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.nhl.GameScheduler;
-import com.hazeluff.discord.nhl.NHLSeasons;
-import com.hazeluff.discord.nhl.NHLTeams;
+import com.hazeluff.discord.nhl.NHLGameScheduler;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.HttpException;
@@ -34,7 +32,7 @@ import com.hazeluff.nhl.stats.TeamStandings;
  */
 public class NHLGateway {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGateway.class);
-	private static final Logger SCHEDULER_LOGGER = LoggerFactory.getLogger(GameScheduler.class);
+	private static final Logger SCHEDULER_LOGGER = LoggerFactory.getLogger(NHLGameScheduler.class);
 
 	// Paths/URLs
 	static String getClubScheduleSeasonUrl(String teamCode, int startYear) {

@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
@@ -56,11 +56,14 @@ public class PresenceManager extends Thread {
 	private ClientPresence getOnlineStatus() {
 		String status = Utils.getRandom(Config.STATUS_MESSAGES);
 		Team team = Config.DEFAULT_TEAM;
-		Game nextGame = nhlBot.getGameScheduler().getNextGame(team);
+		Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(team);
 		if(nextGame != null) {
 			Team oppTeam = nextGame.getOppossingTeam(team);
 			if (oppTeam != null) {				
-				String nextGameMessage = String.format("in #%s next. ", GameDayChannel.buildChannelName(nextGame));
+				String nextGameMessage = String.format(
+					"in #%s next. ",
+					NHLGameDayChannelsManager.buildChannelName(nextGame)
+				);
 				status = nextGameMessage + status;
 			}
 		}
@@ -90,7 +93,7 @@ public class PresenceManager extends Thread {
 
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
-			LocalDate schedulerUpdate = nhlBot.getGameScheduler().getLastUpdate();
+			LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 			if (schedulerUpdate == null) {
 				LOGGER.info("Waiting for GameScheduler to initialize...");
 				Utils.sleep(INIT_UPDATE_RATE);

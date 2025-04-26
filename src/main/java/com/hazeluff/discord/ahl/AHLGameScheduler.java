@@ -1,4 +1,4 @@
-package com.hazeluff.discord.nhl;
+package com.hazeluff.discord.ahl;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,25 +18,25 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.bson.BsonArray;
 import org.bson.BsonDocument;
+import org.bson.BsonValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.ahl.AHLGateway;
+import com.hazeluff.ahl.game.Game;
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
-import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.NHLGateway;
-import com.hazeluff.nhl.game.Game;
-import com.hazeluff.nhl.game.GameType;
 
 /**
  * This class is used to start GameTrackers for games and to maintain the channels in discord for those games.
  */
-public class GameScheduler extends Thread {
+public class AHLGameScheduler extends Thread {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(GameScheduler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AHLGameScheduler.class);
 	
 	static final long GAME_SCHEDULE_UPDATE_RATE = 43200000L;
 
@@ -53,16 +53,15 @@ public class GameScheduler extends Thread {
 	static final Comparator<Game> GAME_COMPARATOR = new Comparator<Game>() {
 		@Override
 		public int compare(Game g1, Game g2) {
-			if (g1.getGameId() == g2.getGameId()) {
+			if (g1.getId() == g2.getId()) {
 				return 0;
 			}
-			int diff = g1.getStartTime().compareTo(g2.getStartTime());
-			return diff == 0 ? Integer.compare(g1.getGameId(), g2.getGameId()) : diff;
+			int diff = g1.getDate().compareTo(g2.getDate());
+			return diff == 0 ? Integer.compare(g1.getId(), g2.getId()) : diff;
 		}
 	};
 
-	private final Map<Game, GameTracker> activeNHLGameTrackers;
-	private final Map<Game, GameTracker> fourNationsGameTrackers;
+	private final Map<Game, AHLGameTracker> activeRegularGameTrackers;
 
 	AtomicReference<LocalDate> lastUpdate = new AtomicReference<>();
 
@@ -75,16 +74,13 @@ public class GameScheduler extends Thread {
 	 * @param teamSubscriptions
 	 * @param teamLatestGames
 	 */
-	GameScheduler(Map<Integer, Game> games, Map<Game, GameTracker> activeNHLGameTrackers,
-			Map<Game, GameTracker> fourNationsGameTrackers) {
+	AHLGameScheduler(Map<Integer, Game> games, Map<Game, AHLGameTracker> activeNHLGameTrackers) {
 		this.games = games;
-		this.activeNHLGameTrackers = activeNHLGameTrackers;
-		this.fourNationsGameTrackers = fourNationsGameTrackers;
+		this.activeRegularGameTrackers = activeNHLGameTrackers;
 	}
 
-	public GameScheduler() {
-		activeNHLGameTrackers = new ConcurrentHashMap<>();
-		fourNationsGameTrackers = new ConcurrentHashMap<>();
+	public AHLGameScheduler() {
+		activeRegularGameTrackers = new ConcurrentHashMap<>();
 	}
 
 
@@ -144,18 +140,16 @@ public class GameScheduler extends Thread {
 
 	static Map<Integer, Game> initAllTeamGames() {
 		LOGGER.info("Initializing All Team Games...");
-		return buildGames(NHLGateway.getAllTeamRawGames());
+		return buildGames(AHLGateway.getSchedule(-1, Config.AHL_CURRENT_SEASON.getSeasonId(), -1));
 	}
 
-	static Map<Integer, Game> buildGames(Map<Integer, BsonDocument> rawMap) {
+	static Map<Integer, Game> buildGames(BsonArray rawArray) {
 		LOGGER.info("Build Games...");
-		return rawMap.entrySet()
-	        .stream()
-	        .map(e -> buildGame(e.getValue()))
+		return rawArray.stream()
+	        .map(BsonValue::asDocument)
+	        .map(Game::parse)
 	        .filter(Objects::nonNull)
-			.collect(Collectors.toConcurrentMap(
-					game -> game.getGameId(),
-					game -> game));
+				.collect(Collectors.toConcurrentMap(game -> game.getId(), game -> game));
 	}
 
 	static Game buildGame(BsonDocument jsonGame) {
@@ -176,10 +170,7 @@ public class GameScheduler extends Thread {
 		for (Team team : Team.values()) {
 			activeGames.addAll(getActiveGames(team));
 		}
-		activeGames.forEach(game -> createNHLGameTracker(game));
-
-		// Four Nation games
-		createFourNationsGameTrackers();
+		activeGames.forEach(game -> createRegularGameTracker(game));
 	}
 
 
@@ -192,45 +183,47 @@ public class GameScheduler extends Thread {
 	void updateGameSchedule() throws HttpException {
 		LOGGER.info("Updating game schedule.");
 
-		Map<Integer, BsonDocument> jsonFetchedGames = NHLGateway.getAllTeamRawGames();
-		jsonFetchedGames.entrySet().stream().forEach(jsonFetchedGame -> {
-			int gamePk = jsonFetchedGame.getKey();
-			BsonDocument jsonSchedule = jsonFetchedGame.getValue();
-			if (!games.containsKey(gamePk)) {
-				// Create a new game object and put it in our map
-				Game newGame = Game.parse(jsonSchedule);
-				if (newGame != null) {
-					// Games can be null if they fail to parse.
-					// Only put non-null values (map throws error otherwise).
-					games.put(gamePk, newGame);
-				} else {
-					LOGGER.debug("Fetched game could not be parsed. Skipping insertion...");
+		BsonArray jsonScheduleGames = AHLGateway.getSchedule(-1, Config.AHL_CURRENT_SEASON.getSeasonId(), -1);
+		jsonScheduleGames.stream()
+			.map(BsonValue::asDocument)
+			.forEach(jsonScheduleGame -> {
+				int gameId = Game.parseId(jsonScheduleGame);
+				if (!games.containsKey(gameId)) {
+					// Create a new game object and put it in our map
+					Game newGame = Game.parse(jsonScheduleGame);
+					if (newGame != null) {
+						// Games can be null if they fail to parse.
+						// Only put non-null values (map throws error otherwise).
+						games.put(gameId, newGame);
+					} else {
+						LOGGER.warn("Fetched game could not be parsed. Skipping insertion...");
+					}
 				}
-			} else {
-				games.get(gamePk).updateSchedule(jsonSchedule);
-			}
-		});
+			});
 
 		// Remove from stored games if it isn't in the list of games fetched
-		this.games.entrySet().removeIf(entry -> !jsonFetchedGames.containsKey(entry.getKey()));
+		this.games.entrySet()
+				.removeIf(
+					entry -> !jsonScheduleGames.stream()
+						.map(BsonValue::asDocument)
+						.map(jsonGame -> Game.parseId(jsonGame))
+						.anyMatch(id -> entry.getKey().equals(id))
+				);
 	}
 
 	/**
 	 * Removes finished trackers, and starts trackers for active games.
 	 */
 	void updateTrackers() {
-		removeInactiveNHLGames();
-		createNHLGameTrackers();
-
-		removeInactiveFourNationsGames();
-		createFourNationsGameTrackers();
+		removeInactiveRegularGames();
+		createRegularGameTrackers();
 	}
 
-	public void removeInactiveNHLGames() {
+	public void removeInactiveRegularGames() {
 		LOGGER.info("Removing finished NHL trackers.");
-		activeNHLGameTrackers.entrySet().removeIf(map -> {
-			GameTracker gameTracker = map.getValue();
-			int gamePk = gameTracker.getGame().getGameId();
+		activeRegularGameTrackers.entrySet().removeIf(map -> {
+			AHLGameTracker gameTracker = map.getValue();
+			int gamePk = gameTracker.getGame().getId();
 			if (!games.containsKey(gamePk)) {
 				LOGGER.info("Game is has been removed: " + gamePk);
 				gameTracker.interrupt();
@@ -245,110 +238,13 @@ public class GameScheduler extends Thread {
 		});
 	}
 
-	public void createNHLGameTrackers() {
+	public void createRegularGameTrackers() {
 		LOGGER.info("Starting new trackers for NHL games.");
-		for (Team team : Team.values()) {
-			if (team.isNHLTeam()) {
-				getActiveGames(team).forEach(activeGame -> {
-					createNHLGameTracker(activeGame);
-				});
-			}
+		for (Team team : AHLTeams.getSortedValues()) {
+			getActiveGames(team).forEach(activeGame -> {
+				createRegularGameTracker(activeGame);
+			});
 		}
-	}
-	
-	/*
-	 * Playoffs
-	 */
-	public List<Game> getPlayoffGames() {
-		return games.entrySet().stream()
-			.map(Entry::getValue)
-			.filter(game -> game.getGameType().equals(GameType.PLAYOFF))
-			.collect(Collectors.toList());
-	}
-	
-	public List<Game> getActivePlayoffGames(Team team) {
-		List<Game> playoffGames = getPlayoffGames();
-		List<Game> games = new ArrayList<>();
-		games.addAll(getNearestGames(getPastGames(playoffGames.stream(), team), 1));
-		Game currentGame = getCurrentLiveGame(getPlayoffGames().stream(), team);
-		if (currentGame != null) {
-			games.add(currentGame);
-		} else {
-			games.addAll(getNearestGames(getFutureGames(playoffGames.stream(), team), 1));
-		}
-		return games;
-	}
-
-	public List<Game> getActivePlayoffGames(List<Team> teams) {
-		return new ArrayList<>(new HashSet<>(teams.stream()
-				.map(team -> getActivePlayoffGames(team))
-				.flatMap(Collection::stream)
-				.collect(Collectors.toList())));
-	}
-
-	public List<Game> getActivePlayoffGames() {
-		return getActivePlayoffGames(NHLTeams.getSortedValues());
-	}
-	
-
-	/*
-	 * Four Nations
-	 */
-
-	public void createFourNationsGameTrackers() {
-		LOGGER.info("Starting new trackers for Four Nations games.");
-		for (Game game : getFourNationsGames()) {
-			createFourNationsGameTracker(game);
-		}
-	}
-
-	public List<Game> getFourNationsGames() {
-		return games.entrySet().stream()
-				.map(Entry::getValue)
-				.filter(game -> game.getGameType().isFourNations())
-				.collect(Collectors.toList());
-	}
-
-	public GameTracker getFourNationsGameTracker(Game game) {
-		return fourNationsGameTrackers.get(game);
-	}
-
-	/**
-	 * Creates and caches a GameTracker for the given game.
-	 * 
-	 * @param game
-	 *            game to find NHLGameTracker for
-	 * @return NHLGameTracker for the game, if it exists <br>
-	 *         null, if it does not exists
-	 * 
-	 */
-	private void createFourNationsGameTracker(Game game) {
-		if (!fourNationsGameTrackers.containsKey(game)) {
-			LOGGER.info("Creating GameTracker: " + game.getGameId());
-			GameTracker newGameTracker = GameTracker.get(game);
-			fourNationsGameTrackers.put(game, newGameTracker);
-		} else {
-			LOGGER.debug("GameTracker already exists: " + game.getGameId());
-		}
-	}
-
-	public void removeInactiveFourNationsGames() {
-		LOGGER.info("Removing finished Four Nations trackers.");
-		fourNationsGameTrackers.entrySet().removeIf(map -> {
-			GameTracker gameTracker = map.getValue();
-			int gamePk = gameTracker.getGame().getGameId();
-			if (!games.containsKey(gamePk)) {
-				LOGGER.info("Game is has been removed: " + gamePk);
-				gameTracker.interrupt();
-				return true;
-			} else if (gameTracker.isFinished()) {
-				LOGGER.info("Game is finished: " + gameTracker.getGame());
-				gameTracker.interrupt();
-				return true;
-			} else {
-				return false;
-			}
-		});
 	}
 
 	/*
@@ -396,7 +292,7 @@ public class GameScheduler extends Thread {
 		return gameStream
 				.sorted(GAME_COMPARATOR)
 				.filter(game -> team == null || game.containsTeam(team))
-				.filter(game -> !game.getGameState().isStarted())
+				.filter(game -> !game.isStarted())
 				.collect(Collectors.toList());
 	}
 
@@ -423,7 +319,7 @@ public class GameScheduler extends Thread {
 	private static List<Game> getPastGames(Stream<Game> gameStream, Team team) {
 		return gameStream.sorted(GAME_COMPARATOR.reversed())
 				.filter(game -> team == null || game.containsTeam(team))
-				.filter(game -> game.getGameState().isFinished())
+				.filter(game -> game.isFinished())
 				.collect(Collectors.toList());
 	}
 
@@ -472,7 +368,7 @@ public class GameScheduler extends Thread {
 	public Game getCurrentLiveGame(Stream<Game> gameStream, Team team) {
 		return gameStream
 				.filter(game -> team == null ? true : game.containsTeam(team))
-				.filter(game -> game.getGameState().isLive())
+				.filter(game -> game.isLive())
 				.findAny()
 				.orElse(null);
 	}
@@ -489,25 +385,6 @@ public class GameScheduler extends Thread {
 	}
 
 	/**
-	 * Searches all games and returns the NHLGame that would produce the same
-	 * channel name as the parameter.
-	 * 
-	 * @param channelName
-	 *            name of the Discord channel
-	 * @return NHLGame that produces the same channel name<br>
-	 *         null if game cannot be found; null if class is not initialized
-	 * @throws NHLGameSchedulerException
-	 */
-	public Game getGameByChannelName(String channelName) {
-		return games.entrySet()
-				.stream()
-				.map(Entry::getValue)
-				.filter(game -> GameDayChannel.buildChannelName(game).equalsIgnoreCase(channelName))
-				.findAny()
-				.orElse(null);
-	}
-
-	/**
 	 * Gets the existing GameTracker for the specified game, if it exists. If the
 	 * GameTracker does not exist, a new one is created.
 	 * 
@@ -517,8 +394,8 @@ public class GameScheduler extends Thread {
 	 *         null, if it does not exists
 	 * 
 	 */
-	public GameTracker getGameTracker(Game game) {
-		return activeNHLGameTrackers.get(game);
+	public AHLGameTracker getGameTracker(Game game) {
+		return activeRegularGameTrackers.get(game);
 	}
 
 	/**
@@ -530,13 +407,13 @@ public class GameScheduler extends Thread {
 	 *         null, if it does not exists
 	 * 
 	 */
-	private void createNHLGameTracker(Game game) {
-		if (!activeNHLGameTrackers.containsKey(game)) {
-			LOGGER.info("Creating GameTracker: " + game.getGameId());
-			GameTracker newGameTracker = GameTracker.get(game);
-			activeNHLGameTrackers.put(game, newGameTracker);
+	private void createRegularGameTracker(Game game) {
+		if (!activeRegularGameTrackers.containsKey(game)) {
+			LOGGER.info("Creating GameTracker: " + game.getId());
+			AHLGameTracker newGameTracker = AHLGameTracker.get(game);
+			activeRegularGameTrackers.put(game, newGameTracker);
 		} else {
-			LOGGER.debug("GameTracker already exists: " + game.getGameId());
+			LOGGER.debug("GameTracker already exists: " + game.getId());
 		}
 	}
 	
@@ -556,18 +433,8 @@ public class GameScheduler extends Thread {
 				.collect(Collectors.toList());
 	}
 
-	public boolean isGameActive(Team team, String channelName) {
-		return getActiveGames(team).stream()
-				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.buildChannelName(game)));
-	}
-
-	public boolean isGameActive(List<Team> teams, String channelName) {
-		return getActiveGames(teams).stream()
-				.anyMatch(game -> channelName.equalsIgnoreCase(GameDayChannel.buildChannelName(game)));
-	}
-
-	Map<Game, GameTracker> getActiveGameTrackers() {
-		return new HashMap<>(activeNHLGameTrackers);
+	Map<Game, AHLGameTracker> getActiveGameTrackers() {
+		return new HashMap<>(activeRegularGameTrackers);
 	}
 
 	/**
@@ -594,12 +461,18 @@ public class GameScheduler extends Thread {
 	public Set<Game> getGames() {
 		return new HashSet<>(games.values());
 	}
+	
+	public List<Game> getGames(Team team) {
+		return getGames().stream()
+				.filter(game -> game.getTeams().contains(team))
+				.collect(Collectors.toList());
+	}
 
-	public GameTracker toGameTracker(Game game) {
-		return GameTracker.get(game);
+	public AHLGameTracker toGameTracker(Game game) {
+		return AHLGameTracker.get(game);
 	}
 
 	public boolean isGameExist(Game game) {
-		return games.containsKey(game.getGameId());
+		return games.containsKey(game.getId());
 	}
 }

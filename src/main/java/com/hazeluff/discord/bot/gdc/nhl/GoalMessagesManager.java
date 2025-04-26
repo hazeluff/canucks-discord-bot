@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc;
+package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -31,12 +31,12 @@ import discord4j.core.spec.MessageEditSpec;
 import discord4j.rest.util.Color;
 
 /**
- * Used by {@link GameDayChannel} to manage spamming and orphaned event +
+ * Used by {@link NHLGameDayChannel} to manage spamming and orphaned event +
  * messages.
  */
 public class GoalMessagesManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GoalMessagesManager.class);
-	private final long cooldown;
+	private static final long COOLDOWN = 30000l;
 	private final NHLBot nhlBot;
 	private final Game game;
 	private final TextChannel channel;
@@ -48,8 +48,7 @@ public class GoalMessagesManager {
 
 	private ZonedDateTime lastMessageTime;
 
-	public GoalMessagesManager(long cooldown, NHLBot nhlBot, Game game, TextChannel channel, GDCMeta meta) {
-		this.cooldown = cooldown;
+	public GoalMessagesManager(NHLBot nhlBot, Game game, TextChannel channel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;
@@ -271,7 +270,7 @@ public class GoalMessagesManager {
 		if (lastMessageTime == null) {
 			return false;
 		}
-		return DateUtils.diffMs(lastMessageTime, DateUtils.now()) < cooldown;
+		return DateUtils.diffMs(lastMessageTime, DateUtils.now()) < COOLDOWN;
 	}
 	
 	protected void sendMessage(String message) {

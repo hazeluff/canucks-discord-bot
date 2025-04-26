@@ -1,19 +1,21 @@
-package com.hazeluff.discord.nhl;
+package com.hazeluff.discord.ahl;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.bson.BsonArray;
 import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.ahl.AHLGateway;
+import com.hazeluff.ahl.game.Game;
+import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.NHLGateway;
-import com.hazeluff.nhl.game.Game;
 
 /**
  * <p>
@@ -28,8 +30,8 @@ import com.hazeluff.nhl.game.Game;
  * Events are sent as messages to the channels created.
  * </p>
  */
-public class GameTracker extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(GameTracker.class);
+public class AHLGameTracker extends Thread implements GameTracker {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AHLGameTracker.class);
 
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
@@ -40,50 +42,48 @@ public class GameTracker extends Thread {
 	// Time after game is final to continue updates
 	static final long POST_GAME_UPDATE_DURATION = 300000l;
 
-	private static Map<Game, GameTracker> gameTrackers = new ConcurrentHashMap<>();
+	private static Map<Game, AHLGameTracker> gameTrackers = new ConcurrentHashMap<>();
 
 	private final Game game;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 	private AtomicBoolean finished = new AtomicBoolean(false);
 
-	GameTracker(Game game) {
+	AHLGameTracker(Game game) {
 		this.game = game;
 	}
 
 	/**
-	 * Gets an instance of a {@link GameTracker} for the given game. The tracker
+	 * Gets an instance of a {@link AHLGameTracker} for the given game. The tracker
 	 * thread is started on instantiation.
 	 * 
 	 * @param game
-	 *            game to get {@link GameTracker} for
-	 * @return {@link GameTracker} for the game
+	 *            game to get {@link AHLGameTracker} for
+	 * @return {@link AHLGameTracker} for the game
 	 */
-	public static GameTracker get(Game game) {
-		GameTracker gameTracker = new GameTracker(game);
+	public static AHLGameTracker get(Game game) {
+		AHLGameTracker gameTracker = new AHLGameTracker(game);
 		gameTracker.start();
 		return gameTracker;
 	}
 
 	public void updateGame() {
-		BsonDocument jsonPlayByPlay = NHLGateway.getPlayByPlay(this.game.getGameId());
+		BsonArray jsonPlayByPlay = AHLGateway.getGamePlayByPlay(this.game.getId());
 		if (jsonPlayByPlay != null) {
 			this.game.updatePlayByPlay(jsonPlayByPlay);
 		}
-		BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
-		if (jsonBoxScore != null) {
-			this.game.updateBoxScore(jsonBoxScore);
-		}
-		BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
-		if (jsonRightRail != null) {
-			this.game.updateRightRail(jsonRightRail);
+
+		BsonDocument jsonSummary = AHLGateway.getGameSummary(this.game.getId());
+		if (jsonSummary != null) {
+			this.game.updateGameSummary(jsonSummary);
 		}
 	}
 
 	@Override
 	public void start() {
 		if (started.compareAndSet(false, true)) {
-			LOGGER.info("Started thread for [" + game.getGameId() + "]");
+			LOGGER.info("Started thread for [" + game.getId() + "]");
+			setThreadName();
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");
@@ -97,10 +97,9 @@ public class GameTracker extends Thread {
 	@Override
 	public void run() {
 		try {
-			setName(GameDayChannel.buildChannelName(game));
 			updateGame();
 
-			if (!game.getGameState().isFinished()) {
+			if (!game.isFinished()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
 				boolean closeToStart;
@@ -122,7 +121,7 @@ public class GameTracker extends Thread {
 				boolean started = false;
 				do {
 					updateGame();
-					started = game.getGameState().isStarted();
+					started = game.isStarted();
 					if (!started) {
 						Utils.sleep(ACTIVE_POLL_RATE_MS);
 					}
@@ -139,7 +138,7 @@ public class GameTracker extends Thread {
 					updateGame();
 
 					// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
-					if (game.getGameState().isFinished()) {
+					if (game.isFinished()) {
 						if (lastFinal == null) {
 							LOGGER.debug("Game finished. Continuing polling...");
 							lastFinal = ZonedDateTime.now();
@@ -168,6 +167,40 @@ public class GameTracker extends Thread {
 		}
 	}
 
+	private void setThreadName() {
+		setName(buildThreadName(game));
+	}
+
+	/**
+	 * Gets the name that a channel in Discord related to this game would have.
+	 * 
+	 * @param game
+	 *            game to get channel name for
+	 * @return channel name in format: "AAA-vs-BBB-yy-MM-DD". <br>
+	 *         AAA is the 3 letter code of home team<br>
+	 *         BBB is the 3 letter code of away team<br>
+	 *         yy-MM-DD is a date format
+	 */
+	public static String buildThreadName(Game game) {
+		String channelName = String.format("%s-vs-%s-%s", game.getHomeTeam().getTeamCode(),
+				game.getAwayTeam().getTeamCode(), buildChannelDate(game));
+		return channelName.toLowerCase();
+
+	}
+
+	/**
+	 * Gets the date in the format "yy-MM-dd"
+	 * 
+	 * @param game
+	 *            game to get the date from
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the date in the format "yy-MM-dd"
+	 */
+	public static String buildChannelDate(Game game) {
+		return game.getDate().format(DateTimeFormatter.ofPattern("yy-MM-dd"));
+	}
+
 	/**
 	 * Determines if this tracker is finished.
 	 * 
@@ -176,6 +209,18 @@ public class GameTracker extends Thread {
 	 */
 	public boolean isFinished() {
 		return finished.get();
+	}
+
+	@Override
+	public boolean isGameFinished() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isGameStarted() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	/**

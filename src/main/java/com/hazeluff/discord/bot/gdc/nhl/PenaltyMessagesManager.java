@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc;
+package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import discord4j.core.spec.MessageEditSpec;
 import discord4j.rest.util.Color;
 
 /**
- * Used by {@link GameDayChannel} to manage spamming and orphaned event +
+ * Used by {@link NHLGameDayChannel} to manage spamming and orphaned event +
  * messages.
  */
 public class PenaltyMessagesManager {

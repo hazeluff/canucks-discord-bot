@@ -12,7 +12,7 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.ResourceLoader;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannel;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
 import com.hazeluff.discord.utils.wordcloud.Normalizers;
@@ -85,7 +85,7 @@ public class WordcloudCommand extends Command {
 			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE).withEphemeral(true);
 		}
 
-		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
+		Game game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			return Mono.empty();
 		}
@@ -121,7 +121,7 @@ public class WordcloudCommand extends Command {
 	 * @param fontScaler
 	 */
 	public void sendWordcloud(TextChannel channel, Game game, FontScalar fontScaler) {
-		String title = GameDayChannel.buildDetailsMessage(game);
+		String title = NHLGameDayChannel.buildDetailsMessage(game);
 		new Thread(() -> {
 			Message generatingMessage = DiscordManager.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
 

@@ -12,15 +12,15 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
-import com.hazeluff.discord.nhl.GameTracker;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayThread;
+import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 
-public class FourNationsGameDayThread extends GameDayChannel {
+public class FourNationsGameDayThread extends NHLGameDayThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FourNationsGameDayThread.class);
 
 	@Override
@@ -28,12 +28,12 @@ public class FourNationsGameDayThread extends GameDayChannel {
 		return LOGGER;
 	}
 
-	private FourNationsGameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, TextChannel channel,
+	private FourNationsGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
 		super(nhlBot, gameTracker, guild, channel, preferences, meta);
 	}
 
-	public static FourNationsGameDayThread get(NHLBot nhlBot, TextChannel textChannel, GameTracker gameTracker, Guild guild) {
+	public static FourNationsGameDayThread get(NHLBot nhlBot, TextChannel textChannel, NHLGameTracker gameTracker, Guild guild) {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
 		GDCMeta meta = null;
@@ -69,6 +69,16 @@ public class FourNationsGameDayThread extends GameDayChannel {
 	}
 
 	@Override
+	protected void updateEnd() {
+		sendEndOfGameMessage();
+	}
+
+	@Override
+	protected void updateFinish() {
+
+	}
+
+	@Override
 	protected void updateOnReminderWait() {
 		initSummaryMessage();
 		updateSummaryMessage();
@@ -99,7 +109,7 @@ public class FourNationsGameDayThread extends GameDayChannel {
 	@Override
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
-		embedBuilder.addField("Four Nations", buildDetailsMessage(getGame()), false);
+		embedBuilder.addField("Four Nations", buildDetailsMessage(game), false);
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		GDCGoalsCommand.buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
@@ -139,7 +149,7 @@ public class FourNationsGameDayThread extends GameDayChannel {
 	}
 
 	String getFourNationsMatchupName() {
-		return buildFourNationsMatchupName(getGame());
+		return buildFourNationsMatchupName(game);
 	}
 
 	public static String buildFourNationsMatchupName(Game game) {

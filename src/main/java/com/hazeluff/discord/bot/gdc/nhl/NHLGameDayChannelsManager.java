@@ -1,6 +1,7 @@
-package com.hazeluff.discord.bot.gdc;
+package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -17,7 +18,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.nhl.GameTracker;
+import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
@@ -29,8 +30,8 @@ import discord4j.core.object.entity.channel.TextChannel;
 /**
  * This class is used to manage the channels in a Guild.
  */
-public class GameDayChannelsManager extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayChannelsManager.class);
+public class NHLGameDayChannelsManager extends Thread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayChannelsManager.class);
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
@@ -39,13 +40,13 @@ public class GameDayChannelsManager extends Thread {
 
 	private final NHLBot nhlBot;
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
-	private final Map<Long, Map<Integer, GameDayChannel>> gameDayChannels;
+	private final Map<Long, Map<Integer, NHLGameDayChannel>> gameDayChannels;
 
-	Map<Long, Map<Integer, GameDayChannel>> getGameDayChannels() {
+	Map<Long, Map<Integer, NHLGameDayChannel>> getGameDayChannels() {
 		return new ConcurrentHashMap<>(gameDayChannels);
 	}
 
-	public GameDayChannel getGameDayChannel(long guildId, int gamePk) {
+	public NHLGameDayChannel getGameDayChannel(long guildId, int gamePk) {
 		if (!gameDayChannels.containsKey(guildId)) {
 			return null;
 		}
@@ -57,7 +58,7 @@ public class GameDayChannelsManager extends Thread {
 		return gameDayChannels.get(guildId).get(gamePk);
 	}
 
-	Map<Integer, GameDayChannel> getGameDayChannels(long guildId) {
+	Map<Integer, NHLGameDayChannel> getGameDayChannels(long guildId) {
 		if (!gameDayChannels.containsKey(guildId)) {
 			return Collections.emptyMap();
 		}
@@ -68,7 +69,7 @@ public class GameDayChannelsManager extends Thread {
 		return getGameDayChannel(guildId, gamePk) != null;
 	}
 
-	void addGameDayChannel(long guildId, int gamePk, GameDayChannel gameDayChannel) {
+	void addGameDayChannel(long guildId, int gamePk, NHLGameDayChannel gameDayChannel) {
 		if (!gameDayChannels.containsKey(guildId)) {
 			gameDayChannels.put(guildId, new ConcurrentHashMap<>());
 		}
@@ -81,13 +82,13 @@ public class GameDayChannelsManager extends Thread {
 	 * @param gamePk
 	 * @return the removed GameDayChannel
 	 */
-	GameDayChannel removeGameDayChannel(long guildId, int gamePk) {
+	NHLGameDayChannel removeGameDayChannel(long guildId, int gamePk) {
 		if (!gameDayChannels.containsKey(guildId)) {
 			return null;
 		}
 
-		Map<Integer, GameDayChannel> guildChannels = gameDayChannels.get(guildId);
-		GameDayChannel gameDayChannel = guildChannels.remove(gamePk);
+		Map<Integer, NHLGameDayChannel> guildChannels = gameDayChannels.get(guildId);
+		NHLGameDayChannel gameDayChannel = guildChannels.remove(gamePk);
 		if (gameDayChannel == null) {
 			return null;
 		}
@@ -100,7 +101,7 @@ public class GameDayChannelsManager extends Thread {
 		return gameDayChannel;
 	}
 
-	public GameDayChannelsManager(NHLBot nhlBot) {
+	public NHLGameDayChannelsManager(NHLBot nhlBot) {
 		this.nhlBot = nhlBot;
 		gameDayChannels = new ConcurrentHashMap<>();
 	}
@@ -111,7 +112,7 @@ public class GameDayChannelsManager extends Thread {
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
 			try {
-				LocalDate schedulerUpdate = nhlBot.getGameScheduler().getLastUpdate();
+				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
 					Utils.sleep(INIT_UPDATE_RATE);
@@ -154,15 +155,15 @@ public class GameDayChannelsManager extends Thread {
 	 * @param game
 	 * @param guild
 	 */
-	public GameDayChannel createChannel(Game game, Guild guild) {
+	public NHLGameDayChannel createChannel(Game game, Guild guild) {
 		LOGGER.info("Initializing for channel. channelName={}, guild={}",
-				GameDayChannel.buildChannelName(game), guild.getName());
+				NHLGameDayChannelsManager.buildChannelName(game), guild.getName());
 		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
 
-		GameDayChannel gameDayChannel = getGameDayChannel(guildId, gamePk);
+		NHLGameDayChannel gameDayChannel = getGameDayChannel(guildId, gamePk);
 		if (gameDayChannel == null) {
-			GameTracker gameTracker = nhlBot.getGameScheduler().getGameTracker(game);
+			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				gameDayChannel = createGameDayChannel(nhlBot, gameTracker, guild);
 			} else {
@@ -175,10 +176,10 @@ public class GameDayChannelsManager extends Thread {
 		return gameDayChannel;
 	}
 
-	GameDayChannel createGameDayChannel(NHLBot nhlBot, GameTracker gameTracker, Guild guild) {
+	NHLGameDayChannel createGameDayChannel(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
 		LOGGER.info("Creating channel. channelName={}, guild={}",
-				GameDayChannel.buildChannelName(gameTracker.getGame()), guild.getName());
-		GameDayChannel channel = GameDayChannel.get(nhlBot, gameTracker, guild);
+				NHLGameDayChannelsManager.buildChannelName(gameTracker.getGame()), guild.getName());
+		NHLGameDayChannel channel = NHLGameDayChannel.get(nhlBot, gameTracker, guild);
 		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
 		return channel;
 	}
@@ -244,8 +245,8 @@ public class GameDayChannelsManager extends Thread {
 
 			LOGGER.info("Updating Channels for [{}]: activeGames={}",
 					guild.getId().asLong(),
-					nhlBot.getGameScheduler().getActiveGames(teams).stream()
-							.map(GameDayChannel::buildChannelName)
+					nhlBot.getNHLGameScheduler().getActiveGames(teams).stream()
+							.map(NHLGameDayChannelsManager::buildChannelName)
 							.collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
@@ -255,13 +256,13 @@ public class GameDayChannelsManager extends Thread {
 				}
 			}
 
-			for (Entry<Integer, GameDayChannel> gdcEntry : getGameDayChannels(guild.getId().asLong()).entrySet()) {
-				GameDayChannel gdc = gdcEntry.getValue();
+			for (Entry<Integer, NHLGameDayChannel> gdcEntry : getGameDayChannels(guild.getId().asLong()).entrySet()) {
+				NHLGameDayChannel gdc = gdcEntry.getValue();
 				gdc.updateIntroMessage();
 			}
 
 			// Create game channels of latest game for current subscribed team
-			for (Game game : nhlBot.getGameScheduler().getActiveGames(teams)) {
+			for (Game game : nhlBot.getNHLGameScheduler().getActiveGames(teams)) {
 				createChannel(game, guild);
 			}
 		} catch (Exception e) {
@@ -290,9 +291,9 @@ public class GameDayChannelsManager extends Thread {
 		 * - have the correct name format for a gdc
 		 * - are not active
 		 */
-		Game game = nhlBot.getGameScheduler().getGameByChannelName(channel.getName());
+		Game game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
 		if (game != null) {
-			GameDayChannel removedChannel = removeGameDayChannel(channel.getGuildId().asLong(), game.getGameId());
+			NHLGameDayChannel removedChannel = removeGameDayChannel(channel.getGuildId().asLong(), game.getGameId());
 			if (removedChannel == null) {
 				DiscordManager.deleteChannel(channel);
 			}
@@ -341,8 +342,38 @@ public class GameDayChannelsManager extends Thread {
 		return channelName.matches(regex);
 	}
 
+	/**
+	 * Gets the name that a channel in Discord related to this game would have.
+	 * 
+	 * @param game
+	 *            game to get channel name for
+	 * @return channel name in format: "AAA-vs-BBB-yy-MM-DD". <br>
+	 *         AAA is the 3 letter code of home team<br>
+	 *         BBB is the 3 letter code of away team<br>
+	 *         yy-MM-DD is a date format
+	 */
+	public static String buildChannelName(Game game) {
+		String channelName = String.format("%.3s-vs-%.3s-%s", game.getHomeTeam().getCode(),
+				game.getAwayTeam().getCode(), buildChannelDate(game));
+		return channelName.toLowerCase();
+
+	}
+
+	/**
+	 * Gets the date in the format "yy-MM-dd"
+	 * 
+	 * @param game
+	 *            game to get the date from
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the date in the format "yy-MM-dd"
+	 */
+	public static String buildChannelDate(Game game) {
+		return game.getStartTime().format(DateTimeFormatter.ofPattern("yy-MM-dd"));
+	}
+
 	boolean isGameActive(List<Team> teams, String channelName) {
-		return nhlBot.getGameScheduler().isGameActive(teams, channelName);
+		return nhlBot.getNHLGameScheduler().isGameActive(teams, channelName);
 	}
 
 	/**

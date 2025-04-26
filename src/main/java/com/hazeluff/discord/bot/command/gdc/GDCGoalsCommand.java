@@ -98,11 +98,6 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 		return embedBuilder;
 	}
 
-	/**
-	 * Builds the details to be displayed.
-	 * 
-	 * @return details as formatted string
-	 */
 	private static String buildGoalLine(Game game, GoalEvent goalEvent) {
 		StringBuilder details = new StringBuilder();
 		RosterPlayer scorer = game.getPlayer(goalEvent.getScorerId());

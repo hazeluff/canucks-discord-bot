@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.playoff;
+package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,15 +11,14 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
-import com.hazeluff.discord.nhl.GameTracker;
+import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 
-public class PlayoffWatchGameDayThread extends GameDayChannel {
+public class PlayoffWatchGameDayThread extends NHLGameDayChannel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchGameDayThread.class);
 
 	@Override
@@ -27,12 +26,12 @@ public class PlayoffWatchGameDayThread extends GameDayChannel {
 		return LOGGER;
 	}
 
-	private PlayoffWatchGameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, TextChannel channel,
+	private PlayoffWatchGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
 		super(nhlBot, gameTracker, guild, channel, preferences, meta);
 	}
 
-	public static PlayoffWatchGameDayThread get(NHLBot nhlBot, TextChannel textChannel, GameTracker gameTracker, Guild guild) {
+	public static PlayoffWatchGameDayThread get(NHLBot nhlBot, TextChannel textChannel, NHLGameTracker gameTracker, Guild guild) {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
 		GDCMeta meta = null;
@@ -72,12 +71,6 @@ public class PlayoffWatchGameDayThread extends GameDayChannel {
 		sendEndOfGameMessage();
 	}
 
-	public void unpinSummaryMessage() {
-		if (summaryMessage != null) {
-			DiscordManager.unpinMessage(summaryMessage);
-		}
-	}
-
 	@Override
 	protected void updateOnReminderWait() {
 		initSummaryMessage();
@@ -101,7 +94,7 @@ public class PlayoffWatchGameDayThread extends GameDayChannel {
 
 	@Override
 	protected String buildStartOfGameMessage() {
-		String message = String.format("%s: \n", getMatchupName());
+		String message = String.format("%s\n", getMatchupName());
 		message += "Game is about to start!";
 		return message;
 	}
@@ -109,7 +102,7 @@ public class PlayoffWatchGameDayThread extends GameDayChannel {
 	@Override
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
-		embedBuilder.addField("NHL Playoffs", buildDetailsMessage(getGame()), false);
+		embedBuilder.addField("NHL Playoffs", buildDetailsMessage(game), false);
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
 	}
@@ -148,7 +141,7 @@ public class PlayoffWatchGameDayThread extends GameDayChannel {
 	}
 
 	String getMatchupName() {
-		return buildMatchupName(getGame());
+		return buildMatchupName(game);
 	}
 
 	public static String buildMatchupName(Game game) {

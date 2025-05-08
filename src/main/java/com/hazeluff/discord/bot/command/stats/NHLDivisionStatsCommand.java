@@ -61,7 +61,10 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 			return Command.reply(event, "Season is out of range.");
 		}
 		
-		return Command.replyAndDefer(event, "Fetching Results...", () -> buildFollowUp(event));
+		return Command.replyAndDefer(event,
+				"Fetching Results...",
+				() -> buildFollowUp(event)
+		);
 	}
 
 	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event) {

@@ -62,7 +62,10 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 			return Command.reply(event, "Season is out of range.");
 		}
 
-		return Command.replyAndDefer(event, "Fetching Results...", buildFollowupSpecSupplier(event));
+		return Command.replyAndDefer(event,
+				"Fetching Results...",
+				buildFollowupSpecSupplier(event)
+		);
 	}
 
 	Supplier<InteractionFollowupCreateSpec> buildFollowupSpecSupplier(ChatInputInteractionEvent event) {

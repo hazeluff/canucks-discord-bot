@@ -64,7 +64,11 @@ public class SubscribeCommand extends Command {
 		if (!team.isNHLTeam()) {
 			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
 		}
-		return Command.replyAndDefer(event, "Subscribing...", () -> buildFollowUp(event, guild, team));
+		return Command.replyAndDefer(event,
+				"Subscribing...",
+				() -> subscribeGuild(guild, team),
+				() -> buildFollowUp(event, guild, team)
+		);
 	}
 
 	static final String HELP_MESSAGE = "Subscribe to create Game Day Channels of the most recent games for that team."
@@ -74,7 +78,6 @@ public class SubscribeCommand extends Command {
 			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
 
 	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
-		subscribeGuild(guild, team);
 		return InteractionFollowupCreateSpec.builder()
 				.content(buildSubscribedMessage(guild, team))
 				.build();

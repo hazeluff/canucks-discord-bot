@@ -395,8 +395,8 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 				"Be Kind, Be Calm, Be Safe",
 				"Be woke, be cool, a calm spirit is smarter.",
 				"Get ready, go to the washroom, get your snacks, "
-				+ "get your drinks, get your ????, "
-				+ "get comfy, and watch us play."
+						+ "get your drinks, get your ????, "
+						+ "get comfy, and watch us play."
 		);
 		return Utils.getRandom(messageList);
 	}
@@ -447,7 +447,9 @@ public class GameDayChannel extends Thread implements IEventProcessor {
 		MessageEditSpec messageSpec = MessageEditSpec.builder()
 				.content(Possible.of(java.util.Optional.ofNullable(strMessage)))
 				.build();
-		DiscordManager.updateMessage(introMessage, messageSpec);
+		if (introMessage != null) {
+			DiscordManager.updateMessage(introMessage, messageSpec);
+		}
 	}
 
 	private String buildIntroMessage() {

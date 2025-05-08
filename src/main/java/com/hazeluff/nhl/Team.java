@@ -295,7 +295,7 @@ public enum Team {
 	UTAH_HC(
 			59,
 			"Utah",
-			"Hockey Club",
+			"Mammoth",
 			"UTA",
 			Division.CENTRAL,
 			"Lets Go Utah!",

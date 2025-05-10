@@ -82,20 +82,18 @@ public class UnsubscribeCommand extends Command {
 	Mono<Message> unsubscibeAndReply(ChatInputInteractionEvent event, Guild guild, Team team) {
 		return replyAndDefer(event, 
 				"Unsubscribing...",
-				() -> unsubscribeGuild(guild, null),
+				() -> unsubscribeGuild(guild, team),
 				() -> buildUnsubscribeFollowUp(event, guild, team)
 		);
 	}
 
 	InteractionFollowupCreateSpec buildUnsubscribeAllFollowUp(ChatInputInteractionEvent event, Guild guild) {
-		
 		return InteractionFollowupCreateSpec.builder()
 				.content(UNSUBSCRIBED_FROM_ALL_MESSAGE)
 				.build();
 	}
 
 	InteractionFollowupCreateSpec buildUnsubscribeFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
-		unsubscribeGuild(guild, team);
 		return InteractionFollowupCreateSpec.builder()
 				.content(buildUnsubscribeMessage(team))
 				.build();

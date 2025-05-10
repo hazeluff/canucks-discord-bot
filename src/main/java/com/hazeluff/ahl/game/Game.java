@@ -2,6 +2,7 @@ package com.hazeluff.ahl.game;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -45,6 +46,10 @@ public class Game {
 
 	public LocalDate getDate() {
 		return date;
+	}
+
+	public String getNiceDate() {
+		return date.format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
 	}
 
 	public Team getHomeTeam() {
@@ -97,7 +102,7 @@ public class Game {
 						.getValue()));
 		Team awayTeam = Team.parse(Integer.valueOf(
 				jsonScheduleGame.getDocument("prop")
-						.getDocument("home_team_city")
+						.getDocument("visiting_team_city")
 						.getString("teamLink")
 						.getValue()));
 		return new Game(id, date, homeTeam, awayTeam);

@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.nhl;
+package com.hazeluff.discord.bot.gdc.ahl;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -12,16 +12,13 @@ import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.event.GoalEvent;
+import com.hazeluff.ahl.game.event.Player;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessages;
-import com.hazeluff.discord.bot.gdc.fournations.FourNationsGameDayThread;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.game.Game;
-import com.hazeluff.nhl.game.PeriodType;
-import com.hazeluff.nhl.game.RosterPlayer;
-import com.hazeluff.nhl.game.event.GoalEvent;
 
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
@@ -31,7 +28,7 @@ import discord4j.core.spec.MessageEditSpec;
 import discord4j.rest.util.Color;
 
 /**
- * Used by {@link NHLGameDayChannel} to manage spamming and orphaned event +
+ * Used by {@link AHLGameDayChannel} to manage spamming and orphaned event +
  * messages.
  */
 public class GoalMessagesManager {
@@ -66,13 +63,13 @@ public class GoalMessagesManager {
 
 	public GoalEvent getCachedEvent(int id) {
 		return cachedEvents.stream()
-				.filter(cachedGoalEvent -> cachedGoalEvent.getId() == id)
+				.filter(cachedGoalEvent -> cachedGoalEvent.getGoalId() == id)
 				.findAny()
 				.orElse(null);
 	}
 
 	private boolean isEventUpdated(GoalEvent event) {
-		GoalEvent cachedEvent = getCachedEvent(event.getId());
+		GoalEvent cachedEvent = getCachedEvent(event.getGoalId());
 		if(cachedEvent == null) {
 			return false;
 		}
@@ -80,8 +77,8 @@ public class GoalMessagesManager {
 	}
 
 	public boolean isPrerunEvent(GoalEvent goalEvent) {
-		return prerunEvents.stream()
-				.anyMatch(skippableGoalEvent -> skippableGoalEvent.getId() == goalEvent.getId());
+		return prerunEvents.stream().anyMatch(skippableGoalEvent -> 
+				skippableGoalEvent.getGoalId() == goalEvent.getGoalId());
 	}
 
 	/**
@@ -107,7 +104,7 @@ public class GoalMessagesManager {
 				updateMessage(currentEvent);
 				return;
 			}
-			if (!eventMessages.containsKey(currentEvent.getId())) {
+			if (!eventMessages.containsKey(currentEvent.getGoalId())) {
 				// Try to relink event that may be reposted
 				boolean isRelinked = relinkEventMessage(currentEvent);
 				if (isRelinked) {
@@ -122,7 +119,8 @@ public class GoalMessagesManager {
 
 		// Remove Messages that do not have a corresponding event in the game's data.
 		eventMessages.entrySet().removeIf(
-				entry -> goals.stream().noneMatch(currentEvent -> currentEvent.getId() == entry.getKey().intValue()));
+				entry -> goals.stream().noneMatch(
+						currentEvent -> currentEvent.getGoalId() == entry.getKey().intValue()));
 
 		updateCache(goals);
 	}
@@ -141,30 +139,21 @@ public class GoalMessagesManager {
 	}
 
 	void sendMessage(GoalEvent event) {
-		LOGGER.info("Sending message for event [" + event.getId() + "].");
-		if (event.getPeriodType() != PeriodType.SHOOTOUT && isSpam()) {
-			LOGGER.warn("Spam message avoided. eventId={}, periodType={}", event.getId(), event.getPeriodType());
-			eventMessages.put(event.getId(), Pair.with(event, null)); // Pretend to send the message
+		LOGGER.info("Sending message for event [" + event.getGoalId() + "].");
+		/*
+		if (isSpam()) {
+			LOGGER.warn("Spam message avoided. eventId={}", event.getGoalId());
+			eventMessages.put(event.getGoalId(), Pair.with(event, null)); // Pretend to send the message
 			return;
 		}
-
-		if (!isSpam()) {
-			// Custom Message - only send when outside the spam cooldown
-			String messageContent = CustomGoalMessages.getMessage(game.getScoringEvents(), event);
-			if (messageContent != null) {
-				Message customMessage = DiscordManager.sendAndGetMessage(channel, messageContent);
-				if (customMessage != null) {
-					updateLastMessageTime();
-				}
-			}
-		}
+		*/
 
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
 				.addEmbed(buildGoalMessageEmbed(this.game, event))
 				.build();
 		Message message = DiscordManager.sendAndGetMessage(channel, messageSpec);
 		if (message != null) {
-			eventMessages.put(event.getId(), Pair.with(event, message));
+			eventMessages.put(event.getGoalId(), Pair.with(event, message));
 			setMetaGoalMessageIds(eventMessages);
 			saveMetadata();
 			updateLastMessageTime();
@@ -181,17 +170,17 @@ public class GoalMessagesManager {
 	}
 
 	void updateMessage(GoalEvent event) {
-		LOGGER.info("Updating message for event [" + event.getId() + "].");
-		if (!eventMessages.containsKey(event.getId())) {
+		LOGGER.info("Updating message for event [" + event.getGoalId() + "].");
+		if (!eventMessages.containsKey(event.getGoalId())) {
 			LOGGER.warn("No message exists for the event: {}", event);
 		} else {
-			Message message = eventMessages.get(event.getId()).getValue1();
+			Message message = eventMessages.get(event.getGoalId()).getValue1();
 			if (message != null) {
 				MessageEditSpec messageSpec = MessageEditSpec.builder()
 						.addEmbed(buildGoalMessageEmbed(this.game, event))
 						.build();
 				DiscordManager.updateMessage(message, messageSpec);
-				eventMessages.put(event.getId(), Pair.with(event, message));
+				eventMessages.put(event.getGoalId(), Pair.with(event, message));
 			}
 		}
 	}
@@ -214,61 +203,49 @@ public class GoalMessagesManager {
 			return false;
 		}
 
-		boolean isRelink = false;
-		switch (event.getPeriodType()) {
-		case SHOOTOUT:
-			isRelink = eventMessage.getValue0().getScorerId() == event.getScorerId();
-		default:
-			isRelink = true;
-		}
-		if (isRelink) {
-			LOGGER.info("Relink message to new event [" + event.getId() + "].");
-			Message message = eventMessage.getValue1();
-			eventMessages.put(event.getId(), Pair.with(event, message));
-		}
-		return isRelink;
+		LOGGER.info("Relink message to new event [" + event.getGoalId() + "].");
+		Message message = eventMessage.getValue1();
+		eventMessages.put(event.getGoalId(), Pair.with(event, message));
+
+		return true;
 	}
 
 	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
-		if (game.getGameType().isFourNations()) {
-			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));
-		}
-		RosterPlayer scorer = game.getPlayer(event.getScorerId());
+		Player scorer = event.getGoalDetails().getScorer();
 		Color embedColor = scorer != null
-				? scorer.getTeam().getColor()
+				? event.getGoalDetails().getTeam().getColor()
 				: Color.WHITE;
-		String scorerName = scorer != null
-				? scorer.getFullName()
-				: "¯\\_(ツ)_/¯";
 
-		if (game.getGameType().isShootout(event.getPeriod())) {
-			return builder
-					.color(embedColor)
-					.addField(scorerName, "Shootout goal", false)
-					.footer("Shootout", null).build();
-		} else {
-			String teamName = game.getGameType().isFourNations() ? event.getTeam().getLocationName()
-					: event.getTeam().getFullName();
-			String description = teamName + " goal!";
-			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()
-					.map(game::getPlayer)
-					.collect(Collectors.toList());
-
-			String assists = assistPlayers.size() > 0
-					? " Assists: " + assistPlayers.get(0).getFullName()
-					: "(Unassisted)";
-
-			if (assistPlayers.size() > 1) {
-				assists += ", " + assistPlayers.get(1).getFullName();
-			}
-			String fAssists = assists;
-			String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
-			return builder.description(description)
-					.color(embedColor)
-					.addField(scorerName, fAssists, false)
-					.footer(time, null).build();
+		String description = event.getGoalDetails().getTeam().getLocationName();
+		if (event.getGoalDetails().isEmptyNet()) {
+			description += " empty-net";
 		}
+		if (event.getGoalDetails().isPenaltyShot()) {
+			description += " penalty-shot";
+		}
+		if (event.getGoalDetails().isPowerPlay()) {
+			description += " power-play";
+		}
+		if (event.getGoalDetails().isShortHanded()) {
+			description += " short-handed";
+		}
+
+		description += " goal!";
+		List<Player> assistPlayers = event.getGoalDetails().getAssists();
+
+		String assists = assistPlayers.size() > 0
+				? " Assists: " + assistPlayers.get(0).getFullName()
+				: "(Unassisted)";
+		if (assistPlayers.size() > 1) {
+			assists += ", " + assistPlayers.get(1).getFullName();
+		}
+		String fAssists = assists;
+		String time = event.getGoalDetails().getPeriodLongName() + " @ " + event.getGoalDetails().getTime();
+		return builder.description(description)
+				.color(embedColor)
+				.addField(scorer.getFullName(), fAssists, false)
+				.footer(time, null).build();
 	}
 
 	public void updateLastMessageTime() {

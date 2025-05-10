@@ -65,7 +65,7 @@ public class HelpCommand extends Command {
 
 	public static final String COMMAND_LIST = "Here are a list of commands:\n\n"
 			+ "You can use the commands by doing slash commands integrated with Discord.\n"
-			+ "```\n" 
+			+ "\n"
 			+ "Setup\n"
 			+ "  Creates/Removes game day channels for teams subscribed to. Team option should be provided with the three letter code of your team.\n\n"
 			+ "  `subscribe team:`   - Subscribes you to a team.\n"
@@ -77,7 +77,7 @@ public class HelpCommand extends Command {
 			+ "General\n"
 			+ "  `schedule`          - Displays information about the most recent and coming up games of your subscribed teams.\n"
 			+ "  `about`             - Displays information about me."
-			+ "Join the support/demo server for help! https://discord.gg/vFV6DHcz";
+			+ "Join the support/demo server for help! https://discord.gg/VVHe6d3";
 
 	static final String TEAMS_MESSAGE = "Here are your teams:\n" + listOfTeams();
 

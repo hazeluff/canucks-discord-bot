@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.ahl.game.Game;
 import com.hazeluff.ahl.game.event.GoalEvent;
-import com.hazeluff.ahl.game.event.PenaltyEvent;
 import com.hazeluff.ahl.game.event.Player;
 import com.hazeluff.discord.ahl.AHLGameTracker;
 import com.hazeluff.discord.bot.NHLBot;
@@ -20,8 +19,6 @@ import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
-import com.hazeluff.discord.bot.gdc.nhl.GoalMessagesManager;
-import com.hazeluff.discord.bot.gdc.nhl.PenaltyMessagesManager;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -44,6 +41,7 @@ public class AHLGameDayThread extends GameDayThread {
 	// Message Managers
 	protected final GoalMessagesManager goalMessages;
 	protected final PenaltyMessagesManager penaltyMessages;
+	protected final ShootoutMessagesManager shootoutMessages;
 
 	private AHLGameDayThread(NHLBot nhlBot, AHLGameTracker gameTracker, Guild guild, TextChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
@@ -53,6 +51,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 		this.goalMessages = new GoalMessagesManager(nhlBot, game, channel, meta);
 		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
+		this.shootoutMessages = new ShootoutMessagesManager(nhlBot, game, channel);
 	}
 
 	protected String buildGameScore(Game game) {
@@ -75,6 +74,9 @@ public class AHLGameDayThread extends GameDayThread {
 		}
 		AHLGameDayThread gdt = new AHLGameDayThread(nhlBot, gameTracker, guild,
 				textChannel, preferences, meta);
+
+		// gdt.updateMessages(); // Uncomment to force messages to be sent (for testing)
+
 		if (gdt.channel != null) {
 			gdt.start();
 		} else {
@@ -123,10 +125,9 @@ public class AHLGameDayThread extends GameDayThread {
 
 	protected void updateMessages() {
 		try {
-			List<GoalEvent> goalEvents = game.getGoalEvents();
-			List<PenaltyEvent> penaltyEvents = game.getPenaltyEvents();
-			goalMessages.updateMessages(goalEvents);
-			penaltyMessages.updateMessages(penaltyEvents);
+			goalMessages.updateMessages(game.getGoalEvents());
+			penaltyMessages.updateMessages(game.getPenaltyEvents());
+			shootoutMessages.updateMessages(game.getShootoutEvents());
 		} catch (Exception e) {
 			LOGGER().error("Exception occured while updating messages.", e);
 		}
@@ -165,7 +166,8 @@ public class AHLGameDayThread extends GameDayThread {
 		// Load Penalty Messages
 		this.penaltyMessages.initEventMessages(meta.getPenaltyMessageIds());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
-
+		// Load Shootout Messages
+		this.shootoutMessages.initEvents(game.getShootoutEvents());
 		saveMetadata();
 	}
 
@@ -227,6 +229,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+		embedBuilder.addField(getMatchupName(), game.getNiceDate(), false);
 		appendScoreToEmbed(embedBuilder);
 		appendGoalsToEmbed(embedBuilder);
 		return embedBuilder.build();
@@ -271,7 +274,7 @@ public class AHLGameDayThread extends GameDayThread {
 			}
 			String strGoals = ""; // Field Body
 			int fPeriod = period;
-			Predicate<GoalEvent> isPeriod = gameEvent -> gameEvent.getGoalDetails().getPeriod() <= 3;
+			Predicate<GoalEvent> isPeriod = gameEvent -> gameEvent.getGoalDetails().getPeriod() == fPeriod;
 			if (goals.stream().anyMatch(isPeriod)) {
 				List<String> strPeriodGoals = goals.stream()
 						.filter(isPeriod)
@@ -326,7 +329,7 @@ public class AHLGameDayThread extends GameDayThread {
 		);
 		boolean isAnyDetails = specialDetails.stream().anyMatch(detail -> (boolean) detail[0]);
 		if (isAnyDetails) {
-			details.append("(");
+			details.append(" (");
 			boolean isFirstMatch = true;
 			for (Object[] detail : specialDetails) {
 				if ((boolean) detail[0]) {

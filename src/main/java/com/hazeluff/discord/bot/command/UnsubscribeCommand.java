@@ -11,9 +11,11 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
+import discord4j.core.object.entity.Message;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import reactor.core.publisher.Mono;
 
 /**
  * Unsubscribes guilds from a team.
@@ -55,7 +57,7 @@ public class UnsubscribeCommand extends Command {
 
 		if (strTeam.equalsIgnoreCase("all")) {
 			// Unsubscribe from all teams
-			return replyAndDefer(event, "Unsubscribing...", () -> buildUnsubscribeAllFollowUp(event, guild));
+			return unsubscibeAllAndReply(event, guild);
 		}
 
 		if (!Team.isValid(strTeam)) {
@@ -66,18 +68,32 @@ public class UnsubscribeCommand extends Command {
 		if (!team.isNHLTeam()) {
 			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
 		}
-		return replyAndDefer(event, "Unsubscribing...", () -> buildUnsubscribeFollowUp(event, guild, team));
+		return unsubscibeAndReply(event, guild, team);
+	}
+
+	Mono<Message> unsubscibeAllAndReply(ChatInputInteractionEvent event, Guild guild) {
+		return replyAndDefer(event,
+				"Unsubscribing...",
+				() -> unsubscribeGuild(guild, null),
+				() -> buildUnsubscribeAllFollowUp(event, guild)
+		);
+	}
+
+	Mono<Message> unsubscibeAndReply(ChatInputInteractionEvent event, Guild guild, Team team) {
+		return replyAndDefer(event,
+				"Unsubscribing...",
+				() -> unsubscribeGuild(guild, team),
+				() -> buildUnsubscribeFollowUp(event, guild, team)
+		);
 	}
 
 	InteractionFollowupCreateSpec buildUnsubscribeAllFollowUp(ChatInputInteractionEvent event, Guild guild) {
-		unsubscribeGuild(guild, null);
 		return InteractionFollowupCreateSpec.builder()
 				.content(UNSUBSCRIBED_FROM_ALL_MESSAGE)
 				.build();
 	}
 
 	InteractionFollowupCreateSpec buildUnsubscribeFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
-		unsubscribeGuild(guild, team);
 		return InteractionFollowupCreateSpec.builder()
 				.content(buildUnsubscribeMessage(team))
 				.build();

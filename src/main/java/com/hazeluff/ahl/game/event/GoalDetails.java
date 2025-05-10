@@ -1,5 +1,6 @@
 package com.hazeluff.ahl.game.event;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -47,6 +48,18 @@ public class GoalDetails {
 
 	public List<Player> getAssists() {
 		return jsonDetails.getArray("assists").stream().map(BsonValue::asDocument).map(Player::parse)
+				.collect(Collectors.toList());
+	}
+
+	public List<Player> getPlayers() {
+		List<Player> players = Arrays.asList(getScorer());
+		players.addAll(getAssists());
+		return players;
+	}
+
+	public List<Integer> getPlayerIds() {
+		return getPlayers().stream()
+				.map(Player::getId)
 				.collect(Collectors.toList());
 	}
 

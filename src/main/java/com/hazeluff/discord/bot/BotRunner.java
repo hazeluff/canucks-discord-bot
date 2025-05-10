@@ -33,8 +33,10 @@ public class BotRunner {
 		if (Config.Debug.isLoadGames()) {
 			LOGGER.info("Loading the games...");
 			nhlGameScheduler.start();
+			ahlGameScheduler.start();
 		} else {
 			nhlGameScheduler.setInit(true);
+			ahlGameScheduler.setInit(true);
 		}
 
 		while (!nhlGameScheduler.isInit() && !ahlGameScheduler.isInit()) {

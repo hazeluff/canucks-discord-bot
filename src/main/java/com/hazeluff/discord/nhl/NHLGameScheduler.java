@@ -445,7 +445,7 @@ public class NHLGameScheduler extends Thread {
 		return getNearestGames(getPastGames(team), numGames);
 	}
 
-	private Game getLastGame(List<Game> games) {
+	private static Game getLastGame(List<Game> games) {
 		if (games.isEmpty()) {
 			return null;
 		}
@@ -469,7 +469,7 @@ public class NHLGameScheduler extends Thread {
 
 	}
 
-	public Game getCurrentLiveGame(Stream<Game> gameStream, Team team) {
+	public static Game getCurrentLiveGame(Stream<Game> gameStream, Team team) {
 		return gameStream
 				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> game.getGameState().isLive())

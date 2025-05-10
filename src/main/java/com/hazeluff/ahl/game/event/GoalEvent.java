@@ -15,6 +15,30 @@ public class GoalEvent extends GameEvent {
 		return GoalDetails.parse(getDetails());
 	}
 
+	public int getGoalId() {
+		return getGoalDetails().getGoalId();
+	}
+
+	public boolean isSameTime(GoalEvent event) {
+		return getGoalDetails().getPeriod() == event.getGoalDetails().getPeriod()
+				&& getGoalDetails().getTime().equals(event.getGoalDetails().getTime());
+	}
+
+	public boolean isUpdated(GoalEvent newEvent) {
+		GoalDetails cachedDetails = getGoalDetails();
+		GoalDetails newDetails = newEvent.getGoalDetails();
+
+		boolean isSpecialDetailDiff = cachedDetails.isEmptyNet() != newDetails.isEmptyNet()
+				|| cachedDetails.isGameWinningGoal() != newDetails.isGameWinningGoal()
+				|| cachedDetails.isPenaltyShot() != newDetails.isPenaltyShot()
+				|| cachedDetails.isPowerPlay() != newDetails.isPowerPlay()
+				|| cachedDetails.isShortHanded() != newDetails.isShortHanded();
+
+		boolean isPlayersDiff = !cachedDetails.getPlayerIds().equals(newDetails.getPlayerIds());
+
+		return isSpecialDetailDiff || isPlayersDiff;
+	}
+
 	@Override
 	public String toString() {
 		return String.format("GoalEvent [getGoalDetails()=%s, getType()=%s]", getGoalDetails(), getType());

@@ -19,6 +19,13 @@ public class ShootoutEvent extends GameEvent {
 		return getDetails().getBoolean("isGoal").getValue();
 	}
 
+	public boolean isUpdated(ShootoutEvent newEvent) {
+		boolean isShooterDiff = getShooter().getId() != newEvent.getShooter().getId();
+		boolean isGoalDiff = isGoal() != newEvent.isGoal();
+
+		return isShooterDiff || isGoalDiff;
+	}
+
 	@Override
 	public String toString() {
 		return String.format("ShootoutEvent [getTeam()=%s, getShooter()=%s, isGoal()=%s]", 

@@ -27,6 +27,10 @@ public class PenaltyEvent extends GameEvent {
 		return Integer.valueOf(getDetails().getString("game_penalty_id").getValue());
 	}
 
+	public String getDescription() {
+		return getDetails().getString("description").getValue();
+	}
+
 	public int getDuration() {
 		return (int) (float) Float.valueOf(getDetails().getString("minutes").getValue());
 	}
@@ -42,13 +46,29 @@ public class PenaltyEvent extends GameEvent {
 		return Player.parse(getDetails().getDocument("servedBy"));
 	}
 
+	public boolean isBenchPenalty() {
+		return getDetails().getBoolean("isBench").getValue();
+	}
+
+	public boolean isPowerPlayAwarded() {
+		return getDetails().getBoolean("isPowerPlay").getValue();
+	}
+
+	public boolean isUpdated(PenaltyEvent event) {
+		return !getDescription().equals(event.getDescription()) 
+				|| !getTeam().equals(event.getTeam())
+				|| getTakenBy().getId() != event.getTakenBy().getId()
+				|| getServedBy().getId() != event.getServedBy().getId()
+				|| getDuration() != event.getDuration();
+	}
+
 	@Override
 	public String toString() {
 		return String.format(
 				"PenaltyEvent [getTeam()=%s, getPeriod()=%s, getPeriodLongName()=%s, getTime()=%s, getPenaltyId()=%s,"
-						+ " getDuration()=%s, getTakenBy()=%s, getServedBy()=%s]",
-				getTeam(), getPeriod(), getPeriodLongName(), getTime(), getPenaltyId(), getDuration(), getTakenBy(),
-				getServedBy()
+						+ "getDescription()=%s, getDuration()=%s, getTakenBy()=%s, getServedBy()=%s]",
+				getTeam(), getPeriod(), getPeriodLongName(), getTime(), getPenaltyId(), getDescription(), getDuration(),
+				getTakenBy(), getServedBy()
 		);
 	}
 

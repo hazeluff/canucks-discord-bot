@@ -25,7 +25,8 @@ import discord4j.core.object.entity.channel.TextChannel;
 public class AHLWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AHLWatchChannel.class);
 
-	public static final String CHANNEL_NAME = "abby-canucks";
+	private static final Team TEAM = Team.ABBY_NUCKS;
+	public static final String CHANNEL_NAME = "abby-playoffs";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
@@ -37,13 +38,16 @@ public class AHLWatchChannel extends Thread {
 	private final TextChannel channel;
 
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
-	private final Map<Integer, AHLGameDayThread> gameDayThreads;
+	private final Map<Integer, AHLGameDayThread> regularGameDayThreads;
+	// Map<GuildId, Map<GamePk, GameDayChannel>>
+	private final Map<Integer, AHLGameDayThread> playoffGameDayThreads;
 
 	AHLWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
 		this.channel = channel;
-		this.gameDayThreads = new ConcurrentHashMap<>();
+		this.regularGameDayThreads = new ConcurrentHashMap<>();
+		this.playoffGameDayThreads = new ConcurrentHashMap<>();
 	}
 
 	public static AHLWatchChannel createChannel(NHLBot nhlBot, Guild guild) {
@@ -95,7 +99,7 @@ public class AHLWatchChannel extends Thread {
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channels...");
 					try {
-						updateChannel();
+						updateGameThreads();
 					} catch (Exception e) {
 						LOGGER.warn("Failed to update channel.", e);
 					}
@@ -110,32 +114,75 @@ public class AHLWatchChannel extends Thread {
 		}
 	}
 
-	void updateChannel() {
-		List<Game> activeGames = nhlBot.getAHLGameScheduler().getActiveGames(Team.ABBY_NUCKS);
+	void updateGameThreads() {
+		updateRegularGameThreads();
+		updatePlayoffGameThreads();
+	}
+
+	private void updateRegularGameThreads() {
+		List<Game> activeGames = nhlBot.getAHLGameScheduler().getActiveGames(TEAM);
+		if (!nhlBot.getAHLGameScheduler().getActivePlayoffGames(TEAM).isEmpty() && activeGames.size() == 1) {
+			// No current/future game. (only past game)
+			activeGames.clear(); // Treat the past game as non-active, so it is removed as inactive
+		}
 		for (Game game : activeGames) {
 			int gamePk = game.getId();
 			AHLGameTracker gameTracker = nhlBot.getAHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
-				if (!gameDayThreads.containsKey(gamePk)) {
+				if (!regularGameDayThreads.containsKey(gamePk)) {
 					AHLGameDayThread gdt = AHLGameDayThread.get(nhlBot, channel, gameTracker, guild);
-					gameDayThreads.put(gamePk, gdt);
+					regularGameDayThreads.put(gamePk, gdt);
 				}
 			}
 		}
-		
-		List<Game> inactiveGames = nhlBot.getAHLGameScheduler().getGames(Team.ABBY_NUCKS).stream()
+		List<Game> inactiveGames = nhlBot.getAHLGameScheduler().getRegularGames(TEAM).stream()
 				.filter(game -> !activeGames.contains(game))
 				.collect(Collectors.toList());
 		for (Game inactiveGame : inactiveGames) {
 			int gameId = inactiveGame.getId();
-			if (gameDayThreads.containsKey(gameId)) {
-				AHLGameDayThread gdt = gameDayThreads.remove(gameId);
+			if (regularGameDayThreads.containsKey(gameId)) {
+				AHLGameDayThread gdt = regularGameDayThreads.remove(gameId);
 				gdt.unpinSummaryMessage();
 			} else {
 				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
 					channel.getId().asLong(),
 						inactiveGame.getId()
 				);
+				if (meta != null) {
+					Long messageId = meta.getSummaryMessageId();
+					if (messageId != null) {
+						Message message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+						if (message != null) {
+							DiscordManager.unpinMessage(message);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void updatePlayoffGameThreads() {
+		List<Game> activeGames = nhlBot.getAHLGameScheduler().getActivePlayoffGames(TEAM);
+		for (Game game : activeGames) {
+			int gamePk = game.getId();
+			AHLGameTracker gameTracker = nhlBot.getAHLGameScheduler().getGameTracker(game);
+			if (gameTracker != null) {
+				if (!playoffGameDayThreads.containsKey(gamePk)) {
+					AHLGameDayThread gdt = AHLGameDayThread.get(nhlBot, channel, gameTracker, guild);
+					playoffGameDayThreads.put(gamePk, gdt);
+				}
+			}
+		}
+		List<Game> inactiveGames = nhlBot.getAHLGameScheduler().getPlayoffGames(TEAM).stream()
+				.filter(game -> !activeGames.contains(game)).collect(Collectors.toList());
+		for (Game inactiveGame : inactiveGames) {
+			int gameId = inactiveGame.getId();
+			if (playoffGameDayThreads.containsKey(gameId)) {
+				AHLGameDayThread gdt = playoffGameDayThreads.remove(gameId);
+				gdt.unpinSummaryMessage();
+			} else {
+				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(channel.getId().asLong(),
+						inactiveGame.getId());
 				if (meta != null) {
 					Long messageId = meta.getSummaryMessageId();
 					if (messageId != null) {

@@ -148,7 +148,9 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		String strMessage = buildIntroMessage();
 		MessageEditSpec messageSpec = MessageEditSpec.builder()
 				.content(Possible.of(java.util.Optional.ofNullable(strMessage))).build();
-		DiscordManager.updateMessage(introMessage, messageSpec);
+		if (introMessage != null) {
+			DiscordManager.updateMessage(introMessage, messageSpec);
+		}
 	}
 
 	private String buildIntroMessage() {

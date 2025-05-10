@@ -96,9 +96,8 @@ public class AHLGameTracker extends Thread implements GameTracker {
 
 	@Override
 	public void run() {
+		updateGame();
 		try {
-			updateGame();
-
 			if (!game.isFinished()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");

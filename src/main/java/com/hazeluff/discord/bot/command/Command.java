@@ -296,11 +296,24 @@ public abstract class Command extends ReactiveEventAdapter {
 		return builder.build();
 	}
 
-	public static Mono<Message> replyAndDefer(ChatInputInteractionEvent event, String initialReply,
+	public static Mono<Message> replyAndDefer(
+			ChatInputInteractionEvent event,
+			String initialReply,
+			Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
+		return replyAndDefer(event, initialReply, () -> {}, defferedReplySupplier);
+	}
+
+	public static Mono<Message> replyAndDefer(
+			ChatInputInteractionEvent event,
+			String initialReply,
+			Runnable defferedAction,
 			Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
 		return event
 				.reply(buildReplySpec(initialReply, null, true))
-				.then(createSlowFollowUp(event, defferedReplySupplier));
+				.then(Mono.defer(() -> {
+					defferedAction.run();
+					return createSlowFollowUp(event, defferedReplySupplier);
+				}));
 	}
 
 	/**

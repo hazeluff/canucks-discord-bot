@@ -18,6 +18,7 @@ import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.fournations.FourNationsChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.bot.gdc.nhl.PlayoffWatchChannel;
@@ -136,6 +137,8 @@ public class NHLBot extends Thread {
 
 		// (Special) Create Four Nations Channel
 		// initFourNationsChannel();
+
+		initAHLWatchChannel();
 
 		// (Special) Create Playoff watch Channel
 		initPlayoffWatchChannel();
@@ -259,6 +262,13 @@ public class NHLBot extends Thread {
 		getDiscordManager().getClient()
 			.getGuilds()
 			.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
+	}
+
+	private void initAHLWatchChannel() {
+		LOGGER.info("Updating 'Four Nations' channels.");
+		getDiscordManager().getClient()
+			.getGuilds()
+			.subscribe(guild -> AHLWatchChannel.createChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {

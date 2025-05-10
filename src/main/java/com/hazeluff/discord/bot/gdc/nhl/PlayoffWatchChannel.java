@@ -86,7 +86,6 @@ public class PlayoffWatchChannel extends Thread {
 
 	@Override
 	public void run() {
-
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
 			try {

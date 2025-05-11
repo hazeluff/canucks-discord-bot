@@ -1,14 +1,25 @@
 package com.hazeluff.discord.utils;
 
+import com.hazeluff.discord.ahl.AHLTeams.Team;
+
 public class HazeluffUtils {
 
 	public static void main(String[] argv) {
 		com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler = new com.hazeluff.discord.ahl.AHLGameScheduler();
 		ahlGameScheduler.start();
+
 		while (!ahlGameScheduler.isInit()) {
-			System.out.println("Waiting for AHL GameScheduler...");
+			if (!ahlGameScheduler.isInit()) {
+				System.out.println("Waiting for AHL GameScheduler...");
+			}
 			Utils.sleep(10000);
 		}
-		System.out.println(ahlGameScheduler.getGames().size());
+
+		System.out.println("Act## " + ahlGameScheduler.getActiveGames(Team.ABBY_NUCKS));
+		System.out.println("");
+		System.out.println("Fut## " + ahlGameScheduler.getFutureGames(Team.ABBY_NUCKS));
+		System.out.println("");
+		System.out.println("Past## " + ahlGameScheduler.getPastGames(Team.ABBY_NUCKS));
+		ahlGameScheduler.interrupt();
 	}
 }

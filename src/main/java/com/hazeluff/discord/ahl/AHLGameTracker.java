@@ -212,14 +212,18 @@ public class AHLGameTracker extends Thread implements GameTracker {
 
 	@Override
 	public boolean isGameFinished() {
-		// TODO Auto-generated method stub
-		return false;
+		if (game.getStartTime() == null) {
+			return false;
+		}
+		return game.isFinished();
 	}
 
 	@Override
 	public boolean isGameStarted() {
-		// TODO Auto-generated method stub
-		return false;
+		if (game.getStartTime() == null) {
+			return false;
+		}
+		return game.isStarted();
 	}
 
 	/**

@@ -101,7 +101,7 @@ public class NHLGameDayChannel extends NHLGameDayThread {
 	 */
 	@Override
 	protected void initChannel() {
-		super.initChannel();
+		loadMetadata();
 		initIntroMessage();
 		initSummaryMessage();
 		updateSummaryMessage();

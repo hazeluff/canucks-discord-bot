@@ -56,6 +56,7 @@ public class PlayoffWatchGameDayThread extends NHLGameDayChannel {
 
 	@Override
 	protected void initChannel() {
+		loadMetadata();
 		initSummaryMessage();
 		updateSummaryMessage();
 	}

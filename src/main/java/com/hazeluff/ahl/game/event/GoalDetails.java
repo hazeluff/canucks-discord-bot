@@ -1,6 +1,6 @@
 package com.hazeluff.ahl.game.event;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +52,8 @@ public class GoalDetails {
 	}
 
 	public List<Player> getPlayers() {
-		List<Player> players = Arrays.asList(getScorer());
+		List<Player> players = new ArrayList<>();
+		players.add(getScorer());
 		players.addAll(getAssists());
 		return players;
 	}

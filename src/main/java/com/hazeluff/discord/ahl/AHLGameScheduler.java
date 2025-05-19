@@ -1,7 +1,6 @@
 package com.hazeluff.discord.ahl;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -252,11 +251,12 @@ public class AHLGameScheduler extends Thread {
 	 * Removes finished trackers, and starts trackers for active games.
 	 */
 	void updateTrackers() {
-		removeInactiveRegularGames();
+		removeInactiveGames();
 		createRegularGameTrackers();
+		createPlayoffGameTrackers();
 	}
 
-	public void removeInactiveRegularGames() {
+	public void removeInactiveGames() {
 		LOGGER.info("Removing finished NHL trackers.");
 		activeGameTrackers.entrySet().removeIf(map -> {
 			AHLGameTracker gameTracker = map.getValue();
@@ -276,9 +276,18 @@ public class AHLGameScheduler extends Thread {
 	}
 
 	public void createRegularGameTrackers() {
-		LOGGER.info("Starting new trackers for NHL games.");
+		LOGGER.info("Starting new trackers for regular games.");
 		for (Team team : AHLTeams.getSortedValues()) {
 			getActiveGames(team).forEach(activeGame -> {
+				createGameTracker(activeGame);
+			});
+		}
+	}
+
+	public void createPlayoffGameTrackers() {
+		LOGGER.info("Starting new trackers for playoff games.");
+		for (Team team : AHLTeams.getSortedValues()) {
+			getActivePlayoffGames(team).forEach(activeGame -> {
 				createGameTracker(activeGame);
 			});
 		}

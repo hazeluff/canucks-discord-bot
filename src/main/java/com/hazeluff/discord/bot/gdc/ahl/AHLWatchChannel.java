@@ -92,7 +92,7 @@ public class AHLWatchChannel extends Thread {
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
 			try {
-				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
+				LocalDate schedulerUpdate = nhlBot.getAHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
 					Utils.sleep(INIT_UPDATE_RATE);

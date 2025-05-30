@@ -1,5 +1,6 @@
 package com.hazeluff.discord.bot.gdc.ahl;
 
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
+import com.hazeluff.discord.utils.DateUtils;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -92,11 +94,16 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected long timeUntilGame() {
-		return 0;
+		ZonedDateTime startTime = game.getStartTime();
+		if (startTime == null) {
+			return Long.MAX_VALUE;
+		}
+		return DateUtils.diffMs(ZonedDateTime.now(), startTime);
 	}
 
 	@Override
 	protected void initChannel() {
+		loadMetadata();
 		initSummaryMessage();
 		updateSummaryMessage();
 	}

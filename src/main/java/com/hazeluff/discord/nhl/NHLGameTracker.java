@@ -39,7 +39,7 @@ public class NHLGameTracker extends Thread implements GameTracker {
 	// Time before game to poll faster
 	static final long CLOSE_TO_START_THRESHOLD_MS = 300000l;
 	// Time after game is final to continue updates
-	static final long POST_GAME_UPDATE_DURATION = 300000l;
+	static final long POST_GAME_UPDATE_DURATION = 60000l;
 
 	private static Map<Game, NHLGameTracker> gameTrackers = new ConcurrentHashMap<>();
 

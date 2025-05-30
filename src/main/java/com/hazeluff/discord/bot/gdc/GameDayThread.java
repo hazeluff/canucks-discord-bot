@@ -44,8 +44,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	protected static final long ACTIVE_POLL_RATE_MS = 10000l;
 	// Time before game to poll faster
 	static final long CLOSE_TO_START_THRESHOLD_MS = 300000l;
-	// Time after game is final to continue updates
-	static final long POST_GAME_UPDATE_DURATION = 60000l;
 
 	protected final NHLBot nhlBot;
 	

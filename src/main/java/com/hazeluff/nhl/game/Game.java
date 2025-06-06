@@ -1,6 +1,8 @@
 package com.hazeluff.nhl.game;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,11 +15,12 @@ import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
-import com.hazeluff.nhl.Team;
-import com.hazeluff.nhl.event.GameEvent;
-import com.hazeluff.nhl.event.GoalEvent;
-import com.hazeluff.nhl.event.PenaltyEvent;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.nhl.game.event.EventType;
+import com.hazeluff.nhl.game.event.GameEvent;
+import com.hazeluff.nhl.game.event.GoalEvent;
+import com.hazeluff.nhl.game.event.PenaltyEvent;
 
 
 public class Game {
@@ -69,6 +72,23 @@ public class Game {
 
 	public ZonedDateTime getStartTime() {
 		return scheduleData.getStartTime();
+	}
+
+	/**
+	 * Gets the date in the format "EEEE dd MMM yyyy"
+	 * 
+	 * @param game
+	 *            game to get the date for
+	 * @param zone
+	 *            time zone to convert the time to
+	 * @return the date in the format "EEEE dd MMM yyyy"
+	 */
+	public String getNiceDate(ZoneId zone) {
+		return getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
+	}
+
+	public String getStartTime(ZoneId zone) {
+		return getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("H:mm z"));
 	}
 
 	public int getGameId() {
@@ -321,7 +341,8 @@ public class Game {
 
 	@Override
 	public String toString() {
-		return "Game [name()=" + GameDayChannel.buildChannelName(this) + ", getGameState()=" + getGameState() + "]";
+		return "Game [name()=" + NHLGameDayChannelsManager.buildChannelName(this) + ", getGameState()=" + getGameState()
+				+ "]";
 	}
 
 }

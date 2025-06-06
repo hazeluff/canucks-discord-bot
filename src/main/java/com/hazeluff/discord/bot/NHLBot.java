@@ -16,10 +16,10 @@ import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.GameDayChannelsManager;
-import com.hazeluff.discord.bot.gdc.fournations.FourNationsChannel;
-import com.hazeluff.discord.bot.gdc.playoff.PlayoffWatchChannel;
-import com.hazeluff.discord.nhl.GameScheduler;
+import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
+import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsChannel;
+import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
 import com.hazeluff.discord.utils.Utils;
 
 import discord4j.core.DiscordClient;
@@ -40,31 +40,37 @@ public class NHLBot extends Thread {
 	private AtomicReference<DiscordManager> discordManager = new AtomicReference<>();
 	private PresenceManager presenceManager;
 	private PersistentData persistantData;
-	private GameScheduler gameScheduler;
-	private GameDayChannelsManager gameDayChannelsManager;
+	private com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler;
+	private com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler;
+	private NHLGameDayChannelsManager gameDayChannelsManager;
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 	
 	private NHLBot() {
 		presenceManager = new PresenceManager(this);
 		persistantData = null;
-		gameScheduler = null;
+		nhlGameScheduler = null;
 		gameDayChannelsManager = null;
 	}
 
 	/**
 	 * 
-	 * @param gameScheduler
+	 * @param nhlGameScheduler
 	 *            null - to run only scripts
 	 * @param botToken
 	 * @return
 	 */
-	public static NHLBot create(GameScheduler gameScheduler, String botToken) {
+	public static NHLBot create(
+			com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler,
+			com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler,
+			
+			String botToken) {
 		LOGGER.info("Creating " + Config.APPLICATION_NAME + " v" + Config.VERSION);
 		Thread.currentThread().setName(Config.APPLICATION_NAME);
 
 		NHLBot nhlBot = new NHLBot();
-		nhlBot.gameScheduler = gameScheduler;
+		nhlBot.nhlGameScheduler = nhlGameScheduler;
+		nhlBot.ahlGameScheduler = ahlGameScheduler;
 
 		// Init Discord Client
 		nhlBot.initDiscord(botToken);
@@ -117,6 +123,8 @@ public class NHLBot extends Thread {
 		// (Special) Create Four Nations Channel
 		// initFourNationsChannel();
 
+		initAHLWatchChannel();
+
 		// (Special) Create Playoff watch Channel
 		initPlayoffWatchChannel();
 
@@ -135,7 +143,7 @@ public class NHLBot extends Thread {
 	void initGameDayChannelsManager() {
 		if (Config.Debug.isLoadGames()) {
 			LOGGER.info("Initializing GameDayChannelsManager.");
-			this.gameDayChannelsManager = new GameDayChannelsManager(this);
+			this.gameDayChannelsManager = new NHLGameDayChannelsManager(this);
 			gameDayChannelsManager.start();
 		} else {
 			LOGGER.warn("Skipping Initialization of GameDayChannelsManager");
@@ -239,6 +247,13 @@ public class NHLBot extends Thread {
 				.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
 	}
 
+	private void initAHLWatchChannel() {
+		LOGGER.info("Updating 'Four Nations' channels.");
+		getDiscordManager().getClient()
+			.getGuilds()
+			.subscribe(guild -> AHLWatchChannel.createChannel(this, guild));
+	}
+
 	public PersistentData getPersistentData() {
 		return persistantData;
 	}
@@ -247,11 +262,15 @@ public class NHLBot extends Thread {
 		return discordManager.get();
 	}
 
-	public GameScheduler getGameScheduler() {
-		return gameScheduler;
+	public com.hazeluff.discord.nhl.NHLGameScheduler getNHLGameScheduler() {
+		return nhlGameScheduler;
 	}
 
-	public GameDayChannelsManager getGameDayChannelsManager() {
+	public com.hazeluff.discord.ahl.AHLGameScheduler getAHLGameScheduler() {
+		return ahlGameScheduler;
+	}
+
+	public NHLGameDayChannelsManager getGameDayChannelsManager() {
 		return gameDayChannelsManager;
 	}
 

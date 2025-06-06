@@ -7,12 +7,12 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.nhl.NHLGateway;
-import com.hazeluff.discord.nhl.Seasons.Season;
-import com.hazeluff.discord.nhl.stats.GoalieStats;
-import com.hazeluff.discord.nhl.stats.TeamPlayerStats;
+import com.hazeluff.discord.nhl.NHLSeasons.Season;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DiscordUtils;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.NHLGateway;
+import com.hazeluff.nhl.stats.GoalieStats;
+import com.hazeluff.nhl.stats.TeamPlayerStats;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 
@@ -46,7 +46,7 @@ public class NHLGoalieStatsCommand extends NHLStatsSubCommand {
 
 		Long startYear = DiscordUtils.getOptionAsLong(event, "season");
 		Season season = getSeason(startYear);
-		if (season.getStartYear() > Config.CURRENT_SEASON.getStartYear() || season.getStartYear() < 1917) {
+		if (season.getStartYear() > Config.NHL_CURRENT_SEASON.getStartYear() || season.getStartYear() < 1917) {
 			return Command.reply(event, "Season is out of range.");
 		}
 

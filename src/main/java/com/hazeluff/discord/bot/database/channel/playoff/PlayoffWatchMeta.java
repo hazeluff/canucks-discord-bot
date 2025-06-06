@@ -50,7 +50,7 @@ public class PlayoffWatchMeta {
 
 	void saveToCollection(MongoCollection<Document> collection) {
 		collection.updateOne(
-				new Document(CHANNEL_ID_KEY, channelId),
+			new Document(CHANNEL_ID_KEY, channelId),
 			new Document("$set", new Document()
 				.append(SUMMARY_MESSAGE_ID_KEY, summaryMessageId)
 			),

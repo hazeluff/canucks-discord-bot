@@ -21,7 +21,6 @@ import discord4j.core.spec.TextChannelCreateSpec;
 import discord4j.core.spec.TextChannelEditSpec;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 /**
  * Provides methods that interface with Discord. The methods provide error handling.
@@ -472,20 +471,17 @@ public class DiscordManager {
 
 	public static <T> T block(Mono<T> mono) {
 		return mono.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(10)))
 				.blockOptional()
 				.orElseGet(() -> null);
 	}
 
 	public static <T> void subscribe(Mono<T> mono) {
 		mono.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(20)))
 				.subscribe();
 	}
 
 	public static <T> List<T> block(Flux<T> flux) {
 		return flux.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(10)))
 				.collectList()
 				.blockOptional()
 				.orElseGet(() -> null);
@@ -493,7 +489,6 @@ public class DiscordManager {
 
 	public static <T> void subscribe(Flux<T> flux) {
 		flux.onErrorResume(DiscordManager::handleError)
-				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(20)))
 				.subscribe();
 	}
 

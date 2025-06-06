@@ -7,9 +7,7 @@ import java.util.stream.Collectors;
 import org.bson.BsonDocument;
 import org.bson.BsonInt64;
 import org.bson.Document;
-import org.javatuples.Pair;
 
-import com.hazeluff.nhl.event.GoalEvent;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
 
@@ -126,12 +124,17 @@ public class GDCMeta {
 						e -> e.getValue().asInt64().getValue()));
 	}
 
-	public void setGoalMessageIds(Map<Integer, Pair<GoalEvent, Message>> goalMessages) {
+	/**
+	 * Set the message ids with Map<GoalId, MessageId>
+	 * 
+	 * @param goalMessages
+	 */
+	public void setGoalMessageIds(Map<Integer, Long> goalMessages) {
 		BsonDocument doc = new BsonDocument();
 		doc.putAll(goalMessages.entrySet().stream()
 				.collect(Collectors.toMap(
 						e -> String.valueOf(e.getKey()),
-						e -> new BsonInt64(e.getValue().getValue1().getId().asLong())
+						e -> new BsonInt64(e.getValue())
 				))
 		);
 		strGoalMessages = doc.toJson();

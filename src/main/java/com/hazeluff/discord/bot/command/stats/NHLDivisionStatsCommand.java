@@ -9,12 +9,12 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.nhl.NHLGateway;
-import com.hazeluff.discord.nhl.Seasons.Season;
-import com.hazeluff.discord.nhl.stats.TeamStandings;
+import com.hazeluff.discord.nhl.NHLSeasons.Season;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DiscordUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.nhl.NHLGateway;
+import com.hazeluff.nhl.stats.TeamStandings;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.InteractionFollowupCreateSpec;

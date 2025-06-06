@@ -3,7 +3,7 @@ package com.hazeluff.discord.bot.command.stats;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.nhl.stats.SkaterStats;
+import com.hazeluff.nhl.stats.SkaterStats;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 

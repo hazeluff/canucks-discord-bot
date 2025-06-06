@@ -2,7 +2,7 @@ package com.hazeluff.nhl.game;
 
 import org.bson.BsonDocument;
 
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class RosterPlayer {
 	private final int playerId;

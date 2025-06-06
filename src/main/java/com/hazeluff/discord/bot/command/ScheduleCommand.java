@@ -7,9 +7,8 @@ import java.util.function.Function;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.gdc.GameDayChannel;
-import com.hazeluff.discord.nhl.GameScheduler;
-import com.hazeluff.nhl.Team;
+import com.hazeluff.discord.nhl.NHLGameScheduler;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.common.util.Snowflake;
@@ -73,7 +72,7 @@ public class ScheduleCommand extends Command {
 					+ getTeamsListBlock();
 
 	InteractionApplicationCommandCallbackSpec getScheduleMessage(Team team) {
-		GameScheduler gameScheduler = nhlBot.getGameScheduler();
+		NHLGameScheduler gameScheduler = nhlBot.getNHLGameScheduler();
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		embedBuilder.color(team.getColor());
 
@@ -105,7 +104,7 @@ public class ScheduleCommand extends Command {
 	}
 
 	InteractionApplicationCommandCallbackSpec getScheduleMessage(List<Team> teams) {
-		GameScheduler gameScheduler = nhlBot.getGameScheduler();
+		NHLGameScheduler gameScheduler = nhlBot.getNHLGameScheduler();
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		if (teams.size() == 1) {
 			embedBuilder.color(teams.get(0).getColor());
@@ -147,7 +146,7 @@ public class ScheduleCommand extends Command {
 	EmbedCreateSpec.Builder appendGameToEmbed(EmbedCreateSpec.Builder builder, Game game, Team preferedTeam,
 			GameState state) {
 		ZoneId timeZone = preferedTeam.getTimeZone();
-		StringBuilder date = new StringBuilder(GameDayChannel.buildNiceDate(game, timeZone));
+		StringBuilder date = new StringBuilder(game.getNiceDate(timeZone));
 		String message;
 		Function<Game, String> getAgainstTeamMessage = g -> {
 			return g.getHomeTeam() == preferedTeam
@@ -156,7 +155,7 @@ public class ScheduleCommand extends Command {
 		};
 
 		// Add Time
-		date.append("  at  ").append(GameDayChannel.getTime(game, preferedTeam.getTimeZone()));
+		date.append("  at  ").append(game.getStartTime(preferedTeam.getTimeZone()));
 
 		switch(state) {
 		case PAST:

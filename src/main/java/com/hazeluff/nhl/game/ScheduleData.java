@@ -7,8 +7,8 @@ import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.Team;
 
 public class ScheduleData {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ScheduleData.class);

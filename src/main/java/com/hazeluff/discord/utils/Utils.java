@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -174,6 +176,27 @@ public class Utils {
 			return value + "th";
 		default:
 			return value + suffixes[value % 10];
+		}
+	}
+
+	public static String regexCapture(String str, String strPattern) {
+		Pattern pattern = Pattern.compile(strPattern);
+		Matcher matcher = pattern.matcher(str);
+		if (matcher.find()) {
+			return matcher.group(1);
+		} else {
+			return null;
+		}
+	}
+
+	public static boolean numberToBool(String number) {
+		switch (number) {
+		case "1":
+			return true;
+		case "0":
+			return false;
+		default:
+			throw new IllegalArgumentException("Unknown value: " + number);
 		}
 	}
 }

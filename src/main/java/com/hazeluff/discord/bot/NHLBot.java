@@ -13,12 +13,13 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
+import com.hazeluff.discord.bot.channel.NHLBotCategoryManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
-import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsChannel;
+import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
 import com.hazeluff.discord.utils.Utils;
 
@@ -45,6 +46,7 @@ public class NHLBot extends Thread {
 	private NHLGameDayChannelsManager gameDayChannelsManager;
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
+	private final NHLBotCategoryManager nhlBotCategoryManager = new NHLBotCategoryManager(this);
 	
 	private NHLBot() {
 		presenceManager = new PresenceManager(this);
@@ -115,7 +117,7 @@ public class NHLBot extends Thread {
 		List<Guild> guilds = getDiscordManager().getGuilds();
 
 		// Init Static Entities (They must be init in order!!!)
-		gdcCategoryManager.init(guilds);
+		// gdcCategoryManager.init(guilds);
 
 		// Start the Game Day Channels Manager
 		initGameDayChannelsManager();
@@ -237,18 +239,18 @@ public class NHLBot extends Thread {
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
 		getDiscordManager().getClient().getGuilds()
-				.subscribe(guild -> FourNationsChannel.createChannel(this, guild));
+				.subscribe(guild -> FourNationsWatchChannel.createChannel(this, guild));
 	}
 
 	private void initPlayoffWatchChannel() {
-		LOGGER.info("Updating 'Four Nations' channels.");
+		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
 	}
 
 	private void initAHLWatchChannel() {
-		LOGGER.info("Updating 'Four Nations' channels.");
+		LOGGER.info("Updating 'AHL Watch' channels.");
 		getDiscordManager().getClient()
 			.getGuilds()
 			.subscribe(guild -> AHLWatchChannel.createChannel(this, guild));
@@ -276,6 +278,10 @@ public class NHLBot extends Thread {
 
 	public GDCCategoryManager getGdcCategoryManager() {
 		return gdcCategoryManager;
+	}
+
+	public NHLBotCategoryManager getNHLBotCategoryManager() {
+		return nhlBotCategoryManager;
 	}
 
 	/**

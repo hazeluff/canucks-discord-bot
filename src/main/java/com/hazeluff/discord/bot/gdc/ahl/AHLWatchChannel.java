@@ -20,13 +20,15 @@ import com.hazeluff.discord.utils.Utils;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.TextChannelCreateSpec;
 
 public class AHLWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AHLWatchChannel.class);
 
 	private static final Team TEAM = Team.ABBY_NUCKS;
-	public static final String CHANNEL_NAME = "abby-playoffs";
+	public static final String CHANNEL_NAME = "ahl-watch";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
@@ -63,7 +65,14 @@ public class AHLWatchChannel extends Thread {
 		} finally {
 			if (channel == null) {
 				LOGGER.warn("Channel not found/error.");
-				channel = DiscordManager.createAndGetChannel(guild, CHANNEL_NAME);
+				Category category = nhlBot.getNHLBotCategoryManager().get(guild);
+				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
+				channelSpecBuilder.name(CHANNEL_NAME);
+				channelSpecBuilder.topic("The better Canucks team.");
+				if (category != null) {
+					channelSpecBuilder.parentId(category.getId());
+				}
+				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 			}
 		}
 		

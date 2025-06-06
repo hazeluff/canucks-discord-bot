@@ -15,10 +15,12 @@ import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.TextChannelCreateSpec;
 
-public class FourNationsChannel extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FourNationsChannel.class);
+public class FourNationsWatchChannel extends Thread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FourNationsWatchChannel.class);
 
 	public static final String CHANNEL_NAME = "four-nations";
 
@@ -34,14 +36,14 @@ public class FourNationsChannel extends Thread {
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
 	private final Map<Integer, FourNationsGameDayThread> gameDayThreads;
 
-	FourNationsChannel(NHLBot nhlBot, Guild guild, TextChannel channel) {
+	FourNationsWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
 		this.channel = channel;
 		this.gameDayThreads = new ConcurrentHashMap<>();
 	}
 
-	public static FourNationsChannel createChannel(NHLBot nhlBot, Guild guild) {
+	public static FourNationsWatchChannel createChannel(NHLBot nhlBot, Guild guild) {
 		TextChannel channel = null;
 		try {
 			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)
@@ -54,10 +56,17 @@ public class FourNationsChannel extends Thread {
 		} finally {
 			if (channel == null) {
 				LOGGER.warn("Channel not found/error.");
-				channel = DiscordManager.createAndGetChannel(guild, CHANNEL_NAME);
+				Category category = nhlBot.getNHLBotCategoryManager().get(guild);
+				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
+				channelSpecBuilder.name(CHANNEL_NAME);
+				channelSpecBuilder.topic("Four Nations - Facing Off!");
+				if (category != null) {
+					channelSpecBuilder.parentId(category.getId());
+				}
+				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 			}
 		}
-		FourNationsChannel fnChannel = new FourNationsChannel(nhlBot, guild, channel);
+		FourNationsWatchChannel fnChannel = new FourNationsWatchChannel(nhlBot, guild, channel);
 		fnChannel.start();
 		return fnChannel;
 	}

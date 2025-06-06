@@ -16,8 +16,8 @@ import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
-import com.hazeluff.discord.bot.gdc.fournations.FourNationsChannel;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
+import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsChannel;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -171,7 +171,7 @@ public class GDCCommand extends Command {
 		return builder.build();
 	}
 
-	public static NHLGameDayChannel getGameDayChannel(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
+	public static NHLGameDayChannelThread getGameDayChannel(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		long guildId = event.getInteraction().getGuildId().get().asLong();
 		return nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGameId());
 	}

@@ -12,7 +12,7 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.ResourceLoader;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
 import com.hazeluff.discord.utils.wordcloud.Normalizers;
@@ -121,7 +121,7 @@ public class WordcloudCommand extends Command {
 	 * @param fontScaler
 	 */
 	public void sendWordcloud(TextChannel channel, Game game, FontScalar fontScaler) {
-		String title = NHLGameDayChannel.buildDetailsMessage(game);
+		String title = NHLGameDayChannelThread.buildDetailsMessage(game);
 		new Thread(() -> {
 			Message generatingMessage = DiscordManager.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
 

@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.custom.goal.CustomGoalMessages;
-import com.hazeluff.discord.bot.gdc.fournations.FourNationsGameDayThread;
+import com.hazeluff.discord.bot.gdc.nhl.custom.goal.CustomGoalMessages;
+import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsGameDayThread;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.PeriodType;
@@ -31,7 +31,7 @@ import discord4j.core.spec.MessageEditSpec;
 import discord4j.rest.util.Color;
 
 /**
- * Used by {@link NHLGameDayChannel} to manage spamming and orphaned event +
+ * Used by {@link NHLGameDayChannelThread} to manage spamming and orphaned event +
  * messages.
  */
 public class GoalMessagesManager {
@@ -248,7 +248,8 @@ public class GoalMessagesManager {
 					.addField(scorerName, "Shootout goal", false)
 					.footer("Shootout", null).build();
 		} else {
-			String teamName = game.getGameType().isFourNations() ? event.getTeam().getLocationName()
+			String teamName = game.getGameType().isFourNations()
+					? event.getTeam().getLocationName()
 					: event.getTeam().getFullName();
 			String description = teamName + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()

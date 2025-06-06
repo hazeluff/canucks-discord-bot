@@ -43,7 +43,10 @@ public class PenaltyEvent extends GameEvent {
 	}
 
 	public Player getServedBy() {
-		return Player.parse(getDetails().getDocument("servedBy"));
+		if (getDetails().containsKey("servedBy")) {
+			return Player.parse(getDetails().getDocument("servedBy"));
+		}
+		return null;
 	}
 
 	public boolean isBenchPenalty() {

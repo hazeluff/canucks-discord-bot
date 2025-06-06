@@ -51,6 +51,16 @@ public class Config {
 	private static final Properties systemProperties = System.getProperties();
 
 	/*
+	 * Guild/Server lists.
+	 */
+	// List of guilds allowed to access the bot. (not strictly enforced access)
+	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(268247727400419329l, 276953120964083713l);
+
+	// List of guilds allowed to access the bot. (not strictly enforced access)
+	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(238870084003561472l // /r/canucks
+	);
+
+	/*
 	 * NHL Config
 	 */
 	public static final Season NHL_CURRENT_SEASON = NHLSeasons.S24_25;
@@ -58,7 +68,7 @@ public class Config {
 	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";
 
 	/*
-	 * NHL Config
+	 * AHL Config
 	 */
 	public static final AHLSeasons.Season AHL_CURRENT_SEASON = AHLSeasons.S24_25;
 	public static final Team AHL_DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
@@ -76,17 +86,6 @@ public class Config {
 		}
 	}
 	public static final String AHL_API_URL = "https://lscluster.hockeytech.com/";
-
-	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> DEV_GUILD_LIST = Arrays.asList(
-		268247727400419329l,
-		276953120964083713l
-	);
-
-	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(
-		238870084003561472l // /r/canucks
-	);
 	
 	/*
 	 *  Technical Config

@@ -2,8 +2,6 @@ package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
@@ -104,6 +102,20 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	}
 
 	/*
+	 * Matchup
+	 */
+	protected String getMatchupName() {
+		return buildMatchupName(game);
+	}
+
+	public static String buildMatchupName(Game game) {
+		return String.format(
+				"**%s** vs **%s**", 
+				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
+			);
+	}
+
+	/*
 	 * Intro Message
 	 */
 	private Message getIntroMessage() {
@@ -199,7 +211,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		return message;
 	}
 
-	private Message sendSummaryMessage() {
+	protected Message sendSummaryMessage() {
 		this.summaryMessageEmbed = getSummaryEmbedSpec();
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(summaryMessageEmbed).build();
 		return DiscordManager.sendAndGetMessage(channel, messageSpec);
@@ -218,6 +230,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		GDCGoalsCommand.buildEmbed(embedBuilder, game);
+		embedBuilder.footer("Status: " + game.getGameState().toString(), null);
 		return embedBuilder.build();
 	}
 
@@ -228,17 +241,12 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	 * Sends the end of game message.
 	 */
 	protected void sendEndOfGameMessage() {
-		Message endOfGameMessage = null;
 		try {
 			if (channel != null) {
-				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-			if (endOfGameMessage != null) {
-				LOGGER().debug("Sent end of game message for game. Pinning it...");
-				DiscordManager.pinMessage(endOfGameMessage);
+				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
-			LOGGER().error("Could not send Stats Message.");
+			LOGGER().error("Could not send end of game Message.");
 		}
 	}
 
@@ -252,19 +260,8 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	 * @return end of game message
 	 */
 	protected String buildEndOfGameMessage() {
-		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
-
-		List<Game> nextGames = preferences.getTeams().stream()
-				.map(team -> nhlBot.getNHLGameScheduler().getNextGame(team)).filter(Objects::nonNull)
-				.collect(Collectors.toList());
-
-		if (!nextGames.isEmpty()) {
-			if (nextGames.size() > 1) {
-
-			} else {
-				message += "\nThe next game is: " + buildDetailsMessage(nextGames.get(0));
-			}
-		}
+		String message = getMatchupName();
+		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
 		return message;
 	}
 

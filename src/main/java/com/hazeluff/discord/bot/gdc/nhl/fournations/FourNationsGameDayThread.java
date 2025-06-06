@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.fournations;
+package com.hazeluff.discord.bot.gdc.nhl.fournations;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,6 @@ import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
-import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
@@ -74,17 +73,6 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 	}
 
 	@Override
-	protected void updateFinish() {
-
-	}
-
-	@Override
-	protected void updateOnReminderWait() {
-		initSummaryMessage();
-		updateSummaryMessage();
-	}
-
-	@Override
 	protected String buildReminderMessage(String basicMessage) {
 		return getFourNationsMatchupName() + ": " + basicMessage;
 	}
@@ -113,23 +101,6 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		GDCGoalsCommand.buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
-	}
-
-	/*
-	 * End of game message
-	 */
-	/**
-	 * Sends the end of game message.
-	 */
-	@Override
-	protected void sendEndOfGameMessage() {
-		try {
-			if (channel != null) {
-				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-		} catch (Exception e) {
-			LOGGER.error("Could not send end of game Message.");
-		}
 	}
 
 	/**

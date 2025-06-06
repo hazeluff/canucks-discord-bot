@@ -15,11 +15,13 @@ public class HazeluffUtils {
 			Utils.sleep(10000);
 		}
 
-		System.out.println("Act## " + ahlGameScheduler.getActiveGames(Team.ABBY_NUCKS));
+		System.out.println("Act## " + ahlGameScheduler.getActivePlayoffGames(Team.ABBY_NUCKS));
 		System.out.println("");
-		System.out.println("Fut## " + ahlGameScheduler.getFutureGames(Team.ABBY_NUCKS));
+		System.out.println("Cur## " + ahlGameScheduler.getCurrentLivePlayoffGame(Team.ABBY_NUCKS));
 		System.out.println("");
-		System.out.println("Past## " + ahlGameScheduler.getPastGames(Team.ABBY_NUCKS));
+		System.out.println("Fut## " + ahlGameScheduler.getFuturePlayoffGames(Team.ABBY_NUCKS));
+		System.out.println("");
+		System.out.println("Past## " + ahlGameScheduler.getPastPlayoffGames(Team.ABBY_NUCKS));
 		ahlGameScheduler.interrupt();
 	}
 }

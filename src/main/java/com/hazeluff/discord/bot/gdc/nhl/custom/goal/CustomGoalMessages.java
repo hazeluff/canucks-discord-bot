@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.custom.goal;
+package com.hazeluff.discord.bot.gdc.nhl.custom.goal;
 
 import java.util.Collection;
 import java.util.Collections;

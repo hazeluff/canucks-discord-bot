@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.fournations;
+package com.hazeluff.discord.bot.gdc.nhl.fournations;
 
 import java.time.LocalDate;
 import java.util.List;

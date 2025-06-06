@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.custom.game;
+package com.hazeluff.discord.bot.gdc.nhl.custom.game;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

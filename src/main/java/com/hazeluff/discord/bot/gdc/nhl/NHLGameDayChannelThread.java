@@ -1,8 +1,11 @@
 package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +16,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.custom.game.CustomGameMessages;
+import com.hazeluff.discord.bot.gdc.nhl.custom.game.CustomGameMessages;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
 
@@ -25,8 +28,8 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
 
-public class NHLGameDayChannel extends NHLGameDayThread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayChannel.class);
+public class NHLGameDayChannelThread extends NHLGameDayThread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayChannelThread.class);
 
 	@Override
 	protected Logger LOGGER() {
@@ -34,12 +37,12 @@ public class NHLGameDayChannel extends NHLGameDayThread {
 	}
 
 
-	public NHLGameDayChannel(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel textChannel,
+	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel textChannel,
 			GuildPreferences preferences, GDCMeta meta) {
 		super(nhlBot, gameTracker, guild, textChannel, preferences, meta);
 	}
 
-	public static NHLGameDayChannel get(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
+	public static NHLGameDayChannelThread get(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
 		TextChannel textChannel = getTextChannel(guild, gameTracker.getGame(), nhlBot, preferences);
@@ -53,7 +56,7 @@ public class NHLGameDayChannel extends NHLGameDayThread {
 				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
 			}
 		}
-		NHLGameDayChannel gameDayChannel = new NHLGameDayChannel(nhlBot, gameTracker, guild, textChannel, preferences, meta);
+		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel, preferences, meta);
 
 		if (gameDayChannel.channel != null) {
 			gameDayChannel.start();
@@ -121,11 +124,6 @@ public class NHLGameDayChannel extends NHLGameDayThread {
 		sendWordcloud();
 	}
 
-	@Override
-	protected void updateFinish() {
-
-	}
-
 	@SuppressWarnings("serial")
 	@Override
 	protected Map<Long, String> getReminders() {
@@ -153,6 +151,54 @@ public class NHLGameDayChannel extends NHLGameDayThread {
 		} catch (Exception e) {
 			LOGGER().error("Could not send Stats Message.");
 		}
+	}
+
+	/*
+	 * End of game message
+	 */
+	/**
+	 * Sends the end of game message.
+	 */
+	protected void sendEndOfGameMessage() {
+		Message endOfGameMessage = null;
+		try {
+			if (channel != null) {
+				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
+			}
+			if (endOfGameMessage != null) {
+				LOGGER().debug("Sent end of game message for game. Pinning it...");
+				DiscordManager.pinMessage(endOfGameMessage);
+			}
+		} catch (Exception e) {
+			LOGGER().error("Could not send end of game Message.");
+		}
+	}
+
+	/**
+	 * Builds the message that is sent at the end of the game.
+	 * 
+	 * @param game
+	 *            the game to build the message for
+	 * @param team
+	 *            team to specialize the message for
+	 * @return end of game message
+	 */
+	@Override
+	protected String buildEndOfGameMessage() {
+		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
+
+		List<Game> nextGames = preferences.getTeams().stream()
+				.map(team -> nhlBot.getNHLGameScheduler().getNextGame(team)).filter(Objects::nonNull)
+				.collect(Collectors.toList());
+
+		if (!nextGames.isEmpty()) {
+			if (nextGames.size() > 1) {
+
+			} else {
+				message += "\nThe next game is: " + buildDetailsMessage(nextGames.get(0));
+			}
+		}
+		return message;
 	}
 
 	protected void sendCustomEndMessage() {

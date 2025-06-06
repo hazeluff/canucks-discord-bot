@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.custom.game;
+package com.hazeluff.discord.bot.gdc.nhl.custom.game;
 
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 

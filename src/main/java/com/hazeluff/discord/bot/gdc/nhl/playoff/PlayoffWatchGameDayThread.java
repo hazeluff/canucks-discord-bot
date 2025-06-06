@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.nhl;
+package com.hazeluff.discord.bot.gdc.nhl.playoff;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +10,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
-import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
 
@@ -18,7 +18,7 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 
-public class PlayoffWatchGameDayThread extends NHLGameDayChannel {
+public class PlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchGameDayThread.class);
 
 	@Override
@@ -73,12 +73,6 @@ public class PlayoffWatchGameDayThread extends NHLGameDayChannel {
 	}
 
 	@Override
-	protected void updateOnReminderWait() {
-		initSummaryMessage();
-		updateSummaryMessage();
-	}
-
-	@Override
 	protected String buildReminderMessage(String basicMessage) {
 		return getMatchupName() + ": " + basicMessage;
 	}
@@ -106,50 +100,6 @@ public class PlayoffWatchGameDayThread extends NHLGameDayChannel {
 		embedBuilder.addField("NHL Playoffs", buildDetailsMessage(game), false);
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
-	}
-
-	/*
-	 * End of game message
-	 */
-	/**
-	 * Sends the end of game message.
-	 */
-	@Override
-	protected void sendEndOfGameMessage() {
-		try {
-			if (channel != null) {
-				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-		} catch (Exception e) {
-			LOGGER.error("Could not send end of game Message.");
-		}
-	}
-
-	/**
-	 * Builds the message that is sent at the end of the game.
-	 * 
-	 * @param game
-	 *            the game to build the message for
-	 * @param team
-	 *            team to specialize the message for
-	 * @return end of game message
-	 */
-	@Override
-	protected String buildEndOfGameMessage() {
-		String message = getMatchupName();
-		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
-		return message;
-	}
-
-	String getMatchupName() {
-		return buildMatchupName(game);
-	}
-
-	public static String buildMatchupName(Game game) {
-		return String.format(
-				"**%s** vs **%s**", 
-				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
-			);
 	}
 
 	/**

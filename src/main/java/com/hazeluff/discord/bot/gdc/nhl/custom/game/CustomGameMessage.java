@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.custom.game;
+package com.hazeluff.discord.bot.gdc.nhl.custom.game;
 
 import java.util.ArrayList;
 import java.util.function.Predicate;

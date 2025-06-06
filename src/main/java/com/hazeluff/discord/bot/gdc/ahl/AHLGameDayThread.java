@@ -119,17 +119,6 @@ public class AHLGameDayThread extends GameDayThread {
 		sendEndOfGameMessage();
 	}
 
-	@Override
-	protected void updateFinish() {
-
-	}
-
-	@Override
-	protected void updateOnReminderWait() {
-		initSummaryMessage();
-		updateSummaryMessage();
-	}
-
 	protected void updateMessages() {
 		try {
 			goalMessages.updateMessages(game.getGoalEvents());

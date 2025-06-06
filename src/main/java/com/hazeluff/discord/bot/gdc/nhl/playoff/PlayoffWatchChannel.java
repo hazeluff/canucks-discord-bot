@@ -1,4 +1,4 @@
-package com.hazeluff.discord.bot.gdc.nhl;
+package com.hazeluff.discord.bot.gdc.nhl.playoff;
 
 import java.time.LocalDate;
 import java.util.List;

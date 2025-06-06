@@ -9,7 +9,6 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.nhl.game.Game;
-import com.hazeluff.nhl.game.GameState;
 import com.hazeluff.nhl.game.RosterPlayer;
 import com.hazeluff.nhl.game.event.GameEvent;
 import com.hazeluff.nhl.game.event.GoalEvent;
@@ -92,9 +91,6 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 			String strGoals = String.join("\n", strExtraPeriodGoals);
 			embedBuilder.addField(periodCode, strGoals, false);
 		}
-
-		GameState status = game.getGameState();
-		embedBuilder.footer("Status: " + status.toString(), null);
 		return embedBuilder;
 	}
 

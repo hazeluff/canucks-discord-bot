@@ -133,8 +133,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		} else {
 			LOGGER().info("Game is already finished");
 		}
-
-		updateFinish(); // ## Overridable ##
 	}
 
 	/*
@@ -147,7 +145,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	protected abstract void initChannel();
 	protected abstract void updateActive();
 	protected abstract void updateEnd();
-	protected abstract void updateFinish();
 
 	/**
 	 * Sends reminders of time till the game starts.

@@ -9,7 +9,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
@@ -70,13 +70,13 @@ public class NextGameCommand extends Command {
 	static final String NO_NEXT_GAMES_MESSAGE = "There may not be any games for any of your subscribed teams.";
 
 	String getNextGameDetailsMessage(Game game, GuildPreferences preferences) {
-		return "The next game is:\n" + NHLGameDayChannel.buildDetailsMessage(game);
+		return "The next game is:\n" + NHLGameDayChannelThread.buildDetailsMessage(game);
 	}
 
 	String getNextGameDetailsMessage(Set<Game> games, GuildPreferences preferences) {
 		StringBuilder replyMessage = new StringBuilder("The following game(s) are upcomming:");
 		for (Game game : games) {
-			replyMessage.append("\n" + NHLGameDayChannel.buildDetailsMessage(game));
+			replyMessage.append("\n" + NHLGameDayChannelThread.buildDetailsMessage(game));
 		}
 		return replyMessage.toString();
 	}

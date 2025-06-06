@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.ahl.game.Game;
+import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
@@ -181,8 +182,14 @@ public class AHLGameTracker extends Thread implements GameTracker {
 	 *         yy-MM-DD is a date format
 	 */
 	public static String buildThreadName(Game game) {
-		String channelName = String.format("%s-vs-%s-%s", game.getHomeTeam().getTeamCode(),
-				game.getAwayTeam().getTeamCode(), buildChannelDate(game));
+		Team homeTeam = game.getHomeTeam();
+		Team awayTeam = game.getAwayTeam();
+		String channelName = String.format(
+				"%s-vs-%s-%s", 
+				homeTeam == null ? "null" : homeTeam.getTeamCode(),
+				awayTeam == null ? "null" : awayTeam.getTeamCode(),
+				buildChannelDate(game)
+		);
 		return channelName.toLowerCase();
 
 	}

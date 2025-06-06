@@ -17,7 +17,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
-import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsChannel;
+import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -86,7 +86,7 @@ public class GDCCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		TextChannel channel = getChannel(event);
-		if (channel.getName().equals(FourNationsChannel.CHANNEL_NAME)) {
+		if (channel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
 			// Not in game day channel
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
 					.content("GDC Commands not supported for Four Nations channel.")

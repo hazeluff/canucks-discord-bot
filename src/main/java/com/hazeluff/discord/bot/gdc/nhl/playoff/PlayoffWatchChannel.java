@@ -19,7 +19,9 @@ import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.TextChannelCreateSpec;
 
 public class PlayoffWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchChannel.class);
@@ -60,7 +62,14 @@ public class PlayoffWatchChannel extends Thread {
 		} finally {
 			if (channel == null) {
 				LOGGER.warn("Channel not found/error.");
-				channel = DiscordManager.createAndGetChannel(guild, CHANNEL_NAME);
+				Category category = nhlBot.getNHLBotCategoryManager().get(guild);
+				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
+				channelSpecBuilder.name(CHANNEL_NAME);
+				channelSpecBuilder.topic("Hockey is for everybody - except losers.");
+				if (category != null) {
+					channelSpecBuilder.parentId(category.getId());
+				}
+				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 			}
 		}
 		

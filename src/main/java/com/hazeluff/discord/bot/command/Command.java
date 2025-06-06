@@ -4,7 +4,6 @@ package com.hazeluff.discord.bot.command;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang.StringUtils;
 import org.reactivestreams.Publisher;
@@ -12,7 +11,6 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DiscordUtils;
 import com.hazeluff.nhl.game.Game;
@@ -117,7 +115,7 @@ public abstract class Command extends ReactiveEventAdapter {
 		if (game == null) {
 			return null;
 		}
-		String channelName = NHLGameDayChannelsManager.buildChannelName(game).toLowerCase();
+		String channelName = game.getNiceName().toLowerCase();
 
 		List<TextChannel> channels = DiscordManager.getTextChannels(guild);
 		if(channels != null && !channels.isEmpty()) {
@@ -139,25 +137,6 @@ public abstract class Command extends ReactiveEventAdapter {
 			game = nhlBot.getNHLGameScheduler().getLastGame(team);
 		}
 		return game;
-	}
-
-	/**
-	 * Gets message to send when a command needs to be run in a 'Game Day Channel'.
-	 * 
-	 * @param channel
-	 * @param team
-	 * @return
-	 */
-	String getRunInGameDayChannelsMessage(Guild guild, List<Team> teams) {
-		String channelMentions = getLatestGamesListString(guild, teams);
-		return String.format("Please run this command in a 'Game Day Channel'.\nLatest game channel(s): %s",
-				channelMentions);
-	}
-
-	String getLatestGamesListString(Guild guild, List<Team> teams) {
-		return StringUtils.join(
-				teams.stream().map(team -> getLatestGameChannelMention(guild, team)).collect(Collectors.toList()),
-				", ");
 	}
 
 	protected boolean hasPrivilege(Guild guild, Member user) {

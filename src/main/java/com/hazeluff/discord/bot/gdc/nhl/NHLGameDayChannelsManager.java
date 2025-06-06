@@ -1,7 +1,6 @@
 package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -157,7 +156,7 @@ public class NHLGameDayChannelsManager extends Thread {
 	 */
 	public NHLGameDayChannelThread createChannel(Game game, Guild guild) {
 		LOGGER.info("Initializing for channel. channelName={}, guild={}",
-				NHLGameDayChannelsManager.buildChannelName(game), guild.getName());
+				game.getNiceName(), guild.getName());
 		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
 
@@ -178,7 +177,7 @@ public class NHLGameDayChannelsManager extends Thread {
 
 	NHLGameDayChannelThread createGameDayChannel(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
 		LOGGER.info("Creating channel. channelName={}, guild={}",
-				NHLGameDayChannelsManager.buildChannelName(gameTracker.getGame()), guild.getName());
+				gameTracker.getGame().getNiceName(), guild.getName());
 		NHLGameDayChannelThread channel = NHLGameDayChannelThread.get(nhlBot, gameTracker, guild);
 		addGameDayChannel(guild.getId().asLong(), gameTracker.getGame().getGameId(), channel);
 		return channel;
@@ -246,7 +245,7 @@ public class NHLGameDayChannelsManager extends Thread {
 			LOGGER.info("Updating Channels for [{}]: activeGames={}",
 					guild.getId().asLong(),
 					nhlBot.getNHLGameScheduler().getActiveGames(teams).stream()
-							.map(NHLGameDayChannelsManager::buildChannelName)
+							.map(Game::getNiceName)
 							.collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
@@ -340,36 +339,6 @@ public class NHLGameDayChannelsManager extends Thread {
 		String year = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
 		String regex = String.format("%1$s-vs-%1$s-%2$s-[0-9]{2}-[0-9]{2}", teamRegex, year);
 		return channelName.matches(regex);
-	}
-
-	/**
-	 * Gets the name that a channel in Discord related to this game would have.
-	 * 
-	 * @param game
-	 *            game to get channel name for
-	 * @return channel name in format: "AAA-vs-BBB-yy-MM-DD". <br>
-	 *         AAA is the 3 letter code of home team<br>
-	 *         BBB is the 3 letter code of away team<br>
-	 *         yy-MM-DD is a date format
-	 */
-	public static String buildChannelName(Game game) {
-		String channelName = String.format("%.3s-vs-%.3s-%s", game.getHomeTeam().getCode(),
-				game.getAwayTeam().getCode(), buildChannelDate(game));
-		return channelName.toLowerCase();
-
-	}
-
-	/**
-	 * Gets the date in the format "yy-MM-dd"
-	 * 
-	 * @param game
-	 *            game to get the date from
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the date in the format "yy-MM-dd"
-	 */
-	public static String buildChannelDate(Game game) {
-		return game.getStartTime().format(DateTimeFormatter.ofPattern("yy-MM-dd"));
 	}
 
 	boolean isGameActive(List<Team> teams, String channelName) {

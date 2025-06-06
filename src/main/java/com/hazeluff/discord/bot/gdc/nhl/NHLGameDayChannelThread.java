@@ -70,7 +70,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	static TextChannel getTextChannel(Guild guild, Game game, NHLBot nhlBot, GuildPreferences preferences) {
 		TextChannel channel = null;
 		try {
-			String channelName = NHLGameDayChannelsManager.buildChannelName(game);
+			String channelName = game.getNiceName();
 			Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
 			Category category = nhlBot.getGdcCategoryManager().get(guild);
 			if (!DiscordManager.getTextChannels(guild).stream().anyMatch(channelMatcher)) {

@@ -156,17 +156,6 @@ public class NHLBot extends Thread {
 				Config.getMongoUserName(), Config.getMongoPassword());
 	}
 
-	void initGameDayChannelsManager() {
-		// OLD
-		if (Config.Debug.isLoadGames()) {
-			LOGGER.info("Initializing GameDayChannelsManager.");
-			this.gameDayChannelsManager = new NHLGameDayChannelsManager(this);
-			gameDayChannelsManager.start();
-		} else {
-			LOGGER.warn("Skipping Initialization of GameDayChannelsManager");
-		}
-	}
-
 	/**
 	 * This needs to be done in its own Thread. login().block() hold the execution.
 	 * 
@@ -252,6 +241,12 @@ public class NHLBot extends Thread {
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
+	}
+
+	void initGameDayChannelsManager() {
+		LOGGER.info("Initializing GameDayChannelsManager.");
+		this.gameDayChannelsManager = new NHLGameDayChannelsManager(this);
+		gameDayChannelsManager.start();
 	}
 
 	@SuppressWarnings("unused")

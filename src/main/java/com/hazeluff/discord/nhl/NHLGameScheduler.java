@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
@@ -502,7 +501,7 @@ public class NHLGameScheduler extends Thread {
 		return games.entrySet()
 				.stream()
 				.map(Entry::getValue)
-				.filter(game -> NHLGameDayChannelsManager.buildChannelName(game).equalsIgnoreCase(channelName))
+				.filter(game -> game.getNiceName().equalsIgnoreCase(channelName))
 				.findAny()
 				.orElse(null);
 	}
@@ -558,12 +557,12 @@ public class NHLGameScheduler extends Thread {
 
 	public boolean isGameActive(Team team, String channelName) {
 		return getActiveGames(team).stream()
-				.anyMatch(game -> channelName.equalsIgnoreCase(NHLGameDayChannelsManager.buildChannelName(game)));
+				.anyMatch(game -> channelName.equalsIgnoreCase(game.getNiceName()));
 	}
 
 	public boolean isGameActive(List<Team> teams, String channelName) {
 		return getActiveGames(teams).stream()
-				.anyMatch(game -> channelName.equalsIgnoreCase(NHLGameDayChannelsManager.buildChannelName(game)));
+				.anyMatch(game -> channelName.equalsIgnoreCase(game.getNiceName()));
 	}
 
 	Map<Game, NHLGameTracker> getActiveGameTrackers() {

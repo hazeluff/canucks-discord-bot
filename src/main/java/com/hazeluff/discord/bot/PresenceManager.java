@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
@@ -60,10 +59,7 @@ public class PresenceManager extends Thread {
 		if(nextGame != null) {
 			Team oppTeam = nextGame.getOppossingTeam(team);
 			if (oppTeam != null) {				
-				String nextGameMessage = String.format(
-					"in #%s next. ",
-					NHLGameDayChannelsManager.buildChannelName(nextGame)
-				);
+				String nextGameMessage = String.format("in #%s next. ", nextGame.getNiceName());
 				status = nextGameMessage + status;
 			}
 		}

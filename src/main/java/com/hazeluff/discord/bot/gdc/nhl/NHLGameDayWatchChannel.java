@@ -3,7 +3,9 @@ package com.hazeluff.discord.bot.gdc.nhl;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +103,7 @@ public class NHLGameDayWatchChannel extends Thread {
 		}
 	}
 
-	void updateChannel() {
+	public void updateChannel() {
 		List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong())
 				.getTeams();
@@ -111,9 +113,8 @@ public class NHLGameDayWatchChannel extends Thread {
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (!game.getGameState().isFinished()) {
 				// Start/Maintain gdc if they have not finished.
-				NHLGameDayWatchThread gdt = null;
 				if (!gameDayThreads.containsKey(gamePk)) {
-					gdt = NHLGameDayWatchThread.get(nhlBot, channel, gameTracker, guild);
+					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.get(nhlBot, channel, gameTracker, guild);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			} else {
@@ -124,6 +125,14 @@ public class NHLGameDayWatchChannel extends Thread {
 				}
 			}
 		}
+		
+		Predicate<? super Entry<Integer, NHLGameDayWatchThread>> isNoGameIdMatch = 
+				entry -> games.stream().noneMatch(game -> game.getGameId() == entry.getKey());
+		gameDayThreads.entrySet().stream()
+			.filter(isNoGameIdMatch)
+			.forEach(entry -> entry.getValue().interrupt());
+		gameDayThreads.entrySet()
+			.removeIf(isNoGameIdMatch);
 	}
 
 	/**

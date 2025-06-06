@@ -15,7 +15,6 @@ import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.event.EventType;
 import com.hazeluff.nhl.game.event.GameEvent;
@@ -74,6 +73,10 @@ public class Game {
 		return scheduleData.getStartTime();
 	}
 
+	public String getNiceShortDate() {
+		return getStartTime().format(DateTimeFormatter.ofPattern("yy-MM-dd"));
+	}
+
 	/**
 	 * Gets the date in the format "EEEE dd MMM yyyy"
 	 * 
@@ -93,6 +96,16 @@ public class Game {
 
 	public int getGameId() {
 		return scheduleData.getGameId();
+	}
+
+	public String getNiceName() {
+		String niceName = String.format(
+			"%.3s-vs-%.3s-%s", 
+			getHomeTeam().getCode(),
+			getAwayTeam().getCode(), 
+			getNiceShortDate()
+		);
+		return niceName.toLowerCase();
 	}
 
 	public Team getAwayTeam() {
@@ -341,8 +354,7 @@ public class Game {
 
 	@Override
 	public String toString() {
-		return "Game [name()=" + NHLGameDayChannelsManager.buildChannelName(this) + ", getGameState()=" + getGameState()
-				+ "]";
+		return "Game [name()=" + getNiceName() + ", getGameState()=" + getGameState() + "]";
 	}
 
 }

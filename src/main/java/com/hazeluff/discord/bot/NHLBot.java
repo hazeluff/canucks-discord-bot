@@ -26,7 +26,6 @@ import com.hazeluff.discord.utils.Utils;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
-import discord4j.core.object.entity.Guild;
 import discord4j.discordjson.json.ApplicationCommandData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -114,10 +113,6 @@ public class NHLBot extends Thread {
 
 	void initCategoriesAndChannels() {
 		LOGGER.info("Setup discord entities (Categories + Channels).");
-		List<Guild> guilds = getDiscordManager().getGuilds();
-
-		// Init Static Entities (They must be init in order!!!)
-		// gdcCategoryManager.init(guilds);
 
 		// Start the Game Day Channels Manager
 		initGameDayChannelsManager();
@@ -140,16 +135,6 @@ public class NHLBot extends Thread {
 			Config.getMongoHost(), Config.getMongoPort(),
 			Config.getMongoUserName(), Config.getMongoPassword()
 		);
-	}
-
-	void initGameDayChannelsManager() {
-		if (Config.Debug.isLoadGames()) {
-			LOGGER.info("Initializing GameDayChannelsManager.");
-			this.gameDayChannelsManager = new NHLGameDayChannelsManager(this);
-			gameDayChannelsManager.start();
-		} else {
-			LOGGER.warn("Skipping Initialization of GameDayChannelsManager");
-		}
 	}
 
 	/**
@@ -233,6 +218,12 @@ public class NHLBot extends Thread {
 		getDiscordManager().getClient().getGuilds()
 				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
+	}
+
+	void initGameDayChannelsManager() {
+		LOGGER.info("Initializing NHL Game Day Channels.");
+		gameDayChannelsManager = new NHLGameDayChannelsManager(this);
+		gameDayChannelsManager.init();
 	}
 
 	@SuppressWarnings("unused")

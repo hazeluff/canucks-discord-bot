@@ -10,7 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.gdc.GameTracker;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.NHLGateway;
@@ -85,7 +84,7 @@ public class NHLGameTracker extends Thread implements GameTracker {
 	public void start() {
 		if (started.compareAndSet(false, true)) {
 			LOGGER.info("Started thread for [" + game.getGameId() + "]");
-			setName(NHLGameDayChannelsManager.buildChannelName(game));
+			setName(game.getNiceName());
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");

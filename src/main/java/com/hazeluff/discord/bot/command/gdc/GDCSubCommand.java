@@ -3,8 +3,6 @@ package com.hazeluff.discord.bot.command.gdc;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.command.GDCCommand;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -20,8 +18,4 @@ public abstract class GDCSubCommand {
 	public abstract String getDescription();
 
 	public abstract Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game);
-
-	protected static NHLGameDayChannelThread getGameDayChannel(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
-		return GDCCommand.getGameDayChannel(event, nhlBot, game);
-	}
 }

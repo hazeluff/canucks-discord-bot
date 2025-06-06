@@ -5,6 +5,7 @@ import java.util.List;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -129,7 +130,8 @@ public class UnsubscribeCommand extends Command {
 
 	private void unsubscribeGuild(Guild guild, Team team) {
 		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), team);
-		nhlBot.getGameDayChannelsManager().updateChannels(guild);
+		NHLGameDayWatchChannel channel = nhlBot.getGameDayChannelsManager().getChannel(guild);
+		channel.updateChannel();
 	}
 
 	static String buildUnsubscribeMessage(Team team) {

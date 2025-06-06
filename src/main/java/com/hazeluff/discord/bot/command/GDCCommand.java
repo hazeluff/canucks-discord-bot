@@ -15,14 +15,11 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
-import com.hazeluff.discord.bot.command.gdc.GDCSyncCommand;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
-import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
@@ -42,13 +39,6 @@ public class GDCCommand extends Command {
 				new GDCGoalsCommand(),
 				new GDCStatusCommand(),
 				new GDCStatsCommand()
-			)
-			.stream()
-			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));
-
-	private static Map<String, GDCSubCommand> PRIVILEGED_COMMANDS = 
-			Arrays.asList(
-				new GDCSyncCommand()
 			)
 			.stream()
 			.collect(Collectors.toMap(GDCSubCommand::getName, UnaryOperator.identity()));
@@ -120,22 +110,6 @@ public class GDCCommand extends Command {
 		}
 
 		/*
-		 * Priveleged sub commands
-		 */
-
-		GDCSubCommand privilegedCommand = PRIVILEGED_COMMANDS.get(strSubcommand.toLowerCase());
-		if (privilegedCommand != null) {
-			// Check the user has privileges
-			Member user = event.getInteraction().getMember().orElse(null);
-			if (user != null && !isDev(user.getId())) {
-				return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE).withEphemeral(true);
-			}
-						
-			
-			return privilegedCommand.reply(event, nhlBot, game);
-		}
-
-		/*
 		 * Public sub commands
 		 */
 		GDCSubCommand publicCommand = PUBLIC_COMMANDS.get(strSubcommand.toLowerCase());
@@ -169,11 +143,6 @@ public class GDCCommand extends Command {
 					false)
 				);
 		return builder.build();
-	}
-
-	public static NHLGameDayChannelThread getGameDayChannel(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
-		long guildId = event.getInteraction().getGuildId().get().asLong();
-		return nhlBot.getGameDayChannelsManager().getGameDayChannel(guildId, game.getGameId());
 	}
 
 }

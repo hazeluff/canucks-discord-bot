@@ -44,12 +44,26 @@ public class Game {
 		return id;
 	}
 
+	public String getNiceName() {
+		String niceName = String.format(
+			"%.3s-vs-%.3s-%s",
+			getHomeTeam() == null ? "null" : getHomeTeam().getTeamCode(),
+			getAwayTeam() == null ? "null" : getAwayTeam().getTeamCode(),
+			getNiceShortDate()
+		);
+		return niceName.toLowerCase();
+	}
+
 	public LocalDate getDate() {
 		return date;
 	}
 
 	public String getNiceDate() {
 		return date.format(DateTimeFormatter.ofPattern("EEEE, d/MMM/yyyy"));
+	}
+
+	public String getNiceShortDate() {
+		return date.format(DateTimeFormatter.ofPattern("yy-MM-dd"));
 	}
 
 	public Team getHomeTeam() {

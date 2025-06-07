@@ -89,7 +89,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected void setThreadName() {
-
+		setName(game.getNiceName());
 	}
 
 	@Override

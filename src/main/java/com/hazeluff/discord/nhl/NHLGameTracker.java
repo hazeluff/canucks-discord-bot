@@ -83,8 +83,6 @@ public class NHLGameTracker extends Thread implements GameTracker {
 	@Override
 	public void start() {
 		if (started.compareAndSet(false, true)) {
-			LOGGER.info("Started thread for [" + game.getGameId() + "]");
-			setName(game.getNiceName());
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");
@@ -97,6 +95,9 @@ public class NHLGameTracker extends Thread implements GameTracker {
 
 	@Override
 	public void run() {
+		setName(game.getNiceName());
+		LOGGER.info("Started thread for [" + game.getGameId() + "]");
+
 		try {
 			updateGame();
 

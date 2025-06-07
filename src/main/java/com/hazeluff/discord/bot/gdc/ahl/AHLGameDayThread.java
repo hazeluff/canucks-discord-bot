@@ -57,7 +57,8 @@ public class AHLGameDayThread extends GameDayThread {
 	}
 
 	protected String buildGameScore(Game game) {
-		return String.format("%s **%s** - **%s** %s", game.getHomeTeam().getLocationName(), game.getHomeScore(),
+		return String.format("%s **%s** - **%s** %s",
+				game.getHomeTeam().getLocationName(), game.getHomeScore(),
 				game.getAwayScore(), game.getAwayTeam().getLocationName());
 	}
 
@@ -89,7 +90,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected void setThreadName() {
-
+		setName(game.getNiceName());
 	}
 
 	@Override

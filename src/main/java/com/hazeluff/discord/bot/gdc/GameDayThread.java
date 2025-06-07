@@ -90,7 +90,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	@Override
 	public void run() {
 		try {
-			setThreadName();
 			_run();
 		} catch (Exception e) {
 			LOGGER().error("Error occurred while running thread.", e);
@@ -100,7 +99,8 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	}
 
 	protected void _run() {
-		LOGGER().info("Started GameDayChannel thread.");
+		setThreadName();
+		LOGGER().info("Started thread.");
 
 		if (!gameTracker.isGameFinished()) {
 			initChannel(); // ## Overridable ##

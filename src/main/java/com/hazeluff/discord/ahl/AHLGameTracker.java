@@ -1,7 +1,6 @@
 package com.hazeluff.discord.ahl;
 
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.ahl.game.Game;
-import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
@@ -83,8 +81,6 @@ public class AHLGameTracker extends Thread implements GameTracker {
 	@Override
 	public void start() {
 		if (started.compareAndSet(false, true)) {
-			LOGGER.info("Started thread for [" + game.getId() + "]");
-			setThreadName();
 			superStart();
 		} else {
 			LOGGER.warn("Thread already started.");
@@ -97,6 +93,8 @@ public class AHLGameTracker extends Thread implements GameTracker {
 
 	@Override
 	public void run() {
+		setThreadName();
+		LOGGER.info("Started thread for [" + game.getId() + "]");
 		updateGame();
 		try {
 			if (!game.isFinished()) {
@@ -168,39 +166,7 @@ public class AHLGameTracker extends Thread implements GameTracker {
 	}
 
 	private void setThreadName() {
-		setName(buildThreadName(game));
-	}
-
-	/**
-	 * Gets the name that a channel in Discord related to this game would have.
-	 * 
-	 * @param game
-	 *            game to get channel name for
-	 * @return channel name in format: "AAA-vs-BBB-yy-MM-DD". <br>
-	 *         AAA is the 3 letter code of home team<br>
-	 *         BBB is the 3 letter code of away team<br>
-	 *         yy-MM-DD is a date format
-	 */
-	public static String buildThreadName(Game game) {
-		Team homeTeam = game.getHomeTeam();
-		Team awayTeam = game.getAwayTeam();
-		String channelName = String.format("%s-vs-%s-%s", homeTeam == null ? "null" : homeTeam.getTeamCode(),
-				awayTeam == null ? "null" : awayTeam.getTeamCode(), buildChannelDate(game));
-		return channelName.toLowerCase();
-
-	}
-
-	/**
-	 * Gets the date in the format "yy-MM-dd"
-	 * 
-	 * @param game
-	 *            game to get the date from
-	 * @param zone
-	 *            time zone to convert the time to
-	 * @return the date in the format "yy-MM-dd"
-	 */
-	public static String buildChannelDate(Game game) {
-		return game.getDate().format(DateTimeFormatter.ofPattern("yy-MM-dd"));
+		setName(game.getNiceName());
 	}
 
 	/**

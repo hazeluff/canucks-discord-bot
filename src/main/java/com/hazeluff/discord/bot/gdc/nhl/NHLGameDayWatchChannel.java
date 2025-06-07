@@ -76,7 +76,6 @@ public class NHLGameDayWatchChannel extends Thread {
 
 	@Override
 	public void run() {
-
 		if (channel == null) {
 			LOGGER.warn("Channel could not be found in Discord.");
 			return;

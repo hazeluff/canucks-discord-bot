@@ -52,7 +52,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	 * Run method overrides
 	 */
 	protected void setThreadName() {
-		// Override to do something.
+		setName(game.getNiceName());
 	}
 
 	protected long timeUntilGame() {

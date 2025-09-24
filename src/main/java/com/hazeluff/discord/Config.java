@@ -61,15 +61,15 @@ public class Config {
 	/*
 	 * NHL Config
 	 */
-	public static final Season CURRENT_SEASON = NHLSeasons.S24_25;
-	public static final Season NHL_CURRENT_SEASON = NHLSeasons.S24_25;
+	public static final Season NHL_CURRENT_SEASON = NHLSeasons.S25_26;
+
 	public static final Team DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
 	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";
 
 	/*
 	 * AHL Config
 	 */
-	public static final AHLSeasons.Season AHL_CURRENT_SEASON = AHLSeasons.S24_25;
+	public static final AHLSeasons.Season AHL_CURRENT_SEASON = AHLSeasons.S25_26;
 	public static final Team AHL_DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
 	public static final String AHL_API_CONFIG_URL = 
 			"https://lscluster.hockeytech.com/statview-1.4.1/js/client/ahl/base.r3.js"; // Used to fetch client key.

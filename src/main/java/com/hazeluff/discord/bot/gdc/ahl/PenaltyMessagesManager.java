@@ -168,7 +168,7 @@ public class PenaltyMessagesManager {
 		}
 		description.append(String.format("\n**%s** - **%s** minutes",
 				StringUtils.capitalize(event.getDescription()), event.getDuration()));
-		Player servedByPlayer = event.getTakenBy();
+		Player servedByPlayer = event.getServedBy();
 		if (servedByPlayer != null) {
 			description.append("\nServed by: " + servedByPlayer.getFullName() + " (" + takenByPlayer.getJerseyNumber() + ")");
 		}

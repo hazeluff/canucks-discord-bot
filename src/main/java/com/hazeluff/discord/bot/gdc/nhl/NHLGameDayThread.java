@@ -241,17 +241,12 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	 * Sends the end of game message.
 	 */
 	protected void sendEndOfGameMessage() {
-		Message endOfGameMessage = null;
 		try {
 			if (channel != null) {
-				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-			if (endOfGameMessage != null) {
-				LOGGER().debug("Sent end of game message for game. Pinning it...");
-				DiscordManager.pinMessage(endOfGameMessage);
+				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
-			LOGGER().error("Could not send Stats Message.");
+			LOGGER().error("Could not send end of game Message.");
 		}
 	}
 

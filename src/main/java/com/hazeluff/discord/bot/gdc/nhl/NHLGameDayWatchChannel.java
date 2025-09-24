@@ -34,15 +34,17 @@ public class NHLGameDayWatchChannel extends Thread {
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
-	private final TextChannel channel;
+	private final TextChannel textChannel;
 
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
 	private final Map<Integer, NHLGameDayWatchThread> gameDayThreads;
 
+	private final static Map<Long, NHLGameDayWatchChannel> channels = new ConcurrentHashMap<>();
+
 	NHLGameDayWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
-		this.channel = channel;
+		this.textChannel = channel;
 		this.gameDayThreads = new ConcurrentHashMap<>();
 	}
 
@@ -71,12 +73,25 @@ public class NHLGameDayWatchChannel extends Thread {
 		}
 		NHLGameDayWatchChannel fnChannel = new NHLGameDayWatchChannel(nhlBot, guild, channel);
 		fnChannel.start();
+		channels.put(guild.getId().asLong(), fnChannel);
 		return fnChannel;
+	}
+
+	public static void removeChannel(Guild guild) {
+		NHLGameDayWatchChannel channel = getChannel(guild);
+		if(channel != null) {
+			channels.remove(guild.getId().asLong());
+			DiscordManager.deleteChannel(channel.textChannel);
+		}
+	}
+
+	public static NHLGameDayWatchChannel getChannel(Guild guild) {
+		return channels.get(guild.getId().asLong());
 	}
 
 	@Override
 	public void run() {
-		if (channel == null) {
+		if (textChannel == null) {
 			LOGGER.warn("Channel could not be found in Discord.");
 			return;
 		}
@@ -89,7 +104,7 @@ public class NHLGameDayWatchChannel extends Thread {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
 					Utils.sleep(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
-					LOGGER.info("Updating Channels...");
+					LOGGER.info("Updating Channel...");
 					updateChannel();
 					lastUpdate = schedulerUpdate;
 				} else {
@@ -113,7 +128,7 @@ public class NHLGameDayWatchChannel extends Thread {
 			if (!game.getGameState().isFinished()) {
 				// Start/Maintain gdc if they have not finished.
 				if (!gameDayThreads.containsKey(gamePk)) {
-					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.get(nhlBot, channel, gameTracker, guild);
+					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.get(nhlBot, textChannel, gameTracker, guild);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			} else {

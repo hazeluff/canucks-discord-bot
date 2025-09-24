@@ -28,7 +28,7 @@ public class AHLWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AHLWatchChannel.class);
 
 	private static final Team TEAM = Team.ABBY_NUCKS;
-	public static final String CHANNEL_NAME = "ahl-watch";
+	public static final String CHANNEL_NAME = "abby-watch";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;

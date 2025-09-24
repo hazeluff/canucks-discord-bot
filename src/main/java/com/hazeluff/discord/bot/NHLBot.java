@@ -19,6 +19,7 @@ import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
 import com.hazeluff.discord.utils.Utils;
@@ -46,7 +47,7 @@ public class NHLBot extends Thread {
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 	private final NHLBotCategoryManager nhlBotCategoryManager = new NHLBotCategoryManager(this);
-	
+
 	private NHLBot() {
 		presenceManager = new PresenceManager(this);
 		persistantData = null;
@@ -114,8 +115,11 @@ public class NHLBot extends Thread {
 	void initCategoriesAndChannels() {
 		LOGGER.info("Setup discord entities (Categories + Channels).");
 
-		// Start the Game Day Channels Manager
-		initGameDayChannelsManager();
+		// Start the Game Day Channels Manager (Individual Channels mode)
+		// initGameDayChannelsManager();
+
+		// Init Game Day Watch Channels
+		initGameDayWatchChannels();
 
 		// (Special) Create Four Nations Channel
 		// initFourNationsChannel();
@@ -123,7 +127,7 @@ public class NHLBot extends Thread {
 		initAHLWatchChannel();
 
 		// (Special) Create Playoff watch Channel
-		initPlayoffWatchChannel();
+		// initPlayoffWatchChannel();
 
 		// Manage WelcomeChannels (Only for my dev servers)
 		initWelcomeChannel();
@@ -221,23 +225,33 @@ public class NHLBot extends Thread {
 	}
 
 	void initGameDayChannelsManager() {
-		LOGGER.info("Initializing NHL Game Day Channels.");
-		gameDayChannelsManager = new NHLGameDayChannelsManager(this);
-		gameDayChannelsManager.init();
+		LOGGER.info("Initializing GameDayChannelsManager.");
+		this.gameDayChannelsManager = new NHLGameDayChannelsManager(this);
+		gameDayChannelsManager.start();
+	}
+
+	void initGameDayWatchChannels() {
+		LOGGER.info("Initializing GameDayWatchChannels.");
+		getDiscordManager().getClient().getGuilds()
+			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+			.filter(guild -> !getPersistentData().getPreferencesData()
+					.getGuildPreferences(guild.getId().asLong()).getTeams().isEmpty())
+			.subscribe(guild -> NHLGameDayWatchChannel.createChannel(this, guild));
 	}
 
 	@SuppressWarnings("unused")
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
 		getDiscordManager().getClient().getGuilds()
-				.subscribe(guild -> FourNationsWatchChannel.createChannel(this, guild));
+			.subscribe(guild -> FourNationsWatchChannel.createChannel(this, guild));
 	}
 
+	@SuppressWarnings("unused")
 	private void initPlayoffWatchChannel() {
 		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
-		getDiscordManager().getClient().getGuilds()
-				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-				.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
+		getDiscordManager().getClient()
+			.getGuilds()
+			.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
 	}
 
 	private void initAHLWatchChannel() {

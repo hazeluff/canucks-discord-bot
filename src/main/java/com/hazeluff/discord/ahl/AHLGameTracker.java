@@ -95,6 +95,7 @@ public class AHLGameTracker extends Thread implements GameTracker {
 	public void run() {
 		setThreadName();
 		LOGGER.info("Started thread for [" + game.getId() + "]");
+
 		updateGame();
 		try {
 			if (!game.isFinished()) {

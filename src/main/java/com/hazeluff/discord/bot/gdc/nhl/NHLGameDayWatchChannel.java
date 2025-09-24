@@ -97,7 +97,7 @@ public class NHLGameDayWatchChannel extends Thread {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
 					Utils.sleep(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
-					LOGGER.info("Updating Channels...");
+					LOGGER.info("Updating Channel...");
 					updateChannel();
 					lastUpdate = schedulerUpdate;
 				} else {

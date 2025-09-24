@@ -152,8 +152,9 @@ public class NHLBot extends Thread {
 	void initPersistentData() {
 		LOGGER.info("Initializing Persistent Data.");
 		this.persistantData = PersistentData.load(
-				Config.getMongoHost(), Config.getMongoPort(),
-				Config.getMongoUserName(), Config.getMongoPassword());
+			Config.getMongoHost(), Config.getMongoPort(),
+			Config.getMongoUserName(), Config.getMongoPassword()
+		);
 	}
 
 	/**
@@ -252,9 +253,11 @@ public class NHLBot extends Thread {
 	@SuppressWarnings("unused")
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
-		getDiscordManager().getClient().getGuilds().subscribe(guild -> FourNationsWatchChannel.createChannel(this, guild));
+		getDiscordManager().getClient().getGuilds()
+			.subscribe(guild -> FourNationsWatchChannel.createChannel(this, guild));
 	}
 
+	@SuppressWarnings("unused")
 	private void initPlayoffWatchChannel() {
 		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
 		getDiscordManager().getClient()

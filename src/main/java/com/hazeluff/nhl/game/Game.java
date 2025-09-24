@@ -353,8 +353,7 @@ public class Game {
 
 	@Override
 	public String toString() {
-		return "Game [name()=" + getNiceName() + ", getGameState()=" + getGameState()
-				+ "]";
+		return "Game [name()=" + getNiceName() + ", getGameState()=" + getGameState() + "]";
 	}
 
 }

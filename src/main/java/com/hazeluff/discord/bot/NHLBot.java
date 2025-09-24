@@ -143,7 +143,7 @@ public class NHLBot extends Thread {
 		initAHLWatchChannel();
 
 		// (Special) Create Playoff watch Channel
-		initPlayoffWatchChannel();
+		// initPlayoffWatchChannel();
 
 		// Manage WelcomeChannels (Only for my dev servers)
 		initWelcomeChannel();

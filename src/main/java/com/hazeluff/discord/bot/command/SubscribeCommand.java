@@ -86,8 +86,12 @@ public class SubscribeCommand extends Command {
 
 	private void subscribeGuild(Guild guild, Team team) {
 		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guild.getId().asLong(), team);
-		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.createChannel(nhlBot, guild);
-		channel.updateChannel();
+		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guild);
+		if (channel == null) {
+			channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
+		} else {
+			channel.updateChannel();
+		}
 	}
 
 	String buildSubscribedMessage(Guild guild, Team team) {

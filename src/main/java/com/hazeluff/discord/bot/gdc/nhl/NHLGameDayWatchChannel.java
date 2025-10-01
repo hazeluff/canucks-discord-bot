@@ -48,7 +48,11 @@ public class NHLGameDayWatchChannel extends Thread {
 		this.gameDayThreads = new ConcurrentHashMap<>();
 	}
 
-	public static NHLGameDayWatchChannel createChannel(NHLBot nhlBot, Guild guild) {
+	public static NHLGameDayWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
+		long guildId = guild.getId().asLong();
+		if (channels.containsKey(guildId)) {
+			return channels.get(guildId);
+		}
 		TextChannel channel = null;
 		try {
 			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)
@@ -73,7 +77,7 @@ public class NHLGameDayWatchChannel extends Thread {
 		}
 		NHLGameDayWatchChannel fnChannel = new NHLGameDayWatchChannel(nhlBot, guild, channel);
 		fnChannel.start();
-		channels.put(guild.getId().asLong(), fnChannel);
+		channels.put(guildId, fnChannel);
 		return fnChannel;
 	}
 

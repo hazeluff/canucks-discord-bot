@@ -134,10 +134,11 @@ public class UnsubscribeCommand extends Command {
 		List<Team> teams = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId).getTeams();
 		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guild);
 		if (channel == null && !teams.isEmpty()) {
-			channel = NHLGameDayWatchChannel.createChannel(nhlBot, guild);
-			channel.updateChannel();
-		} else {
+			channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
+		} else if (teams.isEmpty()) {
 			NHLGameDayWatchChannel.removeChannel(guild);
+		} else if (channel != null) {
+			channel.updateChannel();
 		}
 	}
 

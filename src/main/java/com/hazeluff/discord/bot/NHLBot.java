@@ -222,7 +222,7 @@ public class NHLBot extends Thread {
 		getDiscordManager().getClient()
 			.getGuilds()
 			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-			.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
+			.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
 	}
 
 	void initGameDayChannelsManager() {
@@ -237,14 +237,14 @@ public class NHLBot extends Thread {
 			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 			.filter(guild -> !getPersistentData().getPreferencesData()
 					.getGuildPreferences(guild.getId().asLong()).getTeams().isEmpty())
-			.subscribe(guild -> NHLGameDayWatchChannel.createChannel(this, guild));
+			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	@SuppressWarnings("unused")
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
 		getDiscordManager().getClient().getGuilds()
-			.subscribe(guild -> FourNationsWatchChannel.createChannel(this, guild));
+			.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	@SuppressWarnings("unused")
@@ -253,7 +253,7 @@ public class NHLBot extends Thread {
 		getDiscordManager().getClient()
 			.getGuilds()
 			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-			.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
+			.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	private void initAHLWatchChannel() {
@@ -261,7 +261,7 @@ public class NHLBot extends Thread {
 		getDiscordManager().getClient()
 			.getGuilds()
 			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-			.subscribe(guild -> AHLWatchChannel.createChannel(this, guild));
+			.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {

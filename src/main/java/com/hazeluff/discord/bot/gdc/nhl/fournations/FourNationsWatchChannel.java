@@ -36,6 +36,8 @@ public class FourNationsWatchChannel extends Thread {
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
 	private final Map<Integer, FourNationsGameDayThread> gameDayThreads;
 
+	private final static Map<Long, FourNationsWatchChannel> channels = new ConcurrentHashMap<>();
+
 	FourNationsWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
@@ -43,7 +45,11 @@ public class FourNationsWatchChannel extends Thread {
 		this.gameDayThreads = new ConcurrentHashMap<>();
 	}
 
-	public static FourNationsWatchChannel createChannel(NHLBot nhlBot, Guild guild) {
+	public static FourNationsWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
+		long guildId = guild.getId().asLong();
+		if (channels.containsKey(guildId)) {
+			return channels.get(guildId);
+		}
 		TextChannel channel = null;
 		try {
 			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)
@@ -68,12 +74,12 @@ public class FourNationsWatchChannel extends Thread {
 		}
 		FourNationsWatchChannel fnChannel = new FourNationsWatchChannel(nhlBot, guild, channel);
 		fnChannel.start();
+		channels.put(guildId, fnChannel);
 		return fnChannel;
 	}
 
 	@Override
 	public void run() {
-
 		if (channel == null) {
 			LOGGER.warn("Channel could not be found in Discord.");
 			return;

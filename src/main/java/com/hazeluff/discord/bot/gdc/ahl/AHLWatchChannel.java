@@ -44,6 +44,8 @@ public class AHLWatchChannel extends Thread {
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
 	private final Map<Integer, AHLGameDayThread> playoffGameDayThreads;
 
+	private final static Map<Long, AHLWatchChannel> channels = new ConcurrentHashMap<>();
+
 	AHLWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
@@ -52,7 +54,11 @@ public class AHLWatchChannel extends Thread {
 		this.playoffGameDayThreads = new ConcurrentHashMap<>();
 	}
 
-	public static AHLWatchChannel createChannel(NHLBot nhlBot, Guild guild) {
+	public static AHLWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
+		long guildId = guild.getId().asLong();
+		if (channels.containsKey(guildId)) {
+			return channels.get(guildId);
+		}
 		TextChannel channel = null;
 		try {
 			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)
@@ -86,17 +92,18 @@ public class AHLWatchChannel extends Thread {
 		
 		AHLWatchChannel fnChannel = new AHLWatchChannel(nhlBot, guild, channel, meta);
 
-		if (channel != null) {
-			fnChannel.start();
-		} else {
-			LOGGER.warn("Channel could not be found in Discord.");
-		}
+		fnChannel.start();
 
+		channels.put(guildId, fnChannel);
 		return fnChannel;
 	}
 
 	@Override
 	public void run() {
+		if (channel == null) {
+			LOGGER.warn("Channel could not be found in Discord.");
+			return;
+		}
 
 		LocalDate lastUpdate = null;
 		while (!isStop()) {

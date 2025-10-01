@@ -28,7 +28,7 @@ public class WelcomeChannel extends Thread {
 		this.channel = channel;
 	}
 
-	public static WelcomeChannel createChannel(NHLBot nhlBot, Guild guild) {
+	public static WelcomeChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
 		TextChannel channel;
 		try {
 			channel = guild.getChannels()

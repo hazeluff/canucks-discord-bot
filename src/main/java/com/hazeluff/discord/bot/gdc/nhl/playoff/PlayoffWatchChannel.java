@@ -49,7 +49,7 @@ public class PlayoffWatchChannel extends Thread {
 		this.summaryUpdater = new PlayoffWatchSummaryUpdater(nhlBot, channel, meta);
 	}
 
-	public static PlayoffWatchChannel createChannel(NHLBot nhlBot, Guild guild) {
+	public static PlayoffWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
 		TextChannel channel = null;
 		try {
 			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)

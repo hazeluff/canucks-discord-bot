@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.hazeluff.discord</groupId>
   <artifactId>nhlbot</artifactId>
-  <version>1.9.0</version>
+  <version>1.9.1</version>
   <packaging>jar</packaging>
   <name>NHLBot</name>
   <url>http://maven.apache.org</url>
@@ -43,23 +43,33 @@
 	    <artifactId>commons-lang</artifactId>
 	    <version>2.6</version>
 	</dependency>
-	
+
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-lang3</artifactId>
+        <version>3.18.0</version>
+    </dependency>
+
 	<dependency>
         <groupId>org.javatuples</groupId>
         <artifactId>javatuples</artifactId>
         <version>1.2</version>
     </dependency>
-	
+
 	<dependency>
       <groupId>com.kennycason</groupId>
       <artifactId>kumo-core</artifactId>
       <version>1.28</version>
       <exclusions>
-        <exclusion> 
+        <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>slf4j-api</artifactId>
         </exclusion>
-      </exclusions> 
+        <exclusion>
+          <groupId>org.apache.commons</groupId>
+          <artifactId>commons-lang3</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

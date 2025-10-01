@@ -219,9 +219,10 @@ public class NHLBot extends Thread {
 
 	private void initWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
-		getDiscordManager().getClient().getGuilds()
-				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-				.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
+		getDiscordManager().getClient()
+			.getGuilds()
+			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+			.subscribe(guild -> WelcomeChannel.createChannel(this, guild));
 	}
 
 	void initGameDayChannelsManager() {
@@ -251,6 +252,7 @@ public class NHLBot extends Thread {
 		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
 		getDiscordManager().getClient()
 			.getGuilds()
+			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 			.subscribe(guild -> PlayoffWatchChannel.createChannel(this, guild));
 	}
 
@@ -258,6 +260,7 @@ public class NHLBot extends Thread {
 		LOGGER.info("Updating 'AHL Watch' channels.");
 		getDiscordManager().getClient()
 			.getGuilds()
+			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 			.subscribe(guild -> AHLWatchChannel.createChannel(this, guild));
 	}
 

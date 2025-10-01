@@ -25,7 +25,7 @@ import discord4j.core.spec.TextChannelCreateSpec;
 public class NHLGameDayWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayWatchChannel.class);
 
-	public static final String CHANNEL_NAME = "game-day";
+	public static final String CHANNEL_NAME = "game-day-watch";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;

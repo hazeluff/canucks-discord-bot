@@ -55,7 +55,9 @@ public class NHLGameDayWatchChannel extends Thread {
 		}
 		TextChannel channel = null;
 		try {
-			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)
+			channel = guild.getChannels()
+					.filter(TextChannel.class::isInstance)
+					.cast(TextChannel.class)
 					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
 					.take(1)
 					.onErrorReturn(null)

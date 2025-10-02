@@ -10,6 +10,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
 
@@ -58,7 +59,12 @@ public class WelcomeChannel extends Thread {
 			DiscordManager.block(channel.getMessagesBefore(lastMessageId)).stream()
 					.filter(message -> nhlBot.getDiscordManager().isAuthorOfMessage(message))
 					.forEach(message -> DiscordManager.deleteMessage(message));
-			DiscordManager.deleteMessage(DiscordManager.block(channel.getLastMessage()));
+			Message lastMessage = DiscordManager.block(channel.getLastMessage());
+			if (lastMessage != null) {
+				if (nhlBot.getDiscordManager().isAuthorOfMessage(lastMessage)) {
+					DiscordManager.deleteMessage(lastMessage);
+				}
+			}
 		}
 		DiscordManager.sendMessage(channel, UPDATED_MESSAGE);
 		DiscordManager.sendMessage(channel,

@@ -64,6 +64,7 @@ public class HelpCommand extends Command {
 	}
 
 	public static final String COMMAND_LIST = "Here are a list of commands:\n\n"
+			+ "```"
 			+ "You can use the commands by doing slash commands integrated with Discord.\n"
 			+ "\n"
 			+ "Setup\n"

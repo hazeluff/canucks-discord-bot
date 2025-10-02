@@ -1,5 +1,6 @@
 package com.hazeluff.ahl.game;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -44,7 +45,8 @@ public class GameSummaryData {
 	}
 
 	public ZonedDateTime getStartTime() {
-		return ZonedDateTime.parse(getDetails().getString("GameDateISO8601").getValue());
+		return ZonedDateTime.parse(getDetails().getString("GameDateISO8601").getValue())
+				.withZoneSameInstant(ZoneId.of("America/Toronto"));
 	}
 
 	public boolean isStarted() {

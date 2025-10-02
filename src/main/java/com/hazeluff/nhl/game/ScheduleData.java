@@ -1,5 +1,6 @@
 package com.hazeluff.nhl.game;
 
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -68,7 +69,8 @@ public class ScheduleData {
 	}
 
 	public ZonedDateTime getStartTime() {
-		return DateUtils.parseNHLDate(getJson().getString("startTimeUTC").getValue());
+		return DateUtils.parseNHLDate(getJson().getString("startTimeUTC").getValue())
+				.withZoneSameInstant(ZoneId.of("America/Toronto"));
 	}
 
 	public int getGameId() {

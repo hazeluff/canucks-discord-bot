@@ -93,7 +93,7 @@ public class Config {
 	/*
 	 *  Technical Config
 	 */
-	public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
+	public static final ZoneId ZONE_ID = ZoneId.of("America/Toronto");
 	public static final long GUILD_ID = 238870084003561472l;
 
 	public static final int HTTP_REQUEST_RETRIES = 3;
@@ -141,7 +141,7 @@ public class Config {
 	
 	public static final String MONGO_DATABASE_NAME = "CanucksBot";
 	public static final String MONGO_TEST_DATABASE_NAME = "CanucksBotIntegrationTest";
-	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
+	public static final ZoneId SERVER_ZONE = ZoneId.of("America/Vancouver");
 
 	public static final List<String> STATUS_MESSAGES = Arrays.asList(
 		"/help for commands",

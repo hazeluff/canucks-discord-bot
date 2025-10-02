@@ -1,6 +1,5 @@
 package com.hazeluff.nhl.game;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -8,6 +7,7 @@ import org.bson.BsonDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DateUtils;
 
@@ -70,7 +70,7 @@ public class ScheduleData {
 
 	public ZonedDateTime getStartTime() {
 		return DateUtils.parseNHLDate(getJson().getString("startTimeUTC").getValue())
-				.withZoneSameInstant(ZoneId.of("America/Toronto"));
+				.withZoneSameInstant(Config.ZONE_ID);
 	}
 
 	public int getGameId() {

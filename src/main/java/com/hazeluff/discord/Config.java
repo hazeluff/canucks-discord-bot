@@ -89,7 +89,7 @@ public class Config {
 	/*
 	 *  Technical Config
 	 */
-	public static final ZoneId ZONE_ID = ZoneId.of("America/New_York");
+	public static final ZoneId ZONE_ID = ZoneId.of("America/Toronto");
 	public static final int HTTP_REQUEST_RETRIES = 3;
 	public static final long GUILD_ID = 238870084003561472l;
 	
@@ -181,7 +181,7 @@ public class Config {
 	
 	public static final String MONGO_DATABASE_NAME = "NHLBot";
 	public static final String MONGO_TEST_DATABASE_NAME = "NHLBotIntegrationTest";
-	public static final ZoneId DATE_START_TIME_ZONE = ZoneId.of("America/Vancouver");
+	public static final ZoneId SERVER_ZONE = ZoneId.of("America/Vancouver");
 
 	// Slash Commands
 	/**

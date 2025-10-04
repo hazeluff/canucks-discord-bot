@@ -234,7 +234,6 @@ public class NHLBot extends Thread {
 	void initGameDayWatchChannels() {
 		LOGGER.info("Initializing GameDayWatchChannels.");
 		getDiscordManager().getClient().getGuilds()
-			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
 			.filter(guild -> !getPersistentData().getPreferencesData()
 					.getGuildPreferences(guild.getId().asLong()).getTeams().isEmpty())
 			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));

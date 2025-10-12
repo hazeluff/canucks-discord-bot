@@ -310,10 +310,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	/*
 	 * Thread Management
 	 */
-	public void stopAndCleanUp() {
-		interrupt();
-	}
-
 	@Override
 	public void interrupt() {
 		super.interrupt();

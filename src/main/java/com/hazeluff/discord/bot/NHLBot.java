@@ -114,6 +114,8 @@ public class NHLBot extends Thread {
 
 	void initCategoriesAndChannels() {
 		LOGGER.info("Setup discord entities (Categories + Channels).");
+		// Manage WelcomeChannels (Only for my dev servers)
+		initWelcomeChannel();
 
 		// Start the Game Day Channels Manager (Individual Channels mode)
 		// initGameDayChannelsManager();
@@ -128,9 +130,6 @@ public class NHLBot extends Thread {
 
 		// (Special) Create Playoff watch Channel
 		// initPlayoffWatchChannel();
-
-		// Manage WelcomeChannels (Only for my dev servers)
-		initWelcomeChannel();
 	}
 
 	void initPersistentData() {

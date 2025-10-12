@@ -128,11 +128,11 @@ public class NHLBot extends Thread {
 
 	void initCategoriesAndChannels() {
 		LOGGER.info("Setup discord entities (Categories + Channels).");
-		List<Guild> guilds = getDiscordManager().getGuilds();
 
-		// Init Static Entities (They must be init in order!!!)
-		gdcCategoryManager.init(guilds);
-		wcChannelManager.init(guilds);
+		// Manage WelcomeChannels (Only for my dev servers)
+		initWelcomeChannel();
+
+		initStaticEntities();
 
 		// Start the Game Day Channels Manager
 		initGameDayChannelsManager();
@@ -144,9 +144,14 @@ public class NHLBot extends Thread {
 
 		// (Special) Create Playoff watch Channel
 		// initPlayoffWatchChannel();
+	}
 
-		// Manage WelcomeChannels (Only for my dev servers)
-		initWelcomeChannel();
+	void initStaticEntities() {
+		List<Guild> guilds = getDiscordManager().getGuilds();
+		// Order matters
+		gdcCategoryManager.init(guilds); // For GameDayChannelsManager
+		wcChannelManager.init(guilds); // For GameDayChannelsManager
+
 	}
 
 	void initPersistentData() {

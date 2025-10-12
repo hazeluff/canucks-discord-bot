@@ -56,7 +56,8 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
 			}
 		}
-		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel, preferences, meta);
+		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel,
+				preferences, meta);
 
 		if (gameDayChannel.channel != null) {
 			gameDayChannel.start();

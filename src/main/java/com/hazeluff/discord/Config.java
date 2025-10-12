@@ -4,6 +4,7 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.discord.ahl.AHLSeasons;
@@ -172,6 +173,16 @@ public class Config {
 		"self tell you this for free"
 	);
 	
+	public static final String NHL_CHANNEL_REGEX;
+	static {
+		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
+				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
+		teamRegex = String.format("(%s)", teamRegex);
+		String startYear = String.valueOf(Config.NHL_CURRENT_SEASON.getStartYear()).substring(2, 4);
+		String endYear = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
+		NHL_CHANNEL_REGEX = String.format("%1$s-vs-%1$s-(%2$s|%3$s)-[0-9]{2}-[0-9]{2}", teamRegex, startYear, endYear);
+	}
+
 	/*
 	 * About
 	 */

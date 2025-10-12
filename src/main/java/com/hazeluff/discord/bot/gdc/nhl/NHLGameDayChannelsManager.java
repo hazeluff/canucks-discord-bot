@@ -1,7 +1,6 @@
 package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -92,7 +91,7 @@ public class NHLGameDayChannelsManager extends Thread {
 			return null;
 		}
 
-		gameDayChannel.stopAndRemoveGuildChannel();
+		gameDayChannel.interrupt();
 
 		if (guildChannels.isEmpty()) {
 			gameDayChannels.remove(guildId);
@@ -251,7 +250,7 @@ public class NHLGameDayChannelsManager extends Thread {
 			// Remove channels of outdated/unsubscribed games
 			for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
 				if (isRemoveChannel(channel, preferences)) {
-					deleteChannel(channel, preferences);
+					deleteChannel(channel);
 				}
 			}
 
@@ -278,25 +277,14 @@ public class NHLGameDayChannelsManager extends Thread {
 	 *            the preferences of the guild of the channel. This is used to
 	 *            determine if a game is active for the guild.
 	 */
-	/*
-	 * GuildPreferences is passed in so as to not fetch it each channel in a loop in
-	 * #deleteInactiveGuildChannels(IGuild).
-	 */
-	void deleteChannel(TextChannel channel, GuildPreferences preferences) {
+	void deleteChannel(TextChannel channel) {
 		LOGGER.info("Remove channel: " + channel.getName());
-		/*
-		 * Remove games that:
-		 * - are in the category
-		 * - have the correct name format for a gdc
-		 * - are not active
-		 */
 		Game game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
 		if (game != null) {
-			NHLGameDayChannelThread removedChannel = removeGameDayChannel(channel.getGuildId().asLong(), game.getGameId());
-			if (removedChannel == null) {
-				DiscordManager.deleteChannel(channel);
-			}
+			removeGameDayChannel(channel.getGuildId().asLong(), game.getGameId());
 		}
+
+		DiscordManager.deleteChannel(channel);
 	}
 
 	boolean isRemoveChannel(TextChannel channel, GuildPreferences preferences) {
@@ -307,6 +295,12 @@ public class NHLGameDayChannelsManager extends Thread {
 
 		// Does not remove channels that does not have the correct name format
 		if (!isChannelNameFormat(channel.getName())) {
+			return false;
+		}
+
+		// Checks if the channel corresponds to a real game
+		if (nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName()) == null)
+		{
 			return false;
 		}
 
@@ -333,12 +327,7 @@ public class NHLGameDayChannelsManager extends Thread {
 	 *         false, otherwise.
 	 */
 	public static boolean isChannelNameFormat(String channelName) {
-		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
-				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
-		teamRegex = String.format("(%s)", teamRegex);
-		String year = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
-		String regex = String.format("%1$s-vs-%1$s-%2$s-[0-9]{2}-[0-9]{2}", teamRegex, year);
-		return channelName.matches(regex);
+		return channelName.matches(Config.NHL_CHANNEL_REGEX);
 	}
 
 	boolean isGameActive(List<Team> teams, String channelName) {

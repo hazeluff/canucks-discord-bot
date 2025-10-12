@@ -310,14 +310,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	/*
 	 * Thread Management
 	 */
-	/**
-	 * Stops the thread and deletes the channel from the Discord Guild.
-	 */
-	public void stopAndRemoveGuildChannel() {
-		DiscordManager.deleteChannel(channel);
-		interrupt();
-	}
-
 	@Override
 	public void interrupt() {
 		super.interrupt();

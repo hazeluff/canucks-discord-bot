@@ -1,7 +1,8 @@
 package com.hazeluff.discord.bot;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.slf4j.Logger;
@@ -9,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
@@ -56,11 +58,14 @@ public class PresenceManager extends Thread {
 		String status = Utils.getRandom(Config.STATUS_MESSAGES);
 		Team team = Config.DEFAULT_TEAM;
 		Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(team);
-		if(nextGame != null) {
-			Team oppTeam = nextGame.getOppossingTeam(team);
-			if (oppTeam != null) {				
-				String nextGameMessage = String.format("in #%s next. ", nextGame.getNiceName());
-				status = nextGameMessage + status;
+		if (nextGame != null) {
+			long gameTimeDiff = DateUtils.diffHours(ZonedDateTime.now(), nextGame.getStartTime());
+			if (gameTimeDiff > 0 && gameTimeDiff < 12) {
+				Team oppTeam = nextGame.getOppossingTeam(team);
+				if (oppTeam != null) {
+					String nextGameMessage = String.format("Gameday in %s. ", nextGame.getNiceName());
+					status = nextGameMessage + status;
+				}
 			}
 		}
 		return buildOnlinePresence(status);
@@ -87,16 +92,16 @@ public class PresenceManager extends Thread {
 	public void run() {
 		changePresenceToFetchSchedule();
 
-		LocalDate lastUpdate = null;
+		int lastUpdateHour = -1;
 		while (!isStop()) {
-			LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
-			if (schedulerUpdate == null) {
+			LocalDateTime now = LocalDateTime.now();
+			if (nhlBot.getNHLGameScheduler() == null) {
 				LOGGER.info("Waiting for GameScheduler to initialize...");
 				Utils.sleep(INIT_UPDATE_RATE);
-			} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
+			} else if (lastUpdateHour == -1 || now.getHour() != lastUpdateHour) {
 				LOGGER.info("Updating Status.");
 				changePresence(getOnlineStatus());
-				lastUpdate = schedulerUpdate;
+				lastUpdateHour = now.getHour();
 			} else {
 				Utils.sleep(UPDATE_RATE);
 			}

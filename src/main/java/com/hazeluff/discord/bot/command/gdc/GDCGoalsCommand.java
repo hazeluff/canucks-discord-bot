@@ -32,7 +32,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		if (!game.getGameState().isStarted()) {
-			return Command.reply(event, GAME_NOT_STARTED_MESSAGE, true);
+			return Command.reply(event, BuildGameNotStartedMessage(game), true);
 		}
 
 		Builder embedBuilder = EmbedCreateSpec.builder();

@@ -170,7 +170,11 @@ public class Config {
 		"There's a creeper on the roof. LA-LA-LA-LA-LA",
 		"It was 4-1",
 		"Do your dekes",
-		"self tell you this for free"
+		"I can tell you that for free",
+		"Whale team good.",
+		"Whale team bad.",
+		"Whale team mediocre.",
+		"Never Day Sie!"
 	);
 	
 	public static final String NHL_CHANNEL_REGEX;

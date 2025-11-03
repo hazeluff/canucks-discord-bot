@@ -19,13 +19,13 @@ public class GDCStatusCommand extends GDCSubCommand {
 
 	@Override
 	public String getDescription() {
-		return "Game/Intermission/Power Play statuses.";
+		return "Start Time/Game/Intermission/Power Play statuses.";
 	}
 
 	@Override
 	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
 		if (!game.getGameState().isStarted()) {
-			return event.reply(GAME_NOT_STARTED_MESSAGE);
+			return event.reply(BuildGameNotStartedMessage(game));
 		}
 
 		return Command.reply(event, buildEmbed(game));

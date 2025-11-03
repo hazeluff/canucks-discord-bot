@@ -32,6 +32,10 @@ public class DateUtils {
 		return Duration.between(date1, date2).getSeconds() * 1000;
 	}
 
+	public static long diffHours(ZonedDateTime date1, ZonedDateTime date2) {
+		return Duration.between(date1, date2).toHours();
+	}
+
 	/**
 	 * Determines if a date is between a date range
 	 * 

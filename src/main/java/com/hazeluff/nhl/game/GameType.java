@@ -62,7 +62,6 @@ public enum GameType {
 		}
 	}
 
-	// TODO: TEST THIS
 	public String getPeriodCode(int period) {
 		switch (this) {
 		case PRESEASON:

@@ -450,7 +450,7 @@ public class NHLGameScheduler extends Thread {
 
 	}
 
-	public static Game getCurrentLiveGame(Stream<Game> gameStream, Team team) {
+	private static Game getCurrentLiveGame(Stream<Game> gameStream, Team team) {
 		return gameStream
 				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> game.getGameState().isLive())

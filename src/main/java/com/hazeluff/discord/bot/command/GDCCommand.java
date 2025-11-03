@@ -15,7 +15,9 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -85,8 +87,7 @@ public class GDCCommand extends Command {
 			return event.reply(spec);
 		}
 
-		Game game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
-		if (game == null) {
+		if (channel.getName() != NHLGameDayWatchChannel.CHANNEL_NAME) {
 			// Not in game day channel
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
 					.content("GDC Commands must be used in a Game Day Channel.")
@@ -96,6 +97,23 @@ public class GDCCommand extends Command {
 			return event.reply(spec);
 		}
 
+		List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
+				.getGuildPreferences(event.getInteraction().getGuildId().get().asLong()).getTeams();
+		if(teams.size() > 1) {
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.content("Your server can only be subscribed to a single team to use this feature.")
+					.ephemeral(true)
+					.build();
+			return event.reply(spec);
+		} else if (teams.size() == 0) {
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.content("Your server must be subscribed to a single team to use this feature.")
+					.ephemeral(true)
+					.build();
+			return event.reply(spec);
+		} // else teams.size() == 1
+		
+		
 		/*
 		 * Sub commands
 		 */
@@ -114,6 +132,7 @@ public class GDCCommand extends Command {
 		 */
 		GDCSubCommand publicCommand = PUBLIC_COMMANDS.get(strSubcommand.toLowerCase());
 		if (publicCommand != null) {
+			Game game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(teams.get(0));
 			return publicCommand.reply(event, nhlBot, game);
 		}
 

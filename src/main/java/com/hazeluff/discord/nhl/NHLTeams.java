@@ -306,7 +306,7 @@ public class NHLTeams {
 				Color.of(0x639FB6),
 				ZoneId.of("America/Los_Angeles")),
 		UTAH_HC(
-				59,
+				68,
 				"Utah",
 				"Mammoth",
 				"UTA",

@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.chat;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.hazeluff.discord.bot.NHLBot;
@@ -14,23 +15,39 @@ public class RudeTopic extends Topic {
 		super(nhlBot);
 	}
 
+	private static final List<String> replies = Arrays.asList(
+			"Nah, you should fuck off.", 
+			"Go ahead and leave the server.", 
+			"You can suck my dick.",
+			"Go take it, and shove it up your butt.", 
+			"Please, eat shit.",
+			"Get fucked.",
+			"You are cordially invited to get fucked.", 
+			"Bleep Bloop. I am just a robot.", 
+			"Ok. Twat.",
+			"You're probably getting coal this Christmas.", 
+			"I'm just doing my job. :cry:", 
+			"That's not nice.",
+			"Hazeluff worked really hard on me.",
+			"A moderator will be here shortly to discuss this matter.",
+			"You need to have a Positive Mental Attitude.",
+			"2 Kings 2:23-24", // Elisha Is Jeered
+			"Acts 20:9",
+			// "As Paul spoke on and on, a young man named Eutychus,
+			// sitting on the windowsill, became very drowsy. Finally,
+			// he fell sound asleep and dropped three stories to his death below."
+			"Social Credits have been deducted from your profile.",
+			"You have been reported to the local authorities.",
+			"git gud scrub",
+			"Thank you, come again.",
+			"Why you hef to be mad? https://www.youtube.com/watch?v=xzpndHtdl9A",
+			"Fin would not approve.",
+			"ok w/e"
+	);
+	
 	@Override
 	public void execute(MessageCreateEvent event) {
-		String reply = Utils.getRandom(Arrays.asList(
-				"Nah, you should fuck off.", 
-				"Go ahead and leave the server.", 
-				"You can suck my dick.",
-				"Go take it, and shove it up your butt.", 
-				"Please, eat shit and die.", 
-				"Get fucked.",
-				"You are cordially invited to get fucked.", 
-				"Bleep Bloop. I am just a robot.", 
-				"Ok. Twat.",
-				"Why you gotta be so ruuuddee :musical_note:\nhttps://goo.gl/aMwOxY",
-				"You're probably getting coal this Christmas.", 
-				"I'm just doing my job. :cry:", 
-				"That's not nice.",
-				"Hazeluff worked really hard on me."));
+		String reply = Utils.getRandom(replies);
 		sendMessage(event, reply);
 	}
 

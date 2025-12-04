@@ -33,11 +33,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		return LOGGER;
 	}
 
-	// Number of retries to do when NHL API returns no events.
-	static final int NHL_EVENTS_RETRIES = 5;
-
-	// Time to wait before tryign to fetch the Discord channel
-	static final long CHANNEL_FETCH_RETRY_RATE_MS = 60000l;
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
 	// Polling time for when game is started/almost-started
@@ -116,7 +111,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			// Game has started
 			if (!alreadyStarted) {
 				LOGGER().info("Game is about to start!");
-				sendStartOfGameMessage();
+				updateStart(); // ## Overridable
 			} else {
 				LOGGER().info("Game has already started.");
 			}
@@ -221,6 +216,17 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		return alreadyStarted;
 	}
 
+	/*
+	 * Start of Game
+	 */
+	/**
+	 * Overridable. Called once at the start of the game.
+	 */
+	protected void updateStart()
+	{
+		sendStartOfGameMessage();
+	}
+	
 	/**
 	 * Sends the 'Start of game' message to the game channels of the specified game.
 	 * 
@@ -232,18 +238,79 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		sendMessage(buildStartOfGameMessage());
 	}
 
+	List<String> startOfGameMessages = Arrays.asList(
+			"Game is about to start! ",
+			"Key to the game: %s.",
+			"Get ready for your scheduled `%s`.",
+			"Predicted Score: `%s-%s %s %s`",
+			"Be Kind, Be Calm, Be Safe",
+			"Be woke, be cool, a calm spirit is smarter.",
+			"Get ready, go to the washroom, get your snacks, "
+					+ "get your drinks, get your ????, "
+					+ "get comfy, and watch us play.",
+			"I just hope everybody has fun.", 
+			"Good Luck; Have Fun.",
+			"No dooming.",
+			"Mods are not asleep.",
+			"Never Day Sie Team!",
+			"Whale team GOOD!",
+			"Whale team BAD?",
+			"Be nice to each other."
+	);
+
+	List<String> keysToGame = Arrays.asList(
+			"Speed, Agility, Power", 
+			"Get pucks deep", 
+			"Get shots on net", 
+			"Finish hits", 
+			"Playing our own game", 
+			"Applying pressure",
+			"Play a complete 60 minute game",
+			"Get a good start",
+			"Block shots"
+	);
+
+	List<String> gameResults = Arrays.asList(
+			"Win",
+			"Loss",
+			"OTL",
+			"SO Loss",
+			"Misery",
+			"Dispointment",
+			"Funtime",
+			"Excitement",
+			"Chaos",
+			"SHUTOUT Win",
+			"Injury",
+			"Ref Contraversy",
+			"Getting Rekt",
+			"Comeback"
+	);
+
 	protected String buildStartOfGameMessage() {
-		List<String> messageList = Arrays.asList(
-				"Game is about to start! " + preferences.getCheer(),
-				"Be Kind, Be Calm, Be Safe",
-				"Be woke, be cool, a calm spirit is smarter.",
-				"Get ready, go to the washroom, get your snacks, "
-						+ "get your drinks, get your ????, "
-						+ "get comfy, and watch us play.",
-				"I just hope everybody has fun", 
-				"Good Luck; Have Fun"
-		);
-		return Utils.getRandom(messageList);
+		int rndIdx = Utils.getRandomInt(startOfGameMessages.size());
+		String message = startOfGameMessages.get(rndIdx);
+		switch (rndIdx) {
+		case 0:
+			// "Game is about to start! <cheer>"
+			return message + preferences.getCheer();
+		case 1:
+			// "Key to the game: <keys>."
+			return String.format(message, Utils.getRandom(keysToGame));
+		case 2:
+			// "Get ready for your scheduled `<result>`."
+			return String.format(message, Utils.getRandom(gameResults));
+		case 3:
+			// "Predicted Score: `<numG1>-<numG2> <type> <result>`"
+			int ourGoals = Utils.getRandomInt(10);
+			int theirGoals = Utils.getRandomInt(10);
+			if(theirGoals == ourGoals)
+				ourGoals += 1;
+			String resultType = Utils.getRandom(Arrays.asList("Regulation", "Overttime", "OT/SO"));
+			String result = (ourGoals > theirGoals ? "Win" : "Loss");
+			return String.format(message, ourGoals, theirGoals, resultType, result);
+		}
+		return message;
 	}
 
 	/*

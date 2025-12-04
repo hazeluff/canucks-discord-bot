@@ -1,25 +1,46 @@
 package com.hazeluff.discord.bot.gdc.nhl.custom.game;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 public class CustomGameMessages {
+	@SuppressWarnings({ "serial", "unchecked" })
+	private static final Map<Team, List<CustomGameMessage>> startGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
+		put(Team.VANCOUVER_CANUCKS, new CanucksStartGameCollection());
+		for(Team team : Team.values()) {
+			if(!containsKey(team)) {
+				put(team, Collections.EMPTY_LIST);
+			}
+		}
+	}};
 
-	private static final List<CustomGameMessage> customMessages = 
-			Stream.of(
-				new CanucksGameCollection()
-			)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+	@SuppressWarnings({ "serial", "unchecked" })
+	private static final Map<Team, List<CustomGameMessage>> endGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
+		put(Team.VANCOUVER_CANUCKS, new CanucksEndGameCollection());
+		for(Team team : Team.values()) {
+			if(!containsKey(team)) {
+				put(team, Collections.EMPTY_LIST);
+			}
+		}
+	}};
 
-	public static String getMessage(Game game) {
-		// Get all applicable custom messages
-		List<CustomGameMessage> applicableMessages = customMessages.stream()
+	public static String getStartGameMessage(Game game, Team team) {
+		return getCustomMessage(game, startGameMessagesMap.get(team));
+	}
+
+	public static String getEndGameMessage(Game game, Team team) {
+		return getCustomMessage(game, endGameMessagesMap.get(team));
+	}
+
+	public static String getCustomMessage(Game game, List<CustomGameMessage> messages) {
+		// Get all applicable messages. If no custom ones exist, get from the generic list.
+		List<CustomGameMessage> applicableMessages = messages.stream()
 				.filter(customMsg -> customMsg.applies(game))
 				.collect(Collectors.toList());
 		if (applicableMessages.isEmpty()) {
@@ -35,5 +56,6 @@ public class CustomGameMessages {
 
 		int index = game.getGameId() % applicableMessages.size();
 		return applicableMessages.get(index).getMessage();
+
 	}
 }

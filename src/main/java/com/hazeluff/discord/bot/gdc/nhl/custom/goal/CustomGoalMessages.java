@@ -1,21 +1,26 @@
 package com.hazeluff.discord.bot.gdc.nhl.custom.goal;
 
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.event.GoalEvent;
 
 public class CustomGoalMessages {
 
-	private static final List<CustomGoalMessage> customMessages = 
-			Stream.of(
-				new CanucksGoalCollection()
-			)
-            .flatMap(Collection::stream)
-					.collect(Collectors.toList());
+	@SuppressWarnings({ "serial", "unchecked" })
+	private static final Map<Team, List<CustomGoalMessage>>
+		customMessagesMap = new HashMap<Team, List<CustomGoalMessage>>() {{
+			put(Team.VANCOUVER_CANUCKS, new CanucksGoalCollection());
+			for(Team team : Team.values()) {
+				if(!containsKey(team)) {
+					put(team, Collections.EMPTY_LIST);
+				}
+			}
+		}};
 
 	public static String getMessage(List<GoalEvent> allGoalEvents, GoalEvent currentEvent) {
 		// Filter all GoalEvents down to events that are or were before currentEvent
@@ -24,6 +29,8 @@ public class CustomGoalMessages {
 				.collect(Collectors.toList());
 
 		// Get all applicable custom messages
+		Team team = currentEvent.getTeam();
+		List<CustomGoalMessage> customMessages = customMessagesMap.get(team);
 		List<CustomGoalMessage> applicableMessages = customMessages.stream()
 				.filter(customMsg -> customMsg.applies(previousEvents, currentEvent))
 				.collect(Collectors.toList());

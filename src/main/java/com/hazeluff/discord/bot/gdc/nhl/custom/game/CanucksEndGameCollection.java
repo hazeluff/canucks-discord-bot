@@ -3,12 +3,12 @@ package com.hazeluff.discord.bot.gdc.nhl.custom.game;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 @SuppressWarnings("serial")
-public class CanucksGameCollection extends CustomGameMessage.Collection {
+public class CanucksEndGameCollection extends CustomGameMessage.Collection {
 	Team getTeam() {
 		return Team.VANCOUVER_CANUCKS;
 	}
-	
-	public CanucksGameCollection() {
+
+	public CanucksEndGameCollection() {
 		super();
 
 		// Win
@@ -37,12 +37,13 @@ public class CanucksGameCollection extends CustomGameMessage.Collection {
 		mostGoalsOrPoints("https://cdn.discordapp.com/attachments/1170084611422949396/1327791504877551727/garly_knod.gif", 8478856); // Garly knod
 		mostGoalsOrPoints("https://cdn.discordapp.com/attachments/1170084611422949396/1219060285755883601/GI5_Mi5aAAAxAdX.png", 8478444); // Brockstar
 		mostGoalsOrPoints("https://media.discordapp.net/attachments/1170084611422949396/1327791803042103376/quinn_godfather.jpg", 8480800); // Godfather
-		
+		mostGoalsOrPoints("https://www.youtube.com/watch?v=HhP1fcRuVqk", 8478444); // Brock - Hit it fergie
+
 		// Shutouts
 		shutout("https://cdn.discordapp.com/attachments/1170096185034412114/1171223035072762058/shutout_231027.gif"); // Demko
 		shutout("https://cdn.discordapp.com/attachments/1170096185034412114/1171223035953545216/shutout_231104.gif"); // Demko
 		shutout("https://cdn.discordapp.com/attachments/240245066017406976/1171178501886447657/demkohattilt.gif"); // Demko hat tilt
 		shutout("https://cdn.discordapp.com/attachments/1170084611422949396/1220265360029126687/IMG_6339.png"); // DeSmith Zad
-		
+
 	}
 }

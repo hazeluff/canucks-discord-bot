@@ -37,6 +37,15 @@ public class CustomGameMessage {
 		/*
 		 * Convenient List Appenders
 		 */
+		public void any(String message) {
+
+			CustomGameMessage customMessage = new CustomGameMessage(
+					message,
+					game -> true,
+					1);
+			add(customMessage);
+		}
+
 		public void win(String message) {
 			CustomGameMessage customMessage = new CustomGameMessage(
 					message, 

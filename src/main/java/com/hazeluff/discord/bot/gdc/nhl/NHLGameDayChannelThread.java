@@ -18,6 +18,7 @@ import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.nhl.custom.game.CustomGameMessages;
 import com.hazeluff.discord.nhl.NHLGameTracker;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
@@ -155,11 +156,35 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	}
 
 	/*
+	 * Start of game message
+	 */
+	@Override
+	protected void updateStart() {
+		sendStartOfGameMessage();
+		sendCustomStartMessage();
+	}
+
+	protected void sendCustomStartMessage() {
+		try {
+			List<Team> teams = preferences.getTeams();
+			if (teams.size() > 1)
+				return;
+			String message = CustomGameMessages.getStartGameMessage(game, teams.get(0));
+			if (channel != null && message != null) {
+				sendMessage(message);
+			}
+		} catch (Exception e) {
+			LOGGER().error("Could not send SoG Custom Message.");
+		}
+	}
+
+	/*
 	 * End of game message
 	 */
 	/**
 	 * Sends the end of game message.
 	 */
+	@Override
 	protected void sendEndOfGameMessage() {
 		Message endOfGameMessage = null;
 		try {
@@ -204,7 +229,10 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 
 	protected void sendCustomEndMessage() {
 		try {
-			String message = CustomGameMessages.getMessage(game);
+			List<Team> teams = preferences.getTeams();
+			if (teams.size() > 1)
+				return;
+			String message = CustomGameMessages.getEndGameMessage(game, teams.get(0));
 			if (channel != null && message != null) {
 				sendMessage(message);
 			}

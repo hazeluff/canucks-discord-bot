@@ -64,6 +64,15 @@ public class Utils {
 	public static int getRandomInt() {
 		return random.nextInt();
 	}
+
+	/**
+	 * Gets a random int value.
+	 * 
+	 * @return random value
+	 */
+	public static int getRandomInt(int max) {
+		return random.nextInt(max);
+	}
 	
 	/**
 	 * Gets a random long value.

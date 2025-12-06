@@ -4,26 +4,19 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-
-import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 @SuppressWarnings("serial")
 public class CanucksGoalCollection extends CustomGoalMessage.Collection {
-	Team getTeam() {
-		return Team.VANCOUVER_CANUCKS;
-	}
-
 	public CanucksGoalCollection() {
 		super();
 
 		/*
 		 * Players
 		 */
-		Map<Integer, List<String>> playerGoalmessages = new HashMap<>(); // Used to shorten invocation/copy-paste
+		Map<Integer, List<String>> playerGoalMessages = new HashMap<>(); // Used to shorten invocation/copy-paste
 		
 		// Elias Pettersson
-		playerGoalmessages.put(8480012, Arrays.asList(
+		playerGoalMessages.put(8480012, Arrays.asList(
 			"Pistol Pete! 🔫",
 			"Petey!",
 			"https://tenor.com/view/im-watching-you-state-pettersson-nhl-canucks-gif-13968152", // Pointing Eyes
@@ -46,7 +39,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		goals("https://cdn.discordapp.com/attachments/1170084611422949396/1171226312543850586/2018_mr_petey_sr.gif", 3, 8480012, 2); // Dad - 2 fingers
 		
 		// Brock Boeser
-		playerGoalmessages.put(8478444, Arrays.asList(
+		playerGoalMessages.put(8478444, Arrays.asList(
 			"Brock Hard",
 			"https://tenor.com/view/vancouver-canucks-brock-boeser-nhl-hockey-canucks-gif-16393197", // Allstar
 			"https://giphy.com/gifs/nhl-goal-celly-brock-boeser-5brOrJAyCJpD55jOet", // Woooo
@@ -64,7 +57,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		hatTrick("https://cdn.discordapp.com/attachments/1170084611422949396/1220227160254451713/boeser_petey_cele_smile.gif", 8478444); // Brock cele smile 2023
 
 		// J.T. Miller
-		playerGoalmessages.put(8476468, Arrays.asList(
+		playerGoalMessages.put(8476468, Arrays.asList(
 			"**JONATHAN TONATHAN!**",
 			"**It's Miller Time!**",
 			"https://giphy.com/gifs/canucks-jt-miller-goal-2021-62XQNbTolaM9zokRAP", // Canucks Graphic 2021
@@ -76,7 +69,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		));
 
 		// Nils Hoglander
-		playerGoalmessages.put(8481535, Arrays.asList(
+		playerGoalMessages.put(8481535, Arrays.asList(
 			"https://tenor.com/view/lion-king-pumba-hunting-bugs-gif-8591753",
 			"https://giphy.com/gifs/nhl-nhl-prospect-2019-scouting-combine-nils-hoglander-H1HFy3uN2FNSb7jRiv", // Draft; Sign camera
 			"https://giphy.com/gifs/nhl-sports-hockey-ice-1tNHEPNQwnUbNjfIJz", // Wooo
@@ -89,7 +82,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 	
 
 		// Connor Garland
-		playerGoalmessages.put(8478856, Arrays.asList(
+		playerGoalMessages.put(8478856, Arrays.asList(
 			"https://i.redd.it/b6x0grvcxbv71.png", // Death Stare
 			"https://giphy.com/gifs/canucks-conor-garland-goal-2021-ZBOuVtS3f3WoZNFEJu", // Canucks Graphic 2021
 			"https://tenor.com/view/vancouver-canucks-conor-garland-running-fast-skating-speed-gif-24103563", // Skating at camera
@@ -101,7 +94,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		));
 
 		// Quinn Hughes
-		playerGoalmessages.put(8480800, Arrays.asList(
+		playerGoalMessages.put(8480800, Arrays.asList(
 			"**Huggy Bear!** 🧸",
 			"https://tenor.com/view/vancouver-canucks-quinn-hughes-canucks-canucks-goal-canucks-win-gif-18795481", // Fist bump bench
 			"https://giphy.com/gifs/canucks-quinn-hughes-goal-2021-canucks-twJhUrLKMTCL4kxrfw", // Canucks Graphic 2021
@@ -115,7 +108,7 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		));
 		
 		// Tyler Myers
-		playerGoalmessages.put(8474574, Arrays.asList(
+		playerGoalMessages.put(8474574, Arrays.asList(
 			"🦒",
 			"https://cdn.discordapp.com/emojis/685700452826087457.png",
 			"https://tenor.com/view/toys-r-us-geoffrey-the-giraffe-dancing-dance-dance-off-gif-16386148", // ToysRUs Geofrey
@@ -123,14 +116,14 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		));
 
 		// Phil DiGiuseppe
-		playerGoalmessages.put(8476858, Arrays.asList(
+		playerGoalMessages.put(8476858, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/276953120964083713/1167713608231297064/ogrbsdx0bvwb1.png",
 			"https://tenor.com/view/vancouver-canucks-phillip-di-giuseppe-canucks-canucks-goal-canucks-win-gif-6680089124421974858",
 			"https://cdn.discordapp.com/attachments/276953120964083713/1167950366021799966/pdg_2023.gif"
 		));
 
 		// Dakota Joshua
-		playerGoalmessages.put(8478057, Arrays.asList(
+		playerGoalMessages.put(8478057, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/276953120964083713/1167950361735209040/joshua_2023.gif",
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1220216649958035516/dakota_skate_goal_ingame_2023.gif",
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791521616887888/dak_goal_2024.gif", // Canucks 2024
@@ -138,12 +131,12 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		));
 
 		// Carson Soucy
-		playerGoalmessages.put(8477369, Arrays.asList(
+		playerGoalMessages.put(8477369, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/276953120964083713/1167950364193083453/soucy_2023.gif"
 		));
 
 		// Pius Suter
-		playerGoalmessages.put(8480459, Arrays.asList(
+		playerGoalMessages.put(8480459, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1170087547918102609/suter_goal.gif",
 			"https://media.discordapp.net/attachments/1184407430159945768/1184967743821328444/GBVi3PSaoAAkXcr.png", // Pew Pew
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791508081999946/suter_goal_2024.gif", // Canucks 2024
@@ -151,54 +144,47 @@ public class CanucksGoalCollection extends CustomGoalMessage.Collection {
 		));
 
 		// Teddy Blueger
-		playerGoalmessages.put(8476927, Arrays.asList(
+		playerGoalMessages.put(8476927, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1220206508990664754/blueger.gif", // Canucks 2023
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791629364494397/blueger_goal_2024.gif" // Canucks 2024
 		));
 
 		// Filip Hronek
-		playerGoalmessages.put(8479425, Arrays.asList(
+		playerGoalMessages.put(8479425, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1220227157033484288/hronek_2023.gif" // Canucks 2023
 		));
 
 		// Thatcher Demko
-		playerGoalmessages.put(8477967, Arrays.asList(
+		playerGoalMessages.put(8477967, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/240245066017406976/1171178501886447657/demkohattilt.gif"
 		));
 		
 		// Jake DeBrusk
-		playerGoalmessages.put(8478498, Arrays.asList(
+		playerGoalMessages.put(8478498, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791632560422912/debrusk_cele.gif", // Cele
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791509000421407/debrusk_goal_2024.gif", // Canucks 2024
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791525857460325/debrusk_goal_skate_2024.gif" // Canucks 2024 - Skate
 		));
 		
 		// Kiefer Sherwood
-		playerGoalmessages.put(8480748, Arrays.asList(
+		playerGoalMessages.put(8480748, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791506551210160/sherwood_goal_2024.gif", // Canucks 2024
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791509667577979/sherwood_goal_skate_2024.gif" // Canucks 2024 - Skate
 		));
 
 		// Raty
-		playerGoalmessages.put(8482691, Arrays.asList(
+		playerGoalMessages.put(8482691, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791507331354686/raty_goal_2024.gif" // Canucks 2024
 		));
 
 		// Arshdeep Bains
-		playerGoalmessages.put(8483395, Arrays.asList(
+		playerGoalMessages.put(8483395, Arrays.asList(
 			"https://cdn.discordapp.com/attachments/1170084611422949396/1327791627086987357/bains_goal_skate_2024.gif" // Canucks 2024 - Skate
 		));
 		
 		
 		// register player goal messages
-		for (Entry<Integer, List<String>> playerGoalMessage : playerGoalmessages.entrySet()) {
-			int scorer = playerGoalMessage.getKey();
-			List<String> messages = playerGoalMessage.getValue();
-
-			for (String message : messages) {
-				scorer(message, scorer);
-			}
-		}
+		registerScorers(playerGoalMessages);
 		
 		/*
 		 *  Combos

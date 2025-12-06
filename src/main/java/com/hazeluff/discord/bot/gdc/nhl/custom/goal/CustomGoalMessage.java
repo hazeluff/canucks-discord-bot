@@ -3,9 +3,10 @@ package com.hazeluff.discord.bot.gdc.nhl.custom.goal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Predicate;
 
-import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.event.GoalEvent;
 
 public class CustomGoalMessage {
@@ -50,7 +51,16 @@ public class CustomGoalMessage {
 
 	@SuppressWarnings("serial")
 	public static abstract class Collection extends ArrayList<CustomGoalMessage> {
-		abstract Team getTeam();
+		void registerScorers(Map<Integer, List<String>> scorersMap) {
+			for (Entry<Integer, List<String>> playerGoalMessage : scorersMap.entrySet()) {
+				int scorer = playerGoalMessage.getKey();
+				List<String> messages = playerGoalMessage.getValue();
+
+				for (String message : messages) {
+					scorer(message, scorer);
+				}
+			}
+		}
 
 		/*
 		 * Convenient List Appenders
@@ -95,7 +105,7 @@ public class CustomGoalMessage {
 
 		void team(String message) {
 			CustomGoalMessage customMessage =  new CustomGoalMessage(message,
-					goalEvent -> goalEvent.getTeam().equals(getTeam()),
+					goalEvent -> true,
 					1);
 			add(customMessage);
 		}

@@ -83,7 +83,6 @@ public class BluesGoalCollection extends CustomGoalMessage.Collection {
 		 */
 		team("https://cdn.discordapp.com/attachments/1170084611422949396/1446685610080206919/blues_trumpet.gif");
 		team("https://cdn.discordapp.com/attachments/1170084611422949396/1446685609308721182/blues_lets_go.gif");
-		team("https://cdn.discordapp.com/attachments/1170084611422949396/1446685610608824381/blues_puck_is_in.gif");
 		team("https://cdn.discordapp.com/attachments/1170084611422949396/1446685611107815454/blues_goal.gif");
 	}
 }

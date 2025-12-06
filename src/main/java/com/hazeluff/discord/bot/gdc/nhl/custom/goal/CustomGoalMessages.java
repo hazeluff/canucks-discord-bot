@@ -16,11 +16,6 @@ public class CustomGoalMessages {
 		customMessagesMap = new HashMap<Team, List<CustomGoalMessage>>() {{
 			put(Team.VANCOUVER_CANUCKS, new CanucksGoalCollection());
 			put(Team.ST_LOUIS_BLUES, new BluesGoalCollection());
-			for(Team team : Team.values()) {
-				if(!containsKey(team)) {
-					put(team, Collections.EMPTY_LIST);
-				}
-			}
 		}};
 
 	public static String getMessage(List<GoalEvent> allGoalEvents, GoalEvent currentEvent) {

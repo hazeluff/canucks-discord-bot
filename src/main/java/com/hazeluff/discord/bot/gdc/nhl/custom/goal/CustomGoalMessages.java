@@ -32,6 +32,10 @@ public class CustomGoalMessages {
 		// Get all applicable custom messages
 		Team team = currentEvent.getTeam();
 		List<CustomGoalMessage> customMessages = customMessagesMap.get(team);
+		if (customMessages == null) {
+			return null;
+		}
+
 		List<CustomGoalMessage> applicableMessages = customMessages.stream()
 				.filter(customMsg -> customMsg.applies(previousEvents, currentEvent))
 				.collect(Collectors.toList());

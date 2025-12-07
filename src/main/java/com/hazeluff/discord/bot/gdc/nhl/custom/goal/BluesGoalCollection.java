@@ -28,7 +28,7 @@ public class BluesGoalCollection extends CustomGoalMessage.Collection {
 		playerGoalMessages.put(8478472,
 				Arrays.asList("https://tenor.com/view/joseph-gif-11270989782146517273"));
 		// Jake Neighbours
-		playerGoalMessages.put(482089,
+		playerGoalMessages.put(8482089,
 				Arrays.asList("https://tenor.com/view/neighbours-gif-2282639511415501513"));
 		// Brayden Schenn
 		playerGoalMessages.put(8475170,

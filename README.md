@@ -1,4 +1,6 @@
 # NHLBot
+This is a bot based on [CanucksBot](https://github.com/hazeluff/canucks-discord-bot/tree/main) that is used on the [Vancouver r/canucks discord server](https://discord.gg/YCCUVdY) .
+
 [![Support](https://img.shields.io/badge/Discord-NHLBot_Support-7289DA.svg?style=flat-square)](https://discord.gg/VVHe6d3) [![Twitter](https://img.shields.io/badge/Twitter-Hazeluff-00ACED.svg?style=flat-square&logo=twitter)](https://twitter.com/hazeluff)
 
 # Latest Update

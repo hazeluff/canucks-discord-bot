@@ -10,24 +10,14 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 public class CustomGameMessages {
-	@SuppressWarnings({ "serial", "unchecked" })
+	@SuppressWarnings({ "serial" })
 	private static final Map<Team, List<CustomGameMessage>> startGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
 		put(Team.VANCOUVER_CANUCKS, new CanucksStartGameCollection());
-		for(Team team : Team.values()) {
-			if(!containsKey(team)) {
-				put(team, Collections.EMPTY_LIST);
-			}
-		}
 	}};
 
-	@SuppressWarnings({ "serial", "unchecked" })
+	@SuppressWarnings({ "serial" })
 	private static final Map<Team, List<CustomGameMessage>> endGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
 		put(Team.VANCOUVER_CANUCKS, new CanucksEndGameCollection());
-		for(Team team : Team.values()) {
-			if(!containsKey(team)) {
-				put(team, Collections.EMPTY_LIST);
-			}
-		}
 	}};
 
 	public static String getStartGameMessage(Game game, Team team) {
@@ -39,6 +29,10 @@ public class CustomGameMessages {
 	}
 
 	public static String getCustomMessage(Game game, List<CustomGameMessage> messages) {
+		if(messages == null) {
+			return null;
+		}
+		
 		// Get all applicable messages. If no custom ones exist, get from the generic list.
 		List<CustomGameMessage> applicableMessages = messages.stream()
 				.filter(customMsg -> customMsg.applies(game))

@@ -55,15 +55,26 @@ public class PresenceManager extends Thread {
 	}
 
 	private ClientPresence getOnlineStatus() {
+		// Base case
 		String status = Utils.getRandom(Config.STATUS_MESSAGES);
+
+		// Check if there is a game today/currently - Prepend to status if there is.
 		Team team = Config.DEFAULT_TEAM;
-		Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(team);
-		if (nextGame != null) {
-			long gameTimeDiff = DateUtils.diffHours(ZonedDateTime.now(), nextGame.getStartTime());
+		Game currentGame = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
+		if (currentGame == null) {
+			Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(team);
+			ZonedDateTime startTime = nextGame.getStartTime();
+			ZonedDateTime now = ZonedDateTime.now();
+			if (startTime.getDayOfYear() == now.getDayOfYear()) {
+				currentGame = nextGame;
+			}
+		}
+		if (currentGame != null) {
+			long gameTimeDiff = DateUtils.diffHours(ZonedDateTime.now(), currentGame.getStartTime());
 			if (gameTimeDiff > 0 && gameTimeDiff < 12) {
-				Team oppTeam = nextGame.getOppossingTeam(team);
+				Team oppTeam = currentGame.getOppossingTeam(team);
 				if (oppTeam != null) {
-					String nextGameMessage = String.format("Gameday in %s. ", nextGame.getNiceName());
+					String nextGameMessage = String.format("Gameday in %s. ", currentGame.getNiceName());
 					status = nextGameMessage + status;
 				}
 			}

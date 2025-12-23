@@ -158,23 +158,26 @@ public class Config {
 		"Fuck the leafs",
 		"\"I am not a cat\"",
 		"Can't stop, won't stop",
-		"from No Fun City",
-		"[18blahaj] Looking for love",
+		"Operating from No Fun City",
 		"\"Follow your dreams. Listen to your heart. Obey your passion.\"", // Pat Quinn
 		"LIVE SPORTS! ESPN+ ORIGINALS! THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
 		"at the combination hockey game and grocery store",
-		"The Lego Movie (2014)",
+		"Watching: The Lego Movie (2014)",
+		"Watching: Mewtwo Strikes Back (1999)",
 		"Lucky Star",
-		"Mewtwo Strikes Back (1999)",
 		"No items, Fox only, Final Destination",
 		"There's a creeper on the roof. LA-LA-LA-LA-LA",
 		"It was 4-1",
 		"Do your dekes",
+		"Grip it and rip it",
 		"I can tell you that for free",
 		"Whale team good.",
 		"Whale team bad.",
 		"Whale team mediocre.",
-		"Never Day Sie!"
+		"Never Day Sie!",
+		"Always go face",
+		"Math is for blockers",
+		"Let It Rip!"
 	);
 	
 	public static final String NHL_CHANNEL_REGEX;

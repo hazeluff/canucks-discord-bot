@@ -22,7 +22,8 @@ public class WhatsUpTopic extends Topic {
 			"Listening to some music.",
 			"nm, u?",
 			"Nothing much.",
-			"Lots of work."
+			"Lots of work.",
+			"Sup, boss."
 	);
 	
 	@Override

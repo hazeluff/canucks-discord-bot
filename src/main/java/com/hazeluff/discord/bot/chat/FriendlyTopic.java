@@ -30,7 +30,9 @@ public class FriendlyTopic extends Topic {
 			"Hi! Have you heard of the Church of Pettersson?",
 			"Hey now, you're a Brockstar. Get your skates on. Go play!",
 			"https://www.youtube.com/watch?v=ZZ5LpwO-An4", // HEYYEYAAEYAAAEYAEYAA
-			""
+			"Yes, boss.",
+			"Yo",
+			"Yo!"			
 	);
 
 	private static final List<String> niceAdjectives = Arrays.asList(

@@ -8,6 +8,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.spec.MessageCreateSpec;
 
 /**
  * Interface for topics that the NHLBot replies to and the replies to them.
@@ -42,7 +43,11 @@ public abstract class Topic {
 
 	protected void sendMessage(MessageCreateEvent event, String message) {
 		TextChannel channel = (TextChannel) DiscordManager.block(event.getMessage().getChannel());
-		DiscordManager.sendMessage(channel, message);
+		MessageCreateSpec messageCreateSpec = MessageCreateSpec.builder()
+				.content(message)
+				.messageReference(event.getMessage().getId())
+				.build();
+		DiscordManager.sendMessage(channel, messageCreateSpec);
 	}
 
 	/**

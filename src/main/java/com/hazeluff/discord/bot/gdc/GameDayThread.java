@@ -107,7 +107,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			// Game is close to starting. Poll at higher rate than previously
 			LOGGER().info("Game is about to start. Polling more actively.");
 			boolean alreadyStarted = waitForStart();
-
 			// Game has started
 			if (!alreadyStarted) {
 				LOGGER().info("Game is about to start!");

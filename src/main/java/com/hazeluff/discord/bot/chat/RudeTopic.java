@@ -16,15 +16,15 @@ public class RudeTopic extends Topic {
 	}
 
 	private static final List<String> replies = Arrays.asList(
+			"ok, %s",
 			"Nah, you should fuck off.", 
 			"Go ahead and leave the server.", 
 			"You can suck my dick.",
-			"Go take it, and shove it up your butt.", 
+			"Go, take it, and shove it up your butt.",
 			"Please, eat shit.",
 			"Get fucked.",
 			"You are cordially invited to get fucked.", 
-			"Bleep Bloop. I am just a robot.", 
-			"Ok. Twat.",
+			"Bleep Bloop. I am just a robot.",
 			"You're probably getting coal this Christmas.", 
 			"I'm just doing my job. :cry:", 
 			"That's not nice.",
@@ -42,12 +42,31 @@ public class RudeTopic extends Topic {
 			"Thank you, come again.",
 			"Why you hef to be mad? https://www.youtube.com/watch?v=xzpndHtdl9A",
 			"Fin would not approve.",
-			"ok w/e"
+			"?",
+			"huh?",
+			"no",
+			"吓?",
+			"係咩?",
+			"n00b",
+			"|\\\\|()()|3",
+			"scrub",
+			"lol"
+	);
+	
+	private static final List<String> condescendingToken = Arrays.asList(
+			"w/e", "buddy", "pal", "twat", "idiot"
 	);
 	
 	@Override
 	public void execute(MessageCreateEvent event) {
-		String reply = Utils.getRandom(replies);
+		int randIdx = Utils.getRandomInt(replies.size());
+		String reply = replies.get(randIdx);
+		switch(randIdx)
+		{
+		case 0:
+			reply = String.format(reply, Utils.getRandom(condescendingToken));
+			break;
+		}
 		sendMessage(event, reply);
 	}
 

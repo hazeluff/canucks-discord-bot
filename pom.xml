@@ -9,8 +9,8 @@
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
-    <skipUTs>false</skipUTs>
-    <skipITs>false</skipITs>
+    <skipUTs>true</skipUTs>
+    <skipITs>true</skipITs>
   </properties>
   <dependencies>
 

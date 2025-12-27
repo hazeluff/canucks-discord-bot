@@ -73,10 +73,9 @@ public class NHLBot extends Thread {
 	 * @param botToken
 	 * @return
 	 */
-	public static NHLBot create(
-			com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler,
+	public static NHLBot create(com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler,
 			com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler,
-			
+
 			String botToken) {
 		LOGGER.info("Creating " + Config.APPLICATION_NAME + " v" + Config.VERSION);
 		Thread.currentThread().setName(Config.APPLICATION_NAME);
@@ -93,10 +92,8 @@ public class NHLBot extends Thread {
 			Utils.sleep(5000);
 		}
 
-		LOGGER.info(
-				"NHLBot connected and ready."
-				+ " id=" + nhlBot.getDiscordManager().getId() + ","
-				+ " appId=" + nhlBot.getDiscordManager().getApplicationId());
+		LOGGER.info("NHLBot connected and ready." + " id=" + nhlBot.getDiscordManager().getId() + "," + " appId="
+				+ nhlBot.getDiscordManager().getApplicationId());
 		return nhlBot;
 	}
 
@@ -156,10 +153,8 @@ public class NHLBot extends Thread {
 
 	void initPersistentData() {
 		LOGGER.info("Initializing Persistent Data.");
-		this.persistantData = PersistentData.load(
-			Config.getMongoHost(), Config.getMongoPort(),
-			Config.getMongoUserName(), Config.getMongoPassword()
-		);
+		this.persistantData = PersistentData.load(Config.getMongoHost(), Config.getMongoPort(),
+				Config.getMongoUserName(), Config.getMongoPassword());
 	}
 
 	/**
@@ -222,8 +217,7 @@ public class NHLBot extends Thread {
 		// Register Listeners
 		for (Command command : getSlashCommands(nhlBot)) {
 			LOGGER.debug("Registering Command listeners with client: " + command.getName());
-			nhlBot.getDiscordManager().getClient().on(
-					command)
+			nhlBot.getDiscordManager().getClient().on(command)
 					.doOnError(t -> LOGGER.error("Unable to respond to command: " + command.getName(), t))
 					.onErrorResume(e -> Mono.empty()).subscribe();
 		}
@@ -244,10 +238,9 @@ public class NHLBot extends Thread {
 
 	private void initWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-			.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds()
+				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+				.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
 	}
 
 	void initGameDayChannelsManager() {
@@ -259,24 +252,20 @@ public class NHLBot extends Thread {
 	@SuppressWarnings("unused")
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds()
+				.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	@SuppressWarnings("unused")
 	private void initPlayoffWatchChannel() {
 		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds()
+				.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	private void initAHLWatchChannel() {
 		LOGGER.info("Updating 'AHL Watch' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds().subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {
@@ -340,8 +329,8 @@ public class NHLBot extends Thread {
 	}
 
 	/*
-	 * FOR DEPLOYMENT / TESTING PURPOSES ONLY.
-	 * Create a NHLBot that is not started to access this.
+	 * FOR DEPLOYMENT / TESTING PURPOSES ONLY. Create a NHLBot that is not started
+	 * to access this.
 	 */
 	public void deployScript() {
 		LOGGER.info("Deploy scripts executing...");
@@ -367,15 +356,13 @@ public class NHLBot extends Thread {
 	@SuppressWarnings("unused")
 	private List<ApplicationCommandData> getGuildSlashCommandsInfo(long guildId) {
 		long applicationId = getDiscordManager().getApplicationId();
-		return DiscordManager.block(getDiscordManager().getClient().getRestClient()
-				.getApplicationService().getGuildApplicationCommands(applicationId, guildId));
+		return DiscordManager.block(getDiscordManager().getClient().getRestClient().getApplicationService()
+				.getGuildApplicationCommands(applicationId, guildId));
 	}
 
 	static List<Command> getSlashCommands(NHLBot nhlBot) {
-		return Config.getSlashCommands().stream()
-				.map(commandClass -> instantiateCommand(commandClass, nhlBot))
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+		return Config.getSlashCommands().stream().map(commandClass -> instantiateCommand(commandClass, nhlBot))
+				.filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("rawtypes")

@@ -45,7 +45,7 @@ public abstract class Topic {
 		TextChannel channel = (TextChannel) DiscordManager.block(event.getMessage().getChannel());
 		MessageCreateSpec messageCreateSpec = MessageCreateSpec.builder()
 				.content(message)
-				.messageReference(event.getMessage().getId())
+				.messageReference(event.getMessage().getMessageReference().get().getData())
 				.build();
 		DiscordManager.sendMessage(channel, messageCreateSpec);
 	}

@@ -10,6 +10,7 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.PinnedMessageReference;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
@@ -168,7 +169,7 @@ public class DiscordManager {
 		}
 
 		MessageEditSpec messageEditSpec = MessageEditSpec.builder().contentOrNull(newMessage).build();
-		return block(message.edit(messageEditSpec).onErrorReturn(null));
+		return block(message.edit(messageEditSpec));
 	}
 
 	/**
@@ -242,7 +243,7 @@ public class DiscordManager {
 	 *            channel to get messages from
 	 * @return List<Message> of messages in the channel
 	 */
-	public static List<Message> getPinnedMessages(TextChannel channel) {
+	public static List<PinnedMessageReference> getPinnedMessages(TextChannel channel) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return null;
@@ -300,7 +301,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(guild.createTextChannel(channelSpec).onErrorReturn(null));
+		return block(guild.createTextChannel(channelSpec));
 	}
 
 	public static TextChannel getTextChannel(Guild guild, String channelName) {
@@ -321,7 +322,6 @@ public class DiscordManager {
 				.take(1)
 				.cast(TextChannel.class)
 				.next()
-				.onErrorReturn(null)
 		);
 	}
 
@@ -409,7 +409,6 @@ public class DiscordManager {
 				.take(1)
 				.cast(Category.class)
 				.next()
-				.onErrorReturn(null)
 		);
 	}
 
@@ -449,7 +448,7 @@ public class DiscordManager {
 			return null;
 		}
 
-		return block(channel.getCategory().onErrorReturn(null));
+		return block(channel.getCategory());
 	}
 
 	public static List<TextChannel> getTextChannels(Guild guild) {

@@ -15,9 +15,9 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.bot.command.InteractionUtils;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.discord.utils.DiscordUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.stats.TeamStandings;
@@ -57,7 +57,7 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 			return Command.reply(event, "Internal Error. (Could not get Standings Seasons)");
 		}
 
-		Season season = getSeason(DiscordUtils.getOptionAsLong(event, "season"));
+		Season season = getSeason(InteractionUtils.getOptionAsLong(event, "season"));
 		if (!standingsSeasons.containsKey(season.getStartYear())) {
 			return Command.reply(event, "Season is out of range.");
 		}
@@ -71,11 +71,11 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 	Supplier<InteractionFollowupCreateSpec> buildFollowupSpecSupplier(ChatInputInteractionEvent event) {
 		return () -> {
 			Map<Integer, String> standingsSeasons = getStandingsSeasons();
-			Season season = getSeason(DiscordUtils.getOptionAsLong(event, "season"));
+			Season season = getSeason(InteractionUtils.getOptionAsLong(event, "season"));
 			String endDate = standingsSeasons.get(season.getStartYear());
 			List<TeamStandings> standings = NHLGateway.getStandings(endDate);
 
-			String strTeam = DiscordUtils.getOptionAsString(event, "team");
+			String strTeam = InteractionUtils.getOptionAsString(event, "team");
 			if (!Team.isValid(strTeam)) {
 				return InteractionFollowupCreateSpec.builder()
 					.content(Command.getInvalidTeamCodeMessage(strTeam))

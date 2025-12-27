@@ -117,7 +117,7 @@ public class GDCCommand extends Command {
 		/*
 		 * Sub commands
 		 */
-		String strSubcommand = getOptionAsString(event, "subcommand");
+		String strSubcommand = InteractionUtils.getOptionAsString(event, "subcommand");
 		if (strSubcommand == null) {
 			// No option specified
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()

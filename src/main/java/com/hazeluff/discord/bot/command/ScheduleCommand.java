@@ -45,7 +45,7 @@ public class ScheduleCommand extends Command {
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		String strTeam = getOptionAsString(event, "team");
+		String strTeam = InteractionUtils.getOptionAsString(event, "team");
 		if (strTeam == null) {
 			Snowflake guildId = event.getInteraction().getGuildId().get();
 			List<Team> preferredTeams = nhlBot.getPersistentData().getPreferencesData()

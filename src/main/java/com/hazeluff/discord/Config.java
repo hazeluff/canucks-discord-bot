@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.discord.ahl.AHLSeasons;
 import com.hazeluff.discord.bot.command.AboutCommand;
-import com.hazeluff.discord.bot.command.BotStatsCommand;
+import com.hazeluff.discord.bot.command.ConfigCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NHLStatsCommand;
@@ -211,13 +211,13 @@ public class Config {
 	public static List<Class> getSlashCommands() {
 		return Arrays.asList(
 				AboutCommand.class,
+				ConfigCommand.class,
 				NHLStatsCommand.class,
 				GDCCommand.class,
 				HelpCommand.class,
 				NextGameCommand.class,
 				SubscribeCommand.class,
 				ScheduleCommand.class,
-				BotStatsCommand.class,
 				UnsubscribeCommand.class
 		);
 	}

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
@@ -50,18 +51,32 @@ public class NHLGameDayWatchChannel extends Thread {
 
 	public static NHLGameDayWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
 		long guildId = guild.getId().asLong();
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
+
 		if (channels.containsKey(guildId)) {
+			// Channel already exists
 			return channels.get(guildId);
 		}
+
 		TextChannel channel = null;
 		try {
-			channel = guild.getChannels()
-					.filter(TextChannel.class::isInstance)
-					.cast(TextChannel.class)
-					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-					.take(1)
-					.onErrorReturn(null)
-					.blockFirst();
+			// Attempt to fetch channel by the saved preferences
+			Long prefChannelId = pref.getGameDayChannelId();
+			if (prefChannelId != null) {
+				nhlBot.getDiscordManager();
+				channel = DiscordManager.getTextChannel(guild, prefChannelId);
+			}
+			
+			if (channel == null)
+			{
+				channel = guild.getChannels()
+						.filter(TextChannel.class::isInstance)
+						.cast(TextChannel.class)
+						.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
+						.take(1)
+						.onErrorReturn(null)
+						.blockFirst();
+			}
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");
 		} finally {
@@ -75,6 +90,7 @@ public class NHLGameDayWatchChannel extends Thread {
 					channelSpecBuilder.parentId(category.getId());
 				}
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
+				nhlBot.getPersistentData().getPreferencesData().setGameDayChannelId(guildId, channel.getId().asLong());
 			}
 		}
 		NHLGameDayWatchChannel fnChannel = new NHLGameDayWatchChannel(nhlBot, guild, channel);
@@ -83,16 +99,16 @@ public class NHLGameDayWatchChannel extends Thread {
 		return fnChannel;
 	}
 
-	public static void removeChannel(Guild guild) {
-		NHLGameDayWatchChannel channel = getChannel(guild);
+	public static void removeChannel(Long guildId) {
+		NHLGameDayWatchChannel channel = getChannel(guildId);
 		if(channel != null) {
-			channels.remove(guild.getId().asLong());
+			channels.remove(guildId);
 			DiscordManager.deleteChannel(channel.textChannel);
 		}
 	}
 
-	public static NHLGameDayWatchChannel getChannel(Guild guild) {
-		return channels.get(guild.getId().asLong());
+	public static NHLGameDayWatchChannel getChannel(Long guildId) {
+		return channels.get(guildId);
 	}
 
 	@Override

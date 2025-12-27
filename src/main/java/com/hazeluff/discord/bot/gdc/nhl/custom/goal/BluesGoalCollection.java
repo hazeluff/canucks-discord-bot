@@ -23,7 +23,7 @@ public class BluesGoalCollection extends CustomGoalMessage.Collection {
 				Arrays.asList("https://tenor.com/view/buchnevich-gif-17803740975985165255"));
 		// Dylan Holloway
 		playerGoalMessages.put(8482077, 
-				Arrays.asList("https://tenor.com/view/holloway-gif-8289398283689544366"));
+				Arrays.asList("https://tenor.com/view/holloway-gif-8289398283689544366")); // wrong url
 		// Mathieu Joseph
 		playerGoalMessages.put(8478472,
 				Arrays.asList("https://tenor.com/view/joseph-gif-11270989782146517273"));

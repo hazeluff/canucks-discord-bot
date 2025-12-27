@@ -10,13 +10,15 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class GuildPreferences {
 	private Set<Team> teams;
+	private Long gdcChannelId; // null - not set; 0 - individual games; otherwise - channel id of the gdc.
 
 	public GuildPreferences() {
 		this.teams = new HashSet<>();
 	}
 
-	public GuildPreferences(Set<Team> teams) {
+	public GuildPreferences(Set<Team> teams, Long gdcChannelId) {
 		this.teams = teams;
+		this.gdcChannelId = gdcChannelId;
 	}
 
 	public List<Team> getTeams() {
@@ -46,6 +48,22 @@ public class GuildPreferences {
 		} else {
 			return teams.iterator().next().getTimeZone();
 		}
+	}
+
+	public void setGameDayChannelId(Long channelId) {
+		this.gdcChannelId = channelId;
+	}
+
+	public Long getGameDayChannelId() {
+		return gdcChannelId;
+	}
+
+	public boolean isSingleNHLChannel() {
+		return gdcChannelId != 0;
+	}
+
+	public boolean isIndividualNHLChannel() {
+		return gdcChannelId == 0;
 	}
 
 	@Override

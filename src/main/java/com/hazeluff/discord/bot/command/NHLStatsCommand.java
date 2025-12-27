@@ -84,7 +84,7 @@ public class NHLStatsCommand extends Command {
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		String strSubcommand = getOptionAsString(event, "type");
+		String strSubcommand = InteractionUtils.getOptionAsString(event, "type");
 		if (strSubcommand == null) {
 			// No option specified
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()

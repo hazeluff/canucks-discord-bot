@@ -1,9 +1,9 @@
 package com.hazeluff.discord.bot.database.preferences;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -53,20 +53,24 @@ public class PreferencesData extends DatabaseManager {
 		while (iterator.hasNext()) {
 			Document doc = iterator.next();
 			long id = doc.getLong("id");
-			List<Team> teams;
+			Set<Team> teams;
 
 			if (doc.containsKey("teams")) {
-				teams = ((List<Integer>) doc.get("teams")).stream().map(Team::parse).collect(Collectors.toList());
+				teams = ((List<Integer>) doc.get("teams")).stream().map(Team::parse).collect(Collectors.toSet());
 			} else {
-				teams = new ArrayList<>();
+				teams = new HashSet<>();
 			}
 
-			guildPreferences.put(id, new GuildPreferences(new HashSet<>(teams)));
-
-			if (doc.containsKey("team")) {
-				saveToCollection(guildCollection, id, teams);
+			Long gdcChannelId = null;
+			if (doc.containsKey("gdcChannelId")) {
+				gdcChannelId = doc.getLong("gdcChannelId");
 			}
 
+			GuildPreferences preferences = new GuildPreferences(
+				teams,
+				gdcChannelId
+			);
+			guildPreferences.put(id, preferences);
 		}
 
 		LOGGER.info("Guild Preferences loaded.");
@@ -75,7 +79,9 @@ public class PreferencesData extends DatabaseManager {
 
 	public GuildPreferences getGuildPreferences(long guildId) {
 		if (!guildPreferences.containsKey(guildId)) {
-			guildPreferences.put(guildId, new GuildPreferences(new HashSet<>()));
+			GuildPreferences newPref = new GuildPreferences(new HashSet<>(), null);
+			guildPreferences.put(guildId, newPref);
+			saveToCollection(getCollection(), guildId, newPref);
 		}
 
 		return guildPreferences.get(guildId);
@@ -91,13 +97,11 @@ public class PreferencesData extends DatabaseManager {
 	 */
 	public void subscribeGuild(long guildId, Team team) {
 		LOGGER.info("Subscribing guild to team. guildId={}, team={}", guildId, team);
-		if (!guildPreferences.containsKey(guildId)) {
-			guildPreferences.put(guildId, new GuildPreferences());
-		}
+		GuildPreferences pref = getPreferences(guildId);
 
-		guildPreferences.get(guildId).addTeam(team);
+		pref.addTeam(team);
 
-		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId).getTeams());
+		saveToCollection(getCollection(), guildId, pref);
 	}
 
 	/**
@@ -110,25 +114,45 @@ public class PreferencesData extends DatabaseManager {
 	 */
 	public void unsubscribeGuild(long guildId, Team team) {
 		LOGGER.info("Unsubscribing guild from team. guildId={} team={}", guildId, team);
+		GuildPreferences pref = getPreferences(guildId);
 
-		if (!guildPreferences.containsKey(guildId) || team == null) {
+		if (team != null) {
+			pref.removeTeam(team);
+		}
+
+		saveToCollection(getCollection(), guildId, pref);
+	}
+
+	public void setGameDayChannelId(Long guildId, Long channelId) {
+		LOGGER.info("Setting GDC Channel Id. guildId={} channelId={}", guildId, channelId);
+		GuildPreferences pref = getPreferences(guildId);
+
+		pref.setGameDayChannelId(channelId);
+
+		saveToCollection(getCollection(), guildId, pref);
+	}
+
+	private GuildPreferences getPreferences(Long guildId) {
+		if (!guildPreferences.containsKey(guildId)) {
 			guildPreferences.put(guildId, new GuildPreferences());
 		}
 
-		if (team != null) {
-			guildPreferences.get(guildId).removeTeam(team);
-		}
-
-		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId).getTeams());
+		return guildPreferences.get(guildId);
 	}
 	
-	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, List<Team> teams) {
-		List<Integer> teamIds = teams.stream()
+	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, GuildPreferences pref) {
+		List<Integer> teamIds = pref.getTeams().stream()
 				.map(preferedTeam -> preferedTeam.getId())
 				.collect(Collectors.toList());
+		Long gdcChannelId = pref.getGameDayChannelId();
+
+		Document prefDoc = new Document()
+				.append("teams", teamIds)
+				.append("gdcChannelId", gdcChannelId);
+
 		guildCollection.updateOne(
 				new Document("id", guildId),
-				new Document("$set", new Document("teams", teamIds)), 
+				new Document("$set", prefDoc), 
 				new UpdateOptions().upsert(true));
 	}
 

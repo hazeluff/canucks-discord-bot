@@ -268,6 +268,15 @@ public class NHLGameDayChannelsManager extends Thread {
 		}
 	}
 
+	public void removeGuild(Long guildId) {
+		for (Entry<Integer, NHLGameDayChannelThread> gdcEntry : getGameDayChannels(guildId).entrySet()) {
+			NHLGameDayChannelThread gdc = gdcEntry.getValue();
+			gdc.stopAndRemoveGuildChannel();
+		}
+
+		gameDayChannels.remove(guildId);
+	}
+
 	/**
 	 * Deletes a given channel from its guild.
 	 * 
@@ -288,11 +297,6 @@ public class NHLGameDayChannelsManager extends Thread {
 	}
 
 	boolean isRemoveChannel(TextChannel channel, GuildPreferences preferences) {
-		// Does not remove channels not in the Game Day Channel Category
-		if (!isInGameDayCategory(channel)) {
-			return false;
-		}
-
 		// Does not remove channels that does not have the correct name format
 		if (!isChannelNameFormat(channel.getName())) {
 			return false;
@@ -305,7 +309,7 @@ public class NHLGameDayChannelsManager extends Thread {
 		}
 
 		// Does not remove active games
-		if (isGameActive(preferences.getTeams(), channel.getName())) {
+		if (preferences.isIndividualNHLChannel() && isGameActive(preferences.getTeams(), channel.getName())) {
 			return false;
 		}
 

@@ -5,6 +5,7 @@ import java.util.List;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
@@ -132,13 +133,20 @@ public class UnsubscribeCommand extends Command {
 		long guildId = guild.getId().asLong();
 		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guildId, team);
 		List<Team> teams = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId).getTeams();
-		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guild);
-		if (channel == null && !teams.isEmpty()) {
-			channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
-		} else if (teams.isEmpty()) {
-			NHLGameDayWatchChannel.removeChannel(guild);
-		} else if (channel != null) {
-			channel.updateChannel();
+
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
+		if (pref.isSingleNHLChannel()) {
+			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
+			if (channel == null && !teams.isEmpty()) {
+				channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
+			} else if (teams.isEmpty()) {
+				NHLGameDayWatchChannel.removeChannel(guildId);
+			} else if (channel != null) {
+				channel.updateChannel();
+			}
+
+		} else if (pref.isIndividualNHLChannel()) {
+			nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		}
 	}
 

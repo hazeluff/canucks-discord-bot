@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -15,7 +16,9 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.channel.NHLBotCategoryManager;
 import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.bot.command.config.ManageConfigListener;
 import com.hazeluff.discord.bot.database.PersistentData;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
@@ -27,6 +30,7 @@ import com.hazeluff.discord.utils.Utils;
 import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
+import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -43,16 +47,16 @@ public class NHLBot extends Thread {
 	private PersistentData persistantData;
 	private com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler;
 	private com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler;
-	private NHLGameDayChannelsManager gameDayChannelsManager;
-
+	private final NHLGameDayChannelsManager gameDayChannelsManager = new NHLGameDayChannelsManager(this);
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 	private final NHLBotCategoryManager nhlBotCategoryManager = new NHLBotCategoryManager(this);
+
+	private final ManageConfigListener manageConfigListener = new ManageConfigListener(this);
 
 	private NHLBot() {
 		presenceManager = new PresenceManager(this);
 		persistantData = null;
 		nhlGameScheduler = null;
-		gameDayChannelsManager = null;
 	}
 
 	/**
@@ -97,9 +101,12 @@ public class NHLBot extends Thread {
 
 		// Init MongoClient/GuildPreferences
 		initPersistentData();
-
+		
 		// Attach Listeners for Bot Slash Commands
 		attachSlashCommandListeners(this);
+
+		// Attach Config Listeners
+		attachConfigListeners(this);
 
 		// Start Presence/Status updates
 		presenceManager.start();
@@ -177,14 +184,15 @@ public class NHLBot extends Thread {
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
 
-		List<ApplicationCommandRequest> allCommands = commands.stream()
-				.filter(cmd -> cmd.getACR() != null)
-				.map(Command::getACR)
-				.collect(Collectors.toList());
-
 		List<ApplicationCommandRequest> commonCommands = commands.stream()
 				.filter(cmd -> cmd.getACR() != null)
 				.filter(not(Command::isDevOnly))
+				.map(Command::getACR)
+				.collect(Collectors.toList());
+
+		List<ApplicationCommandRequest> devCommands = commands.stream()
+				.filter(cmd -> cmd.getACR() != null)
+				.filter(Command::isDevOnly)
 				.map(Command::getACR)
 				.collect(Collectors.toList());
 
@@ -193,7 +201,7 @@ public class NHLBot extends Thread {
 		for (Long guildId : Config.DEV_GUILD_LIST) {
 			DiscordManager.block(
 				restClient.getApplicationService()
-					.bulkOverwriteGuildApplicationCommand(applicationId, guildId, allCommands)
+							.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devCommands)
 			);
 		}
 
@@ -209,11 +217,27 @@ public class NHLBot extends Thread {
 		// Register Listeners
 		for (Command command : getSlashCommands(nhlBot)) {
 			LOGGER.debug("Registering Command listeners with client: " + command.getName());
-			nhlBot.getDiscordManager().getClient().on(
-					command)
+			nhlBot.getDiscordManager().getClient().on(command)
 					.doOnError(t -> LOGGER.error("Unable to respond to command: " + command.getName(), t))
 					.onErrorResume(e -> Mono.empty()).subscribe();
 		}
+	}
+	
+	private static void attachConfigListeners(NHLBot nhlBot) {
+		LOGGER.info("Attaching Listeners.");
+
+		Consumer<? super Throwable> logError = t -> LOGGER.error("Error occurred when responding to event.", t);
+
+		nhlBot.getDiscordManager().getClient().getEventDispatcher()
+			.on(ButtonInteractionEvent.class)
+			.doOnError(logError)
+			.onErrorResume(e -> Mono.empty())
+			.subscribe(event -> nhlBot.getManageConfigListener().execute(event));
+		
+	}
+
+	public ManageConfigListener getManageConfigListener() {
+		return manageConfigListener;
 	}
 
 	private void initWelcomeChannel() {
@@ -226,15 +250,17 @@ public class NHLBot extends Thread {
 
 	void initGameDayChannelsManager() {
 		LOGGER.info("Initializing GameDayChannelsManager.");
-		this.gameDayChannelsManager = new NHLGameDayChannelsManager(this);
 		gameDayChannelsManager.start();
 	}
 
 	void initGameDayWatchChannels() {
 		LOGGER.info("Initializing GameDayWatchChannels.");
 		getDiscordManager().getClient().getGuilds()
-			.filter(guild -> !getPersistentData().getPreferencesData()
-					.getGuildPreferences(guild.getId().asLong()).getTeams().isEmpty())
+			.filter(guild -> {
+				GuildPreferences preferences = getPersistentData().getPreferencesData()
+						.getGuildPreferences(guild.getId().asLong());
+				return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
+			})
 			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
 	}
 

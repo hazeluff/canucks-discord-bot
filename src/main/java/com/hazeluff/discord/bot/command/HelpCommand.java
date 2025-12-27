@@ -43,7 +43,7 @@ public class HelpCommand extends Command {
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		String command = getOptionAsString(event, "command");
+		String command = InteractionUtils.getOptionAsString(event, "command");
 		if (command == null) {
 			return event.reply(COMMAND_LIST);
 		}

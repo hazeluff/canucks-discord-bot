@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
@@ -65,6 +66,7 @@ public class SubscribeCommand extends Command {
 		if (!team.isNHLTeam()) {
 			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
 		}
+
 		return Command.replyAndDefer(event,
 				"Subscribing...",
 				() -> subscribeGuild(guild, team),
@@ -85,12 +87,20 @@ public class SubscribeCommand extends Command {
 	}
 
 	private void subscribeGuild(Guild guild, Team team) {
-		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guild.getId().asLong(), team);
-		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guild);
-		if (channel == null) {
-			channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
-		} else {
-			channel.updateChannel();
+		Long guildId = guild.getId().asLong();
+		// Update preferences
+		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
+
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
+		if (pref.isSingleNHLChannel()) {
+			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
+			if (channel == null) {
+				channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
+			} else {
+				channel.updateChannel();
+			}
+		} else if (pref.isIndividualNHLChannel()) {
+			nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		}
 	}
 

@@ -6,7 +6,7 @@ import discord4j.core.event.domain.Event;
 
 public abstract class EventListener {
 
-	private final NHLBot nhlBot;
+	protected final NHLBot nhlBot;
 
 	public EventListener(NHLBot nhlBot) {
 		this.nhlBot = nhlBot;

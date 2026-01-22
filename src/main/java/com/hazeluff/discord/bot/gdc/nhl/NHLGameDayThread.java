@@ -109,10 +109,8 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	}
 
 	public static String buildMatchupName(Game game) {
-		return String.format(
-				"**%s** vs **%s**", 
-				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
-			);
+		return String.format("**%s** vs **%s**", game.getHomeTeam().getLocationName(),
+				game.getAwayTeam().getLocationName());
 	}
 
 	/*

@@ -238,7 +238,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	}
 
 	List<String> startOfGameMessages = Arrays.asList(
-			"Game is about to start! ",
+			"Game is about to start! %s",
 			"Key to the game: %s.",
 			"Get ready for your scheduled `%s`.",
 			"Predicted Score: `%s-%s %s %s`",
@@ -292,7 +292,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		switch (rndIdx) {
 		case 0:
 			// "Game is about to start! <cheer>"
-			return message + preferences.getCheer();
+			return String.format(message, preferences.getCheer());
 		case 1:
 			// "Key to the game: <keys>."
 			return String.format(message, Utils.getRandom(keysToGame));

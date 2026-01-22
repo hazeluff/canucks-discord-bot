@@ -134,7 +134,6 @@ public class AHLGameDayThread extends GameDayThread {
 		return getMatchupName() + ": " + basicMessage;
 	}
 
-	@SuppressWarnings("serial")
 	@Override
 	protected Map<Long, String> getReminders() {
 		return new HashMap<Long, String>() {

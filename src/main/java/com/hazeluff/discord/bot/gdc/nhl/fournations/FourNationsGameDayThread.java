@@ -77,7 +77,6 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 		return getFourNationsMatchupName() + ": " + basicMessage;
 	}
 
-	@SuppressWarnings("serial")
 	@Override
 	protected Map<Long, String> getReminders() {
 		return new HashMap<Long, String>() {

@@ -10,12 +10,10 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 public class CustomGameMessages {
-	@SuppressWarnings({ "serial" })
 	private static final Map<Team, List<CustomGameMessage>> startGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
 		put(Team.VANCOUVER_CANUCKS, new CanucksStartGameCollection());
 	}};
 
-	@SuppressWarnings({ "serial" })
 	private static final Map<Team, List<CustomGameMessage>> endGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
 		put(Team.VANCOUVER_CANUCKS, new CanucksEndGameCollection());
 	}};

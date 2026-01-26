@@ -21,6 +21,8 @@ import com.hazeluff.discord.nhl.NHLSeasons;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
+import discord4j.core.object.entity.Guild;
+
 public class Config {
 	public static class Debug {
 		private static final String LOAD_GAMES_KEY = "load.games";
@@ -59,6 +61,10 @@ public class Config {
 		276953120964083713l
 	);
 	
+	public static boolean isDevGuild(Guild guild) {
+		return DEV_GUILD_LIST.contains(guild.getId().asLong());
+	}
+
 	/*
 	 * NHL Config
 	 */

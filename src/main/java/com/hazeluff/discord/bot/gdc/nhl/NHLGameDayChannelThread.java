@@ -119,7 +119,6 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		DiscordManager.pinMessage(summaryMessage);
 	}
 
-	@SuppressWarnings("serial")
 	@Override
 	protected Map<Long, String> getReminders() {
 		return new HashMap<Long, String>() {

@@ -10,7 +10,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;

@@ -192,11 +192,14 @@ public class NHLGameDayChannelsManager extends Thread {
 	void updateChannels() {
 		LOGGER.info("Updating channels for all guilds.");
 		List<Guild> guilds = nhlBot.getDiscordManager().getGuilds().stream()
-				.filter(guild -> !nhlBot.getPersistentData().getPreferencesData()
-						.getGuildPreferences(guild.getId().asLong())
-						.getTeams()
-						.isEmpty()
-				)
+				.filter(guild -> {
+					if (Config.isDevGuild(guild)) {
+						return true;
+					}
+					GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
+							.getGuildPreferences(guild.getId().asLong());
+					return preferences.isIndividualNHLChannel() && !preferences.getTeams().isEmpty();
+				})
 				.collect(Collectors.toList());
 
 		// Update Dev Guilds

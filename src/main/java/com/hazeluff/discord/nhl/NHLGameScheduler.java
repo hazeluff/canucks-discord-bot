@@ -174,7 +174,7 @@ public class NHLGameScheduler extends Thread {
 		activeGames.forEach(game -> createNHLGameTracker(game));
 
 		// Four Nation games
-		createFourNationsGameTrackers();
+		// createFourNationsGameTrackers();
 	}
 
 	/**

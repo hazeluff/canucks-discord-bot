@@ -61,11 +61,9 @@ public class AHLWatchChannel extends Thread {
 		}
 		TextChannel channel = null;
 		try {
-			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)
+			channel = DiscordManager.getTextChannels(guild).stream()
 					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-					.take(1)
-					.onErrorReturn(null)
-					.blockFirst();
+					.findFirst().orElse(null);
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");
 		} finally {

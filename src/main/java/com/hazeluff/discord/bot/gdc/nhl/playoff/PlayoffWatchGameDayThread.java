@@ -77,7 +77,6 @@ public class PlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 		return getMatchupName() + ": " + basicMessage;
 	}
 
-	@SuppressWarnings("serial")
 	@Override
 	protected Map<Long, String> getReminders() {
 		return new HashMap<Long, String>() {

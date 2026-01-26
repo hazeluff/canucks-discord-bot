@@ -125,7 +125,7 @@ public class NHLBot extends Thread {
 		initWelcomeChannel();
 
 		// Start the Game Day Channels Manager (Individual Channels mode)
-		// initGameDayChannelsManager();
+		initGameDayChannelsManager();
 
 		// Init Game Day Watch Channels
 		initGameDayWatchChannels();
@@ -257,6 +257,9 @@ public class NHLBot extends Thread {
 		LOGGER.info("Initializing GameDayWatchChannels.");
 		getDiscordManager().getClient().getGuilds()
 			.filter(guild -> {
+				if (Config.isDevGuild(guild)) {
+					return true;
+				}
 				GuildPreferences preferences = getPersistentData().getPreferencesData()
 						.getGuildPreferences(guild.getId().asLong());
 				return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
@@ -268,6 +271,7 @@ public class NHLBot extends Thread {
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
 		getDiscordManager().getClient().getGuilds()
+			.filter(Config::isDevGuild)
 			.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
 	}
 
@@ -276,7 +280,7 @@ public class NHLBot extends Thread {
 		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
 		getDiscordManager().getClient()
 			.getGuilds()
-			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+			.filter(Config::isDevGuild)
 			.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
 	}
 
@@ -284,7 +288,7 @@ public class NHLBot extends Thread {
 		LOGGER.info("Updating 'AHL Watch' channels.");
 		getDiscordManager().getClient()
 			.getGuilds()
-			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+			.filter(Config::isDevGuild)
 			.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
 	}
 

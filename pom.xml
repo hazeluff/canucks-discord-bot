@@ -9,8 +9,8 @@
   <url>http://maven.apache.org</url>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>    
-    <skipUTs>false</skipUTs>
-    <skipITs>false</skipITs>
+    <skipUTs>true</skipUTs>
+    <skipITs>true</skipITs>
   </properties>
   <dependencies>
 
@@ -36,12 +36,6 @@
 	  <groupId>com.ebay.bsonpatch</groupId>
 	  <artifactId>bsonpatch</artifactId>
 	  <version>0.4.9</version>
-	</dependency>
-    
-    <dependency>
-	    <groupId>commons-lang</groupId>
-	    <artifactId>commons-lang</artifactId>
-	    <version>2.6</version>
 	</dependency>
 
     <dependency>

@@ -32,13 +32,10 @@ public class WelcomeChannel extends Thread {
 	public static WelcomeChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
 		TextChannel channel;
 		try {
-			channel = guild.getChannels()
-					.filter(TextChannel.class::isInstance)
-					.cast(TextChannel.class)
+			channel = DiscordManager.getTextChannels(guild).stream()
 					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-					.take(1)
-					.onErrorReturn(null)
-					.blockFirst();
+					.findFirst()
+					.orElse(null);
 		} catch (Exception e) {
 			channel = DiscordManager.createAndGetChannel(guild, CHANNEL_NAME);
 		}

@@ -3,7 +3,7 @@ package com.hazeluff.discord.utils.wordcloud;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.kennycason.kumo.nlp.normalize.Normalizer;
 

@@ -217,8 +217,8 @@ public class NHLGameScheduler extends Thread {
 		removeInactiveNHLGames();
 		createNHLGameTrackers();
 
-		removeInactiveFourNationsGames();
-		createFourNationsGameTrackers();
+		// removeInactiveFourNationsGames();
+		// createFourNationsGameTrackers();
 	}
 
 	public void removeInactiveNHLGames() {

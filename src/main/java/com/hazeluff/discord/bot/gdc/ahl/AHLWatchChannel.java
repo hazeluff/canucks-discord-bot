@@ -32,8 +32,8 @@ public class AHLWatchChannel extends Thread {
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
-	// Poll for every 5 minutes - if the scheduler has updated
-	static final long UPDATE_RATE = 300000L;
+	// Poll for every 30 minutes - if the scheduler has updated
+	static final long UPDATE_RATE = 1800000L;
 
 	private final NHLBot nhlBot;
 	private final Guild guild;

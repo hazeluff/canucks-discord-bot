@@ -65,6 +65,10 @@ public class Config {
 		return DEV_GUILD_LIST.contains(guild.getId().asLong());
 	}
 
+	public static boolean isDevGuild(long guildId) {
+		return DEV_GUILD_LIST.contains(guildId);
+	}
+
 	/*
 	 * NHL Config
 	 */

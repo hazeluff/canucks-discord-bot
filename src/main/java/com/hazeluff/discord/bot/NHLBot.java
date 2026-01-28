@@ -235,15 +235,20 @@ public class NHLBot extends Thread {
 	}
 
 	void initGameDayWatchChannels() {
-		LOGGER.info("Initializing GameDayWatchChannels.");
-		getDiscordManager().getClient().getGuilds().filter(guild -> {
-			if (Config.isDevGuild(guild)) {
-				return true;
-			}
-			GuildPreferences preferences = getPersistentData().getPreferencesData()
-					.getGuildPreferences(guild.getId().asLong());
-			return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
-		}).subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
+		LOGGER.info("Initializing GameDayWatchChannels. (Dev)");
+		getDiscordManager().getClient().getGuilds()
+			.filter(Config::isDevGuild)
+			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
+
+		LOGGER.info("Initializing GameDayWatchChannels. (All)");
+		getDiscordManager().getClient().getGuilds()
+			.filter(Config::isDevGuild)
+			.filter(guild -> {
+				GuildPreferences preferences = getPersistentData().getPreferencesData()
+						.getGuildPreferences(guild.getId().asLong());
+				return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
+			})
+			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	@SuppressWarnings("unused")

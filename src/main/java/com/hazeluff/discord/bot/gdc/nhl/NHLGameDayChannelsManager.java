@@ -129,24 +129,6 @@ public class NHLGameDayChannelsManager extends Thread {
 	}
 
 	/**
-	 * Gets the guilds that are subscribed to the specified team.
-	 * 
-	 * @param team
-	 *            team that the guilds are subscribed to
-	 * @return list of IGuilds
-	 */
-	public List<Guild> getSubscribedGuilds(Team team) {
-		return nhlBot.getDiscordManager().getGuilds().stream().filter(guild -> {
-			long guildId = guild.getId().asLong();
-			return nhlBot.getPersistentData()
-					.getPreferencesData()
-					.getGuildPreferences(guildId)
-					.getTeams()
-					.contains(team);
-		}).collect(Collectors.toList());
-	}
-
-	/**
 	 * Creates a GameDayChannel for the given game-guild pair. If the channel exist,
 	 * the existing one will be returned.
 	 * 
@@ -198,10 +180,8 @@ public class NHLGameDayChannelsManager extends Thread {
 					}
 					GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 							.getGuildPreferences(guild.getId().asLong());
-
-					return preferences.isChannelPerNHLGame() 
-							&& preferences.getTeams() != null
-							&& !preferences.getTeams().isEmpty();
+					
+					return preferences.isChannelPerNHLGame() && !preferences.getTeams().isEmpty();
 				})
 				.collect(Collectors.toList());
 
@@ -315,7 +295,8 @@ public class NHLGameDayChannelsManager extends Thread {
 		}
 
 		// Does not remove active games
-		if (preferences.isChannelPerNHLGame() && isGameActive(preferences.getTeams(), channel.getName())) {
+		if ((Config.isDevGuild(channel.getGuildId().asLong()) || preferences.isChannelPerNHLGame())
+				&& isGameActive(preferences.getTeams(), channel.getName())) {
 			return false;
 		}
 

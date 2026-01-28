@@ -237,5 +237,4 @@ public abstract class Command extends ReactiveEventAdapter {
 			Runnable defferedAction, Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
 		return InteractionUtils.replyAndDefer(event, initialReply, defferedAction, defferedReplySupplier);
 	}
-
 }

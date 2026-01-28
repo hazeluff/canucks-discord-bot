@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
@@ -92,14 +93,16 @@ public class SubscribeCommand extends Command {
 		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
 
 		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
-		if (pref.isSingleNHLChannel()) {
+		if (pref.isSingleNHLChannel() || Config.isDevGuild(guild)) {
 			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
 			if (channel == null) {
 				channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
 			} else {
 				channel.updateChannel();
 			}
-		} else if (pref.isChannelPerNHLGame()) {
+		}
+
+		if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {
 			nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		}
 	}

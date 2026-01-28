@@ -74,8 +74,11 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 			Category category = nhlBot.getGdcCategoryManager().get(guild);
 			if (!DiscordManager.getTextChannels(guild).stream().anyMatch(channelMatcher)) {
 				if (game.getGameState().isFinished()) {
+					LOGGER.debug("Game for [" + channelName + "] already finished. Skipping channel creation.");
 					return null;
 				}
+
+				LOGGER.debug("Channel [" + channelName + "] does not exist in [" + guild.getName() + "]");
 				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
 				channelSpecBuilder.name(channelName);
 				channelSpecBuilder.topic(preferences.getCheer());

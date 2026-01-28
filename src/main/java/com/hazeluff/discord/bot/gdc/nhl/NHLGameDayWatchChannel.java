@@ -103,9 +103,9 @@ public class NHLGameDayWatchChannel extends Thread {
 	}
 
 	public static void removeChannel(Long guildId) {
+		channels.remove(guildId);
 		NHLGameDayWatchChannel channel = getChannel(guildId);
 		if(channel != null) {
-			channels.remove(guildId);
 			DiscordManager.deleteChannel(channel.textChannel);
 		}
 	}

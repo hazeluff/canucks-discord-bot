@@ -11,8 +11,8 @@ import com.hazeluff.nhl.game.event.GoalEvent;
 
 public class CustomGoalMessages {
 
-	private static final Map<Team, List<CustomGoalMessage>>
-		customMessagesMap = new HashMap<Team, List<CustomGoalMessage>>() {{
+	private static final Map<Team, List<CustomGoalMessage>> customMessagesMap = 
+		new HashMap<Team, List<CustomGoalMessage>>() {{
 			put(Team.VANCOUVER_CANUCKS, new CanucksGoalCollection());
 			put(Team.ST_LOUIS_BLUES, new BluesGoalCollection());
 		}};

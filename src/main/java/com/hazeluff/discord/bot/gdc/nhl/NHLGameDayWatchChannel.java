@@ -67,12 +67,11 @@ public class NHLGameDayWatchChannel extends Thread {
 				channel = DiscordManager.getTextChannel(guild, prefChannelId);
 			}
 			
-			if (channel == null)
-			{
+			if (channel == null) {
 				channel = DiscordManager.getTextChannels(guild).stream()
-						.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-						.findFirst()
-						.orElse(null);
+					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
+					.findFirst()
+					.orElse(null);
 			}
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");

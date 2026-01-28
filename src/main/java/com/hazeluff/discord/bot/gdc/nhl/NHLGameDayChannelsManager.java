@@ -198,7 +198,10 @@ public class NHLGameDayChannelsManager extends Thread {
 					}
 					GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 							.getGuildPreferences(guild.getId().asLong());
-					return preferences.isIndividualNHLChannel() && !preferences.getTeams().isEmpty();
+
+					return preferences.isChannelPerNHLGame() 
+							&& preferences.getTeams() != null
+							&& !preferences.getTeams().isEmpty();
 				})
 				.collect(Collectors.toList());
 
@@ -312,7 +315,7 @@ public class NHLGameDayChannelsManager extends Thread {
 		}
 
 		// Does not remove active games
-		if (preferences.isIndividualNHLChannel() && isGameActive(preferences.getTeams(), channel.getName())) {
+		if (preferences.isChannelPerNHLGame() && isGameActive(preferences.getTeams(), channel.getName())) {
 			return false;
 		}
 

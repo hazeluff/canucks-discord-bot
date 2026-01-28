@@ -11,11 +11,11 @@ import com.hazeluff.nhl.game.Game;
 public class CustomGameMessages {
 
 	private static final List<CustomGameMessage> customMessages = 
-			Stream.of(
-				new CanucksGameCollection()
-			)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+		Stream.of(
+			new CanucksGameCollection()
+		)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
 
 	public static String getMessage(Game game) {
 		// Get all applicable custom messages

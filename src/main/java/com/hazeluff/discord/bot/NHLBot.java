@@ -66,10 +66,9 @@ public class NHLBot extends Thread {
 	 * @param botToken
 	 * @return
 	 */
-	public static NHLBot create(
-			com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler,
+	public static NHLBot create(com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler,
 			com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler,
-			
+
 			String botToken) {
 		LOGGER.info("Creating " + Config.APPLICATION_NAME + " v" + Config.VERSION);
 		Thread.currentThread().setName(Config.APPLICATION_NAME);
@@ -86,10 +85,8 @@ public class NHLBot extends Thread {
 			Utils.sleep(5000);
 		}
 
-		LOGGER.info(
-				"NHLBot connected and ready."
-				+ " id=" + nhlBot.getDiscordManager().getId() + ","
-				+ " appId=" + nhlBot.getDiscordManager().getApplicationId());
+		LOGGER.info("NHLBot connected and ready." + " id=" + nhlBot.getDiscordManager().getId() + "," + " appId="
+				+ nhlBot.getDiscordManager().getApplicationId());
 		return nhlBot;
 	}
 
@@ -101,7 +98,7 @@ public class NHLBot extends Thread {
 
 		// Init MongoClient/GuildPreferences
 		initPersistentData();
-		
+
 		// Attach Listeners for Bot Slash Commands
 		attachSlashCommandListeners(this);
 
@@ -141,10 +138,8 @@ public class NHLBot extends Thread {
 
 	void initPersistentData() {
 		LOGGER.info("Initializing Persistent Data.");
-		this.persistantData = PersistentData.load(
-			Config.getMongoHost(), Config.getMongoPort(),
-			Config.getMongoUserName(), Config.getMongoPassword()
-		);
+		this.persistantData = PersistentData.load(Config.getMongoHost(), Config.getMongoPort(),
+				Config.getMongoUserName(), Config.getMongoPassword());
 	}
 
 	/**
@@ -184,33 +179,23 @@ public class NHLBot extends Thread {
 		long applicationId = discordManager.getApplicationId();
 		RestClient restClient = discordManager.getClient().getRestClient();
 
-		List<ApplicationCommandRequest> commonCommands = commands.stream()
-				.filter(cmd -> cmd.getACR() != null)
-				.filter(not(Command::isDevOnly))
-				.map(Command::getACR)
-				.collect(Collectors.toList());
+		List<ApplicationCommandRequest> commonCommands = commands.stream().filter(cmd -> cmd.getACR() != null)
+				.filter(not(Command::isDevOnly)).map(Command::getACR).collect(Collectors.toList());
 
-		List<ApplicationCommandRequest> devCommands = commands.stream()
-				.filter(cmd -> cmd.getACR() != null)
-				.filter(Command::isDevOnly)
-				.map(Command::getACR)
-				.collect(Collectors.toList());
+		List<ApplicationCommandRequest> devCommands = commands.stream().filter(cmd -> cmd.getACR() != null)
+				.filter(Command::isDevOnly).map(Command::getACR).collect(Collectors.toList());
 
 		// Dev Guilds
 		LOGGER.info("Writing Dev Application Commands");
 		for (Long guildId : Config.DEV_GUILD_LIST) {
-			DiscordManager.block(
-				restClient.getApplicationService()
-							.bulkOverwriteGuildApplicationCommand(applicationId, guildId, devCommands)
-			);
+			DiscordManager.block(restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,
+					guildId, devCommands));
 		}
 
 		// All Guilds
 		LOGGER.info("Writing Global Application Commands");
-		DiscordManager.block(
-			restClient.getApplicationService()
-				.bulkOverwriteGlobalApplicationCommand(applicationId, commonCommands)
-		);
+		DiscordManager.block(restClient.getApplicationService().bulkOverwriteGlobalApplicationCommand(applicationId,
+				commonCommands));
 	}
 
 	private static void attachSlashCommandListeners(NHLBot nhlBot) {
@@ -222,18 +207,15 @@ public class NHLBot extends Thread {
 					.onErrorResume(e -> Mono.empty()).subscribe();
 		}
 	}
-	
+
 	private static void attachConfigListeners(NHLBot nhlBot) {
 		LOGGER.info("Attaching Listeners.");
 
 		Consumer<? super Throwable> logError = t -> LOGGER.error("Error occurred when responding to event.", t);
 
-		nhlBot.getDiscordManager().getClient().getEventDispatcher()
-			.on(ButtonInteractionEvent.class)
-			.doOnError(logError)
-			.onErrorResume(e -> Mono.empty())
-			.subscribe(event -> nhlBot.getManageConfigListener().execute(event));
-		
+		nhlBot.getDiscordManager().getClient().getEventDispatcher().on(ButtonInteractionEvent.class).doOnError(logError)
+				.onErrorResume(e -> Mono.empty()).subscribe(event -> nhlBot.getManageConfigListener().execute(event));
+
 	}
 
 	public ManageConfigListener getManageConfigListener() {
@@ -242,10 +224,9 @@ public class NHLBot extends Thread {
 
 	private void initWelcomeChannel() {
 		LOGGER.info("Updating 'Welcome' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-			.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds()
+				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
+				.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
 	}
 
 	void initGameDayChannelsManager() {
@@ -255,41 +236,34 @@ public class NHLBot extends Thread {
 
 	void initGameDayWatchChannels() {
 		LOGGER.info("Initializing GameDayWatchChannels.");
-		getDiscordManager().getClient().getGuilds()
-			.filter(guild -> {
-				if (Config.isDevGuild(guild)) {
-					return true;
-				}
-				GuildPreferences preferences = getPersistentData().getPreferencesData()
-						.getGuildPreferences(guild.getId().asLong());
-				return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
-			})
-			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds().filter(guild -> {
+			if (Config.isDevGuild(guild)) {
+				return true;
+			}
+			GuildPreferences preferences = getPersistentData().getPreferencesData()
+					.getGuildPreferences(guild.getId().asLong());
+			return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
+		}).subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	@SuppressWarnings("unused")
 	private void initFourNationsChannel() {
 		LOGGER.info("Updating 'Four Nations' channels.");
-		getDiscordManager().getClient().getGuilds()
-			.filter(Config::isDevGuild)
-			.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds().filter(Config::isDevGuild)
+				.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	@SuppressWarnings("unused")
 	private void initPlayoffWatchChannel() {
 		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.filter(Config::isDevGuild)
-			.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds().filter(Config::isDevGuild)
+				.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	private void initAHLWatchChannel() {
 		LOGGER.info("Updating 'AHL Watch' channels.");
-		getDiscordManager().getClient()
-			.getGuilds()
-			.filter(Config::isDevGuild)
-			.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
+		getDiscordManager().getClient().getGuilds().filter(Config::isDevGuild)
+				.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
 	}
 
 	public PersistentData getPersistentData() {
@@ -341,8 +315,8 @@ public class NHLBot extends Thread {
 	}
 
 	/*
-	 * FOR DEPLOYMENT / TESTING PURPOSES ONLY.
-	 * Create a NHLBot that is not started to access this.
+	 * FOR DEPLOYMENT / TESTING PURPOSES ONLY. Create a NHLBot that is not started
+	 * to access this.
 	 */
 	public void deployScript() {
 		LOGGER.info("Deploy scripts executing...");
@@ -368,15 +342,13 @@ public class NHLBot extends Thread {
 	@SuppressWarnings("unused")
 	private List<ApplicationCommandData> getGuildSlashCommandsInfo(long guildId) {
 		long applicationId = getDiscordManager().getApplicationId();
-		return DiscordManager.block(getDiscordManager().getClient().getRestClient()
-				.getApplicationService().getGuildApplicationCommands(applicationId, guildId));
+		return DiscordManager.block(getDiscordManager().getClient().getRestClient().getApplicationService()
+				.getGuildApplicationCommands(applicationId, guildId));
 	}
 
 	static List<Command> getSlashCommands(NHLBot nhlBot) {
-		return Config.getSlashCommands().stream()
-				.map(commandClass -> instantiateCommand(commandClass, nhlBot))
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+		return Config.getSlashCommands().stream().map(commandClass -> instantiateCommand(commandClass, nhlBot))
+				.filter(Objects::nonNull).collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("rawtypes")

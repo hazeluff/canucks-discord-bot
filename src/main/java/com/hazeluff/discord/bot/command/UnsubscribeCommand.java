@@ -145,7 +145,7 @@ public class UnsubscribeCommand extends Command {
 				channel.updateChannel();
 			}
 
-		} else if (pref.isIndividualNHLChannel()) {
+		} else if (pref.isChannelPerNHLGame()) {
 			nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		}
 	}

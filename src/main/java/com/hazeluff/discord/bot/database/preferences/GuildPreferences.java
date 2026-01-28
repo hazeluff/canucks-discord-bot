@@ -59,11 +59,11 @@ public class GuildPreferences {
 	}
 
 	public boolean isSingleNHLChannel() {
-		return gdcChannelId != 0;
+		return gdcChannelId == null || gdcChannelId != 0;
 	}
 
-	public boolean isIndividualNHLChannel() {
-		return gdcChannelId == 0;
+	public boolean isChannelPerNHLGame() {
+		return gdcChannelId != null && gdcChannelId.longValue() == 0;
 	}
 
 	@Override

@@ -99,7 +99,7 @@ public class SubscribeCommand extends Command {
 			} else {
 				channel.updateChannel();
 			}
-		} else if (pref.isIndividualNHLChannel()) {
+		} else if (pref.isChannelPerNHLGame()) {
 			nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		}
 	}

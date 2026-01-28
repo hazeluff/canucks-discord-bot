@@ -36,10 +36,8 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	// Number of retries to do when NHL API returns no events.
 	static final int NHL_EVENTS_RETRIES = 5;
 
-	// Time to wait before tryign to fetch the Discord channel
-	static final long CHANNEL_FETCH_RETRY_RATE_MS = 60000l;
 	// Polling time for when game is not close to starting
-	static final long IDLE_POLL_RATE_MS = 60000l;
+	static final long IDLE_POLL_RATE_MS = 300000l;
 	// Polling time for when game is started/almost-started
 	protected static final long ACTIVE_POLL_RATE_MS = 10000l;
 	// Time before game to poll faster
@@ -106,7 +104,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			initChannel(); // ## Overridable ##
 
 			// Wait until close to start of game
-			LOGGER().info("Idling until near game start.");
 			waitAndSendReminders();
 
 			// Game is close to starting. Poll at higher rate than previously
@@ -156,6 +153,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		boolean closeToStart;
 		long timeTillGameMs = Long.MAX_VALUE;
 		Map<Long, String> reminders = getReminders();
+		LOGGER().info("Waiting for game to start.");
 		do {
 			timeTillGameMs = timeUntilGame();
 			closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;

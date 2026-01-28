@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +31,7 @@ public class NHLGameDayWatchChannel extends Thread {
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
-	// Poll for every 5 minutes - if the scheduler has updated
+	// Poll for every 30 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 1800000L;
 
 	private final NHLBot nhlBot;
@@ -116,6 +117,7 @@ public class NHLGameDayWatchChannel extends Thread {
 
 	@Override
 	public void run() {
+		setName("G:" + StringUtils.abbreviate(guild.getId().asString(), 18));
 		if (textChannel == null) {
 			LOGGER.warn("Channel could not be found in Discord.");
 			return;

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.reactivestreams.Publisher;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
@@ -135,7 +136,7 @@ public class UnsubscribeCommand extends Command {
 		List<Team> teams = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId).getTeams();
 
 		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
-		if (pref.isSingleNHLChannel()) {
+		if (pref.isSingleNHLChannel() || Config.isDevGuild(guild)) {
 			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
 			if (channel == null && !teams.isEmpty()) {
 				channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
@@ -145,7 +146,7 @@ public class UnsubscribeCommand extends Command {
 				channel.updateChannel();
 			}
 
-		} else if (pref.isChannelPerNHLGame()) {
+		} else if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {
 			nhlBot.getGameDayChannelsManager().updateChannels(guild);
 		}
 	}

@@ -146,7 +146,7 @@ public class AHLGameScheduler extends Thread {
 		this.regularGames = initAllRegularGames();
 		LOGGER.info("Retrieved all regular games: [" + regularGames.size() + "]");
 		this.playoffGames = initAllPlayoffGames();
-		LOGGER.info("Retrieved all regular games: [" + playoffGames.size() + "]");
+		LOGGER.info("Retrieved all playoff games: [" + playoffGames.size() + "]");
 		LOGGER.info("Finished Initialization.");
 	}
 

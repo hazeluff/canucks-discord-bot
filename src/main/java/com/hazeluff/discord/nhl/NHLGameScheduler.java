@@ -110,6 +110,7 @@ public class NHLGameScheduler extends Thread {
 		LOGGER.info("Finished Initializing.");
 
 		lastUpdate.set(Utils.getCurrentDate(Config.SERVER_ZONE));
+
 		while (!isStop()) {
 			LOGGER.info("Checking for update [lastUpdate={}]", getLastUpdate().toString());
 			LocalDate today = Utils.getCurrentDate(Config.SERVER_ZONE);
@@ -216,8 +217,8 @@ public class NHLGameScheduler extends Thread {
 		removeInactiveNHLGames();
 		createNHLGameTrackers();
 
-		removeInactiveFourNationsGames();
-		createFourNationsGameTrackers();
+		// removeInactiveFourNationsGames();
+		// createFourNationsGameTrackers();
 	}
 
 	public void removeInactiveNHLGames() {

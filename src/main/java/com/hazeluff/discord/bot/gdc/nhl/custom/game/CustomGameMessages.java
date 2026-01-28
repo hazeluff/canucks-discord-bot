@@ -10,13 +10,15 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.Game;
 
 public class CustomGameMessages {
-	private static final Map<Team, List<CustomGameMessage>> startGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
-		put(Team.VANCOUVER_CANUCKS, new CanucksStartGameCollection());
-	}};
+	private static final Map<Team, List<CustomGameMessage>> startGameMessagesMap = 
+		new HashMap<Team, List<CustomGameMessage>>() {{
+			put(Team.VANCOUVER_CANUCKS, new CanucksStartGameCollection());
+		}};
 
-	private static final Map<Team, List<CustomGameMessage>> endGameMessagesMap = new HashMap<Team, List<CustomGameMessage>>() {{
-		put(Team.VANCOUVER_CANUCKS, new CanucksEndGameCollection());
-	}};
+	private static final Map<Team, List<CustomGameMessage>> endGameMessagesMap =
+		new HashMap<Team, List<CustomGameMessage>>() {{
+			put(Team.VANCOUVER_CANUCKS, new CanucksEndGameCollection());
+		}};
 
 	public static String getStartGameMessage(Game game, Team team) {
 		return getCustomMessage(game, startGameMessagesMap.get(team));

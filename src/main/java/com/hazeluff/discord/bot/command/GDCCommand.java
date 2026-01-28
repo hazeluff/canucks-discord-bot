@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
@@ -76,7 +77,7 @@ public class GDCCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		TextChannel channel = getChannel(event);
-		if (channel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
+		if (Config.isFourNationsEnabled() && channel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
 			// Not in game day channel
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
 					.content("GDC Commands not supported for Four Nations channel.")

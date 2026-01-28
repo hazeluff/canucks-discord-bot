@@ -131,13 +131,14 @@ public class NHLBot extends Thread {
 
 		initStaticEntities();
 
-		// Start the Game Day Channels Manager
+		// Start the Game Day Channels Manager (channel-per-game)
 		initGameDayChannelsManager();
+
+		// AHL (single-channel)
+		initAHLWatchChannel();
 
 		// (Special) Create Four Nations Channel
 		// initFourNationsChannel();
-
-		initAHLWatchChannel();
 
 		// (Special) Create Playoff watch Channel
 		// initPlayoffWatchChannel();
@@ -249,11 +250,12 @@ public class NHLBot extends Thread {
 		gameDayChannelsManager.start();
 	}
 
-	@SuppressWarnings("unused")
 	private void initFourNationsChannel() {
-		LOGGER.info("Updating 'Four Nations' channels.");
-		getDiscordManager().getClient().getGuilds()
-				.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
+		if (Config.isFourNationsEnabled()) {
+			LOGGER.info("Updating 'Four Nations' channels.");
+			getDiscordManager().getClient().getGuilds()
+					.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
+		}
 	}
 
 	@SuppressWarnings("unused")
@@ -264,8 +266,11 @@ public class NHLBot extends Thread {
 	}
 
 	private void initAHLWatchChannel() {
-		LOGGER.info("Updating 'AHL Watch' channels.");
-		getDiscordManager().getClient().getGuilds().subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
+		if (Config.isAHLChannelEnabled()) {
+			LOGGER.info("Updating 'AHL Watch' channels.");
+			getDiscordManager().getClient().getGuilds()
+					.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
+		}
 	}
 
 	public PersistentData getPersistentData() {

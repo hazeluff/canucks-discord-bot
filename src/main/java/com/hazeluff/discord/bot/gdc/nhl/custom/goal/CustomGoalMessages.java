@@ -10,16 +10,9 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.event.GoalEvent;
 
 public class CustomGoalMessages {
-
-	@SuppressWarnings("unchecked")
-	private static final Map<Team, List<CustomGoalMessage>>
-		customMessagesMap = new HashMap<Team, List<CustomGoalMessage>>() {{
+	private static final Map<Team, List<CustomGoalMessage>> customMessagesMap = 
+		new HashMap<Team, List<CustomGoalMessage>>() {{
 			put(Team.VANCOUVER_CANUCKS, new CanucksGoalCollection());
-			for(Team team : Team.values()) {
-				if(!containsKey(team)) {
-					put(team, Collections.EMPTY_LIST);
-				}
-			}
 		}};
 
 	public static String getMessage(List<GoalEvent> allGoalEvents, GoalEvent currentEvent) {
@@ -31,6 +24,9 @@ public class CustomGoalMessages {
 		// Get all applicable custom messages
 		Team team = currentEvent.getTeam();
 		List<CustomGoalMessage> customMessages = customMessagesMap.get(team);
+		if (customMessages == null) {
+			return null;
+		}
 		List<CustomGoalMessage> applicableMessages = customMessages.stream()
 				.filter(customMsg -> customMsg.applies(previousEvents, currentEvent))
 				.collect(Collectors.toList());

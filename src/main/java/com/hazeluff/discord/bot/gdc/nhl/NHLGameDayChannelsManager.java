@@ -209,6 +209,7 @@ public class NHLGameDayChannelsManager extends Thread {
 			updateChannels(devGuild);
 		});
 
+		/*
 		// Update Other Guilds
 		List<Guild> otherGuilds = guilds.stream()
 				.filter(guild -> !Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
@@ -219,6 +220,7 @@ public class NHLGameDayChannelsManager extends Thread {
 			updateChannels(guild);
 			Utils.sleep(500);
 		});
+		*/
 	}
 
 	/**

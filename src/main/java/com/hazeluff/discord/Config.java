@@ -24,28 +24,14 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class Config {
 	public static class Debug {
-		private static final String LOAD_GAMES_KEY = "load.games";
-
 		public static boolean isLoadGames() {
-			boolean hasKey = systemProperties.containsKey(LOAD_GAMES_KEY);
-			if(!hasKey) {
-				return true;
-			}
-			String strValue = systemProperties.getProperty(LOAD_GAMES_KEY);
-			return strValue.isEmpty() || Boolean.valueOf(strValue);
+			return loadBool("load.games", true);
 		}
 	}
 	
 	public static class Deploy {
-		private static final String SCRIPT_ONLY_KEY = "deploy.scripts";
-
 		public static boolean isScriptOnly() {
-			boolean hasKey = systemProperties.containsKey(SCRIPT_ONLY_KEY);
-			if(!hasKey) {
-				return false;
-			}
-			String strValue = systemProperties.getProperty(SCRIPT_ONLY_KEY);
-			return strValue.isEmpty() || Boolean.valueOf(strValue);
+			return loadBool("deploy.scripts", false);
 		}
 	}
 
@@ -61,8 +47,56 @@ public class Config {
 	);
 
 	// List of guilds allowed to access the bot. (not strictly enforced access)
-	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(238870084003561472l // /r/canucks
+	public static final List<Long> SERVICED_GUILD_LIST = Arrays.asList(
+		238870084003561472l // /r/canucks
 	);
+	
+	/*
+	 * General Config
+	 */
+	public static final List<String> STATUS_MESSAGES = Arrays.asList(
+		"/help for commands",
+		"Go Canucks Go!",
+		"We are all Canucks",
+		"Costco Hotdogs: $1.50",
+		"Coconuts Glow!",
+		"Fuck messier",
+		"foundrybc.ca",
+		"Elbows Up",
+		"Je suis Canadien",
+		"Fuck the oilers",
+		"Fuck the leafs",
+		"\"I am not a cat\"",
+		"Can't stop, won't stop",
+		"Operating from No Fun City",
+		"\"Follow your dreams. Listen to your heart. Obey your passion.\"", // Pat Quinn
+		"LIVE SPORTS! ESPN+ ORIGINALS! THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
+		"at the combination hockey game and grocery store",
+		"Watching: The Lego Movie (2014)",
+		"Watching: Mewtwo Strikes Back (1999)",
+		"Lucky Star",
+		"No items, Fox only, Final Destination",
+		"There's a creeper on the roof. LA-LA-LA-LA-LA",
+		"It was 4-1",
+		"Do your dekes",
+		"Grip it and rip it",
+		"I can tell you that for free",
+		"Whale team good.",
+		"Whale team bad.",
+		"Whale team mediocre.",
+		"Never Day Sie!",
+		"Always go face",
+		"Math is for blockers",
+		"Let It Rip!"
+	);
+
+	public static boolean isFourNationsEnabled() {
+		return loadBool("channels.fournations", false);
+	}
+
+	public static boolean isAHLChannelEnabled() {
+		return loadBool("channels.ahl", true);
+	}
 
 	/*
 	 * NHL Config
@@ -144,42 +178,6 @@ public class Config {
 	public static final String MONGO_TEST_DATABASE_NAME = "CanucksBotIntegrationTest";
 	public static final ZoneId SERVER_ZONE = ZoneId.of("America/Vancouver");
 
-	public static final List<String> STATUS_MESSAGES = Arrays.asList(
-		"/help for commands",
-		"Go Canucks Go!",
-		"We are all Canucks",
-		"Costco Hotdogs: $1.50",
-		"Coconuts Glow!",
-		"Fuck messier",
-		"foundrybc.ca",
-		"Elbows Up",
-		"Je suis Canadien",
-		"Fuck the oilers",
-		"Fuck the leafs",
-		"\"I am not a cat\"",
-		"Can't stop, won't stop",
-		"Operating from No Fun City",
-		"\"Follow your dreams. Listen to your heart. Obey your passion.\"", // Pat Quinn
-		"LIVE SPORTS! ESPN+ ORIGINALS! THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
-		"at the combination hockey game and grocery store",
-		"Watching: The Lego Movie (2014)",
-		"Watching: Mewtwo Strikes Back (1999)",
-		"Lucky Star",
-		"No items, Fox only, Final Destination",
-		"There's a creeper on the roof. LA-LA-LA-LA-LA",
-		"It was 4-1",
-		"Do your dekes",
-		"Grip it and rip it",
-		"I can tell you that for free",
-		"Whale team good.",
-		"Whale team bad.",
-		"Whale team mediocre.",
-		"Never Day Sie!",
-		"Always go face",
-		"Math is for blockers",
-		"Let It Rip!"
-	);
-	
 	public static final String NHL_CHANNEL_REGEX;
 	static {
 		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
@@ -234,5 +232,14 @@ public class Config {
 				UnsubscribeCommand.class,
 				WordcloudCommand.class
 		);
+	}
+
+	private static boolean loadBool(String keyName, boolean def) {
+		boolean hasKey = systemProperties.containsKey(keyName);
+		if (!hasKey) {
+			return def;
+		}
+		String strValue = systemProperties.getProperty(keyName);
+		return strValue.isEmpty() || Boolean.valueOf(strValue);
 	}
 }

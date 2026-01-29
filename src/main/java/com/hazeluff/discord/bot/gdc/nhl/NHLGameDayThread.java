@@ -51,14 +51,17 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	/*
 	 * Run method overrides
 	 */
+	@Override
 	protected void setThreadName() {
 		setName(game.getNiceName());
 	}
 
+	@Override
 	protected long timeUntilGame() {
 		return DateUtils.diffMs(ZonedDateTime.now(), game.getStartTime());
 	}
 
+	@Override
 	protected void initChannel() {
 		loadMetadata();
 	}

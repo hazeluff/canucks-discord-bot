@@ -112,15 +112,20 @@ public class GDCCommand extends Command {
 		 */
 		GDCSubCommand publicCommand = PUBLIC_COMMANDS.get(strSubcommand.toLowerCase());
 		if (publicCommand != null) {
-			Game game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(teams.get(0));
-			if(game != null)
-			{
+			Team team = teams.get(0);
+			// Get current or next game
+			Game game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
+			if (game == null) {
+				game = nhlBot.getNHLGameScheduler().getNextGame(team);
+			}
+
+			if (game != null) {
+				// Game is found
 				return publicCommand.reply(event, nhlBot, game);
 			}
-			else
-			{
-				return reply(event, "Your server must be subscribed to a single team to use this feature.", true);
-			}
+
+			// Game is not found
+			return reply(event, "There is no current/next game.", true);
 		}
 
 		return reply(event, HELP_MESSAGE_EMBED, true);

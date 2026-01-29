@@ -3,6 +3,7 @@ package com.hazeluff.discord.bot.gdc.nhl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,6 +83,15 @@ public class NHLGameDayWatchThread extends NHLGameDayThread {
 				put(3600000l, "60 minutes till puck drop.");
 			}
 		};
+	}
+
+	/*
+	 * Run method overrides
+	 */
+	@Override
+	protected void setThreadName() {
+		setName("G:" + StringUtils.abbreviate(guild.getId().asString(), 9) + game.getGameId());
+		// Game Id should be 10 digits
 	}
 
 	@Override

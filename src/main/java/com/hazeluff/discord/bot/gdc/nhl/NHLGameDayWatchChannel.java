@@ -117,7 +117,7 @@ public class NHLGameDayWatchChannel extends Thread {
 
 	@Override
 	public void run() {
-		setName("G:" + StringUtils.abbreviate(guild.getId().asString(), 18));
+		setName("G:" + StringUtils.abbreviate(guild.getId().asString(), 19));
 		if (textChannel == null) {
 			LOGGER.warn("Channel could not be found in Discord.");
 			return;

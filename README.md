@@ -23,7 +23,8 @@ Please try not to remove any permissions as it may affect it working.
 ## Game Day Channels
 - Automatically generate channels for NHL games
   - Dedicated watch channel (#game-day-watch)
-  - Individual channels per game (currently not available, work in progress)
+  - (WIP) Individual channels per game
+  - (FUTURE) Individual thread per game. All threads contained in #game-day-watch
 - Give warnings before the game starts (60/30/10 minutes before).
 - Display messages for when goals are scored.
 - Display summaries of games.

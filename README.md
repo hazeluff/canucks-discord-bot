@@ -10,7 +10,11 @@ This is a bot based on [CanucksBot](https://github.com/hazeluff/canucks-discord-
 
 ### Permissions for NHLBot
  
-The bot requirst the following permissions: "Manage Channels", "View Channels", "Manage Threads", "Create Public Threads", "Read Messages", "Read Message History", "Send Messages", "Send Messages in Threads", "Pin Messages", "Embed Links", "Attach Files", "Add Reactions"
+The bot requirst the following permissions:
+- `Manage Channels`, `View Channels`, `Manage Threads`, `Create Public Threads`
+- `Read Messages`, `Read Message History`, `Pin Messages`
+- `Send Messages`, `Send Messages in Threads`
+- `Embed Links`, `Attach Files`, `Add Reactions`
 
 They are automatically requested when you add the bot to your server.
 Please try not to remove any permissions as it may affect it working.

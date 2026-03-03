@@ -6,11 +6,12 @@ This is a bot based on [CanucksBot](https://github.com/hazeluff/canucks-discord-
 # Latest Update
 (2025-12-13) This season the bot now makes a dedicated channel for all games (#game-day-watch). The option to have it create a individual channel per game is currently unavailable. In the future, you will be able to configure the bot for either modes.
 
-# Add NHLBot to your server: [Click Here](https://discordapp.com/oauth2/authorize?client_id=257345858515894272&scope=bot&permissions=93200)
+# Add NHLBot to your server: [Click Here](https://discordapp.com/oauth2/authorize?client_id=257345858515894272&scope=bot&permissions=2252126231252048)
 
 ### Permissions for NHLBot
  
-The bot requirs the following permissions: "Manage Channels", "Read Messages", "Send Messages", "Manage Messages", "Embed Links", "Read Message History"
+The bot requirst the following permissions: "Manage Channels", "View Channels", "Manage Threads", "Create Public Threads", "Read Messages", "Read Message History", "Send Messages", "Send Messages in Threads", "Pin Messages", "Embed Links", "Attach Files", "Add Reactions"
+
 They are automatically requested when you add the bot to your server.
 Please try not to remove any permissions as it may affect it working.
 

@@ -18,7 +18,7 @@
 	  <groupId>com.discord4j</groupId>
 	  <artifactId>discord4j-core</artifactId>
 	  <version>3.3.0</version>
-	</dependency>
+	</dependency>      
 
     <dependency>
       <groupId>org.mongodb</groupId>

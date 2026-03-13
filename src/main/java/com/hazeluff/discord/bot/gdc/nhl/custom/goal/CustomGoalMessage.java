@@ -39,6 +39,7 @@ public class CustomGoalMessage {
 		if (currentEvent == null || previousEvents == null) {
 			return false;
 		}
+
 		if (goalApplicable != null && !goalApplicable.test(currentEvent)) {
 			return false;
 		}

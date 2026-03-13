@@ -157,7 +157,6 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	/*
 	 * Start of game message
 	 */
-	@Override
 	protected void updateStart() {
 		sendStartOfGameMessage();
 		sendCustomStartMessage();

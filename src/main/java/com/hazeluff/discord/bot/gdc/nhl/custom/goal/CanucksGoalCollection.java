@@ -10,6 +10,7 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 @SuppressWarnings("serial")
 public class CanucksGoalCollection extends CustomGoalMessage.Collection {
+	@Override
 	Team getTeam() {
 		return Team.VANCOUVER_CANUCKS;
 	}

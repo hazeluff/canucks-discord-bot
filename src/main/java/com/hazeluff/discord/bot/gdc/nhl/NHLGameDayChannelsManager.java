@@ -200,27 +200,17 @@ public class NHLGameDayChannelsManager extends Thread {
 				.collect(Collectors.toList());
 
 		// Update Dev Guilds
-		List<Guild> devGuilds = guilds.stream()
-				.filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-				.collect(Collectors.toList());
-
-		devGuilds.stream().forEach(devGuild -> {
+		guilds.stream().filter(guild -> Config.DEV_GUILD_LIST.contains(guild.getId().asLong())).forEach(devGuild -> {
 			LOGGER.info("Updating channels of dev guilds: " + devGuild.getId().asLong());
 			updateChannels(devGuild);
 		});
 
-		/*
-		// Update Other Guilds
-		List<Guild> otherGuilds = guilds.stream()
-				.filter(guild -> !Config.DEV_GUILD_LIST.contains(guild.getId().asLong()))
-				.collect(Collectors.toList());
-
-		otherGuilds.stream().forEach(guild -> {
-			LOGGER.info("Updating channels of other guilds: " + guild.getId().asLong());
-			updateChannels(guild);
-			Utils.sleep(500);
-		});
-		*/
+		// Update Serviced Guilds
+		guilds.stream().filter(guild -> Config.SERVICED_GUILD_LIST.contains(guild.getId().asLong()))
+				.forEach(devGuild -> {
+					LOGGER.info("Updating channels of serviced guilds: " + devGuild.getId().asLong());
+					updateChannels(devGuild);
+				});
 	}
 
 	/**

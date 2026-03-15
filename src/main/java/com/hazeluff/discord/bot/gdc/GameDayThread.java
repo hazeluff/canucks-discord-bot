@@ -97,7 +97,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	protected void _run() {
 		setThreadName();
 		LOGGER().info("Started thread.");
-		updateStart();
+
 		if (!gameTracker.isGameFinished()) {
 			initChannel(); // ## Overridable ##
 

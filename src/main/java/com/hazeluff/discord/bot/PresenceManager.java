@@ -95,6 +95,22 @@ public class PresenceManager extends Thread {
 	}
 
 	private static ClientPresence buildOnlinePresence(String message) {
+		if(message.startsWith("Watching: "))
+		{
+			String watchingMsg = message.replace("Watching: ", "");
+			return ClientPresence.online(ClientActivity.watching(watchingMsg));
+		}
+		if(message.startsWith("Listening: "))
+		{
+			String listeningMsg = message.replace("Listening: ", "");
+			return ClientPresence.online(ClientActivity.listening(listeningMsg));
+		}
+		if(message.startsWith("Playing: "))
+		{
+			String playingMsg = message.replace("Playing: ", "");
+			return ClientPresence.online(ClientActivity.playing(playingMsg));
+		}
+		
 		return ClientPresence.online(ClientActivity.streaming(message, Config.GIT_URL));
 	}
 

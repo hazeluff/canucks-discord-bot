@@ -70,10 +70,11 @@ public class Config {
 		"Can't stop, won't stop",
 		"Operating from No Fun City",
 		"\"Follow your dreams. Listen to your heart. Obey your passion.\"", // Pat Quinn
-		"LIVE SPORTS! ESPN+ ORIGINALS! THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
-		"at the combination hockey game and grocery store",
+		"is at the combination hockey game and grocery store",
 		"Watching: The Lego Movie (2014)",
 		"Watching: Mewtwo Strikes Back (1999)",
+		"Playing: ULTRAKILL",
+		"Listening: Linkin Park - Meteora (2003)",
 		"Lucky Star",
 		"No items, Fox only, Final Destination",
 		"There's a creeper on the roof. LA-LA-LA-LA-LA",

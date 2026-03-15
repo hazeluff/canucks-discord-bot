@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
@@ -96,7 +97,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	protected void _run() {
 		setThreadName();
 		LOGGER().info("Started thread.");
-
+		updateStart();
 		if (!gameTracker.isGameFinished()) {
 			initChannel(); // ## Overridable ##
 
@@ -237,7 +238,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		sendMessage(buildStartOfGameMessage());
 	}
 
-	private final List<String> START_OF_GAME_MESSAGES = Arrays.asList(
+	protected static final List<String> START_OF_GAME_MESSAGES = Arrays.asList(
 			"%s", // team cheer
 			"Key to the game: %s.",
 			"Get ready for your scheduled `%s`.",
@@ -257,7 +258,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			"Be nice to each other."
 	);
 
-	private final List<String> KEYS_TO_GAME = Arrays.asList(
+	protected static final List<String> KEYS_TO_GAME = Arrays.asList(
 			"Speed, Agility, Power", 
 			"Get pucks deep", 
 			"Get shots on net", 
@@ -269,28 +270,36 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			"Block shots"
 	);
 
-	private final List<String> GAME_RESULTS = Arrays.asList(
+	protected static final List<String> GAME_RESULTS = Arrays.asList(
 			"Good", "Bad", "Not Ok", "Ok", "Hanging On", "Dead Inside", "Despsarate", "Sucky", "Stimky", "Dieing",
 			"Trying", "Still belongs to Aqua"
 	);
 
-	private final List<String> TEAM_DESCRIPTIONS = Arrays.asList(
+	protected static final List<String> TEAM_DESCRIPTIONS = Arrays.asList(
 			"Win", "Loss", "OTL", "SO Loss", "Misery",
 			"Dispointment", "Funtime", "Excitement", "Chaos", "SHUTOUT Win", "Injury", "Ref Contraversy",
 			"Getting Rekt", "Comeback"
 	);
 
-	private final List<String> SPONSORS = Arrays.asList(
+	protected static final List<String> SPONSORS = Arrays.asList(
 			"Hazeluff", "Tooo", "Aleks", "Khan", "The Devil", "Hockey Night In Canada", "PlayBetKings365Now",
 			"LIVE SPORTS! ESPN+ ORIGINALS!\n-# THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
 			"Mountain Dew Game Fuel + Doritos", "Your Tax Dollars", "Your Nitro Boosts! Boost TODAY (and forever)!",
 			"Your Hopes and Dreams", "Robux", "Vbucks", "Bitcoin", "NFTs"
 	);
 
-	protected String buildStartOfGameMessage() {
-		String baseMessage = "Game is about to start!\n";
+	protected static final String START_OF_GAME_MSG = "Game is about to start!";
 
-		// Get a random message.
+	protected String buildStartOfGameMessage() {
+		String baseMessage = START_OF_GAME_MSG + "\n";
+
+		// Date specific message
+		String dayMessage = Config.GetCustomGDCStartMessage();
+		if (dayMessage != null) {
+			return baseMessage + dayMessage;
+		}
+		
+		// Get a random message
 		int rndIdx = Utils.getRandomInt(START_OF_GAME_MESSAGES.size());
 		String message = START_OF_GAME_MESSAGES.get(rndIdx);
 		switch (rndIdx) {

@@ -1,5 +1,6 @@
 package com.hazeluff.discord;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +22,7 @@ import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.nhl.NHLSeasons;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.nhl.game.Game;
 
 public class Config {
 	public static class Debug {
@@ -92,6 +94,26 @@ public class Config {
 		"Sell the team!",
 		"Canucks - NHL's 51st team!"
 	);
+
+	public static String GetCustomGDCStartMessage(Game game) {
+		switch (game.getGameId()) {
+		case 2025021188:
+			return "# NYAAAAA~";
+		}
+		return null;
+	}
+
+	public static String GetCustomGDCStartMessage() {
+		/*
+		// April Fools
+		LocalDate today = LocalDate.now(SERVER_ZONE);
+		if (today.getMonthValue() == 4 && today.getDayOfMonth() == 1)
+		{
+			return "# April Fools! You're watching the Canucks!";
+		}
+		*/
+		return null;
+	}
 
 	public static boolean isFourNationsEnabled() {
 		return loadBool("channels.fournations", false);

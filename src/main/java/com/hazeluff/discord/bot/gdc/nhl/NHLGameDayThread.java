@@ -3,6 +3,7 @@ package com.hazeluff.discord.bot.gdc.nhl;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
@@ -111,6 +112,22 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	public static String buildMatchupName(Game game) {
 		return String.format("**%s** vs **%s**", game.getHomeTeam().getLocationName(),
 				game.getAwayTeam().getLocationName());
+	}
+
+	/*
+	 * Start Message
+	 */
+	@Override
+	protected String buildStartOfGameMessage() {
+		String baseMessage = START_OF_GAME_MSG + "\n";
+
+		// Game ID specific message
+		String idMessage = Config.GetCustomGDCStartMessage(game);
+		if (idMessage != null) {
+			return baseMessage + idMessage;
+		}
+
+		return super.buildStartOfGameMessage();
 	}
 
 	/*

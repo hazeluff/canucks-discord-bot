@@ -237,11 +237,13 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		sendMessage(buildStartOfGameMessage());
 	}
 
-	List<String> startOfGameMessages = Arrays.asList(
-			"Game is about to start! %s",
+	private final List<String> START_OF_GAME_MESSAGES = Arrays.asList(
+			"%s", // team cheer
 			"Key to the game: %s.",
 			"Get ready for your scheduled `%s`.",
 			"Predicted Score: `%s-%s %s %s`",
+			"Whale team `%s`",
+			"Sponsored by\\*: %s\n-# *not actually",
 			"Be Kind, Be Calm, Be Safe",
 			"Be woke, be cool, a calm spirit is smarter.",
 			"Get ready, go to the washroom, get your snacks, "
@@ -252,12 +254,10 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			"No dooming.",
 			"Mods are not asleep.",
 			"Never Day Sie Team!",
-			"Whale team GOOD!",
-			"Whale team BAD?",
 			"Be nice to each other."
 	);
 
-	List<String> keysToGame = Arrays.asList(
+	private final List<String> KEYS_TO_GAME = Arrays.asList(
 			"Speed, Agility, Power", 
 			"Get pucks deep", 
 			"Get shots on net", 
@@ -269,36 +269,40 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			"Block shots"
 	);
 
-	List<String> gameResults = Arrays.asList(
-			"Win",
-			"Loss",
-			"OTL",
-			"SO Loss",
-			"Misery",
-			"Dispointment",
-			"Funtime",
-			"Excitement",
-			"Chaos",
-			"SHUTOUT Win",
-			"Injury",
-			"Ref Contraversy",
-			"Getting Rekt",
-			"Comeback"
+	private final List<String> GAME_RESULTS = Arrays.asList(
+			"Good", "Bad", "Not Ok", "Ok", "Hanging On", "Dead Inside", "Despsarate", "Sucky", "Stimky", "Dieing",
+			"Trying", "Still belongs to Aqua"
+	);
+
+	private final List<String> TEAM_DESCRIPTIONS = Arrays.asList(
+			"Win", "Loss", "OTL", "SO Loss", "Misery",
+			"Dispointment", "Funtime", "Excitement", "Chaos", "SHUTOUT Win", "Injury", "Ref Contraversy",
+			"Getting Rekt", "Comeback"
+	);
+
+	private final List<String> SPONSORS = Arrays.asList(
+			"Hazeluff", "Tooo", "Aleks", "Khan", "The Devil", "Hockey Night In Canada", "PlayBetKings365Now",
+			"LIVE SPORTS! ESPN+ ORIGINALS!\n-# THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
+			"Mountain Dew Game Fuel + Doritos", "Your Tax Dollars", "Your Nitro Boosts! Boost TODAY (and forever)!",
+			"Your Hopes and Dreams", "Robux", "Vbucks", "Bitcoin", "NFTs"
 	);
 
 	protected String buildStartOfGameMessage() {
-		int rndIdx = Utils.getRandomInt(startOfGameMessages.size());
-		String message = startOfGameMessages.get(rndIdx);
+		String baseMessage = "Game is about to start!\n";
+
+		// Get a random message.
+		int rndIdx = Utils.getRandomInt(START_OF_GAME_MESSAGES.size());
+		String message = START_OF_GAME_MESSAGES.get(rndIdx);
 		switch (rndIdx) {
 		case 0:
-			// "Game is about to start! <cheer>"
-			return String.format(message, preferences.getCheer());
+			// "<cheer>"
+			message = String.format(message, preferences.getCheer());
 		case 1:
 			// "Key to the game: <keys>."
-			return String.format(message, Utils.getRandom(keysToGame));
+			message = String.format(message, Utils.getRandom(KEYS_TO_GAME));
 		case 2:
 			// "Get ready for your scheduled `<result>`."
-			return String.format(message, Utils.getRandom(gameResults));
+			message = String.format(message, Utils.getRandom(GAME_RESULTS));
 		case 3:
 			// "Predicted Score: `<numG1>-<numG2> <type> <result>`"
 			int ourGoals = Utils.getRandomInt(10);
@@ -307,9 +311,16 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 				ourGoals += 1;
 			String resultType = Utils.getRandom(Arrays.asList("Regulation", "Overttime", "OT/SO"));
 			String result = (ourGoals > theirGoals ? "Win" : "Loss");
-			return String.format(message, ourGoals, theirGoals, resultType, result);
+			message = String.format(message, ourGoals, theirGoals, resultType, result);
+		case 4:
+			// "Whale team `<description>`."
+			message = String.format(message, Utils.getRandom(TEAM_DESCRIPTIONS));
+		case 5:
+			// "Sponsored by: <sponsor> \n-# *not actually."
+			message = String.format(message, Utils.getRandom(SPONSORS));
 		}
-		return message;
+
+		return baseMessage + message;
 	}
 
 	/*

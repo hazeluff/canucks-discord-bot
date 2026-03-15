@@ -87,7 +87,9 @@ public class Config {
 		"Never Day Sie!",
 		"Always go face",
 		"Math is for blockers",
-		"Let It Rip!"
+		"Let It Rip!",
+		"Sell the team!",
+		"Canucks - NHL's 51st team!"
 	);
 
 	public static boolean isFourNationsEnabled() {

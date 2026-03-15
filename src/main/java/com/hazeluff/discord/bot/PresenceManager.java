@@ -74,8 +74,7 @@ public class PresenceManager extends Thread {
 			if (gameTimeDiff > 0 && gameTimeDiff < 12) {
 				Team oppTeam = currentGame.getOppossingTeam(team);
 				if (oppTeam != null) {
-					String nextGameMessage = String.format("Gameday in %s. ", currentGame.getNiceName());
-					status = nextGameMessage + status;
+					status = String.format("Gameday in %s. ", currentGame.getNiceName());
 				}
 			}
 		}

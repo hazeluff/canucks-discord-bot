@@ -78,7 +78,6 @@ public class SubscribeCommand extends Command {
 			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
 
 	InteractionReplyEditSpec buildReplyEdit(Guild guild, Team team) {
-		subscribeGuild(guild, team);
 		return InteractionReplyEditSpec.builder()
 				.contentOrNull(buildSubscribedMessage(guild, team))
 				.build();

@@ -115,22 +115,6 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	}
 
 	/*
-	 * Start Message
-	 */
-	@Override
-	protected String buildStartOfGameMessage() {
-		String baseMessage = START_OF_GAME_MSG + "\n";
-
-		// Game ID specific message
-		String idMessage = Config.GetCustomGDCStartMessage(game);
-		if (idMessage != null) {
-			return baseMessage + idMessage;
-		}
-
-		return super.buildStartOfGameMessage();
-	}
-
-	/*
 	 * Intro Message
 	 */
 	private Message getIntroMessage() {
@@ -187,6 +171,22 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	protected static String getHelpMessageText() {
 		return "This game/channel is interactable with Slash Commands!"
 				+ "\nUse `/gdc subcommand:help` to bring up a list of commands.";
+	}
+
+	/*
+	 * Start Message
+	 */
+	@Override
+	protected String buildStartOfGameMessage() {
+		String baseMessage = START_OF_GAME_MSG + "\n";
+
+		// Game ID specific message
+		String idMessage = Config.GetCustomGDCStartMessage(game);
+		if (idMessage != null) {
+			return baseMessage + idMessage;
+		}
+
+		return super.buildStartOfGameMessage();
 	}
 
 	/*

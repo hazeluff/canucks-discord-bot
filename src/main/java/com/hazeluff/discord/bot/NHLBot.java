@@ -17,7 +17,6 @@ import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.channel.NHLBotCategoryManager;
 import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.discord.bot.command.SayCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
@@ -36,7 +35,6 @@ import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.discordjson.json.ApplicationCommandData;
-import discord4j.discordjson.json.ApplicationCommandPermissionsRequest;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
 import discord4j.rest.request.RouteMatcher;
@@ -139,7 +137,7 @@ public class NHLBot extends Thread {
 		initAHLWatchChannel();
 
 		// (Special) Create Four Nations Channel
-		// initFourNationsChannel();
+		initFourNationsChannel();
 
 		// (Special) Create Playoff watch Channel
 		// initPlayoffWatchChannel();

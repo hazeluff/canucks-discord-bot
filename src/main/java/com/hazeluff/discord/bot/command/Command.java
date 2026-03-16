@@ -12,7 +12,7 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.discord.utils.DiscordUtils;
+import com.hazeluff.discord.utils.InteractionUtils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.common.util.Snowflake;
@@ -234,15 +234,15 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {
-		return DiscordUtils.getOptionAsString(event, option);
+		return InteractionUtils.getOptionAsString(event, option);
 	}
 
 	protected static Long getOptionAsLong(ChatInputInteractionEvent event, String option) {
-		return DiscordUtils.getOptionAsLong(event, option);
+		return InteractionUtils.getOptionAsLong(event, option);
 	}
 
 	protected static Mono<Channel> getOptionAsChannel(ChatInputInteractionEvent event, String option) {
-		return DiscordUtils.getOptionAsChannel(event, option);
+		return InteractionUtils.getOptionAsChannel(event, option);
 	}
 
 	public static Mono<Void> reply(ChatInputInteractionEvent event, String message) {
@@ -264,8 +264,7 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	public static Mono<Void> reply(ChatInputInteractionEvent event, String message, EmbedCreateSpec embedCreateSpec,
 			boolean ephermeral) {
-		InteractionApplicationCommandCallbackSpec spec = buildReplySpec(message, embedCreateSpec, ephermeral);
-		return event.reply(spec);
+		return InteractionUtils.reply(event, message, embedCreateSpec, ephermeral);
 	}
 
 	static InteractionApplicationCommandCallbackSpec buildReplySpec(String message, EmbedCreateSpec embedCreateSpec,
@@ -297,7 +296,7 @@ public abstract class Command extends ReactiveEventAdapter {
 				.reply(buildReplySpec(initialReply, null, true))
 				.then(Mono.defer(() -> {
 					defferedAction.run();
-					return createSlowFollowUp(event, defferedReplySupplier);
+					return event.createFollowup(defferedReplySupplier.get());
 				}));
 	}
 
@@ -310,45 +309,19 @@ public abstract class Command extends ReactiveEventAdapter {
 				.reply(buildReplySpec(initialReply, null, true))
 				.then(Mono.defer(() -> {
 					defferedAction.run();
-					return createSlowReplyEdit(event, defferedReplySupplier);
+					return event.editReply(defferedReplySupplier.get());
 				}));
 	}
-
-	/**
-	 * 
-	 * @param event
-	 * @param specSupplier
-	 *            Specification that takes time to create.
-	 * @return
-	 */
-	private static Mono<Message> createSlowFollowUp(
-			ChatInputInteractionEvent event,
-			Supplier<InteractionFollowupCreateSpec> specSupplier) {
-		return event.createFollowup(specSupplier.get());
-	}
-
-	private static Mono<Message> createSlowReplyEdit(
-			ChatInputInteractionEvent event,
-			Supplier<InteractionReplyEditSpec> specSupplier) {
-		return event.editReply(specSupplier.get());
+	
+	InteractionFollowupCreateSpec buildFollowUpSpec(String message) {
+		return InteractionUtils.buildFollowUpSpec(message);
 	}
 	
-	InteractionFollowupCreateSpec buildFollowUp(String message) {
-		return InteractionFollowupCreateSpec.builder()
-				.content(message)
-				.build();
+	InteractionFollowupCreateSpec buildFollowUpSpec(String message, boolean ephemeral) {
+		return InteractionUtils.buildFollowUpSpec(message);
 	}
 	
-	InteractionFollowupCreateSpec buildFollowUp(String message, boolean ephemeral) {
-		return InteractionFollowupCreateSpec.builder()
-				.content(message)
-				.ephemeral(ephemeral)
-				.build();
-	}
-	
-	InteractionReplyEditSpec buildReplyEdit(String message, boolean ephemeral) {
-		return InteractionReplyEditSpec.builder()
-				.contentOrNull(message)
-				.build();
+	InteractionReplyEditSpec buildReplyEditSpec(String message) {
+		return InteractionUtils.buildReplyEditSpec(message);
 	}
 }

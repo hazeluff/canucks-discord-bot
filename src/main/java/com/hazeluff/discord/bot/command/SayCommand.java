@@ -56,7 +56,7 @@ public class SayCommand extends Command {
 							.block(event.getOptionAsChannel("channel").cast(MessageChannel.class));
 					DiscordManager.subscribe(channel.createMessage(message));
 				}, 
-				() -> buildReplyEdit("Sent.", true)
+				() -> buildReplyEditSpec("Sent.")
 		);
 	}
 

@@ -1,6 +1,5 @@
 package com.hazeluff.discord;
 
-import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;

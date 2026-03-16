@@ -13,7 +13,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.discord.utils.DiscordUtils;
+import com.hazeluff.discord.utils.InteractionUtils;
 import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.stats.SkaterStats;
 import com.hazeluff.nhl.stats.TeamPlayerStats;
@@ -23,7 +23,7 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 public abstract class NHLSkaterStatsCommand extends NHLStatsSubCommand {
 	protected Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, String label,
 			Predicate<SkaterStats> filter, Comparator<SkaterStats> order) {
-		String strTeam = DiscordUtils.getOptionAsString(event, "team");
+		String strTeam = InteractionUtils.getOptionAsString(event, "team");
 		if (!Team.isValid(strTeam)) {
 			return event.reply(Command.getInvalidTeamCodeMessage(strTeam)).withEphemeral(true);
 		}
@@ -37,7 +37,7 @@ public abstract class NHLSkaterStatsCommand extends NHLStatsSubCommand {
 			return event.reply(Command.NON_NHL_TEAM_MESSAGE).withEphemeral(true);
 		}
 
-		Long startYear = DiscordUtils.getOptionAsLong(event, "season");
+		Long startYear = InteractionUtils.getOptionAsLong(event, "season");
 		Season season = getSeason(startYear);
 		if (season.getStartYear() > Config.NHL_CURRENT_SEASON.getStartYear() || season.getStartYear() < 1917) {
 			return Command.reply(event, "Season is out of range.");

@@ -11,7 +11,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.discord.utils.DiscordUtils;
+import com.hazeluff.discord.utils.InteractionUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.stats.TeamStandings;
@@ -56,7 +56,7 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 			return Command.reply(event, "Internal Error. (Could not get Standings Seasons)");
 		}
 
-		Season season = getSeason(DiscordUtils.getOptionAsLong(event, "season"));
+		Season season = getSeason(InteractionUtils.getOptionAsLong(event, "season"));
 		if (!standingsSeasons.containsKey(season.getStartYear())) {
 			return Command.reply(event, "Season is out of range.");
 		}
@@ -66,12 +66,12 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 
 	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event) {
 		Map<Integer, String> standingsSeasons = getStandingsSeasons();
-		Season season = getSeason(DiscordUtils.getOptionAsLong(event, "season"));
+		Season season = getSeason(InteractionUtils.getOptionAsLong(event, "season"));
 		String endDate = standingsSeasons.get(season.getStartYear());
 		List<TeamStandings> standings = NHLGateway.getStandings(endDate);
 
 		// Determine the Division the team is in
-		Team team = Team.parse(DiscordUtils.getOptionAsString(event, "team"));
+		Team team = Team.parse(InteractionUtils.getOptionAsString(event, "team"));
 		Team fTeam = team != null ? team : Team.VANCOUVER_CANUCKS;
 		String division = Utils.getFromList(standings, stdng -> fTeam.equals(stdng.getTeam())).getDivisionName();
 
@@ -80,9 +80,7 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 				.sorted((TeamStandings s1, TeamStandings s2) -> s1.getDivisionSequence() - s2.getDivisionSequence())
 				.collect(Collectors.toList());
 
-		return InteractionFollowupCreateSpec.builder()
-				.content(buildReplyMessage(division, divisionStandings))
-				.build();
+		return InteractionUtils.buildFollowUpSpec(buildReplyMessage(division, divisionStandings));
 	}
 
 	static String buildReplyMessage(String division, List<TeamStandings> divisionStandings) {

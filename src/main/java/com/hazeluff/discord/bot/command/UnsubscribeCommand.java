@@ -15,7 +15,7 @@ import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
-import discord4j.core.spec.InteractionFollowupCreateSpec;
+import discord4j.core.spec.InteractionReplyEditSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import reactor.core.publisher.Mono;
@@ -75,31 +75,27 @@ public class UnsubscribeCommand extends Command {
 	}
 
 	Mono<Message> unsubscibeAllAndReply(ChatInputInteractionEvent event, Guild guild) {
-		return replyAndDefer(event,
+		return replyAndDeferEdit(event,
 				"Unsubscribing...",
 				() -> unsubscribeGuild(guild, null),
-				() -> buildUnsubscribeAllFollowUp(event, guild)
+				() -> buildUnsubscribeAllReplyEdit(event, guild)
 		);
 	}
 
 	Mono<Message> unsubscibeAndReply(ChatInputInteractionEvent event, Guild guild, Team team) {
-		return replyAndDefer(event,
+		return replyAndDeferEdit(event,
 				"Unsubscribing...",
 				() -> unsubscribeGuild(guild, team),
-				() -> buildUnsubscribeFollowUp(event, guild, team)
+				() -> buildUnsubscribeReplyEdit(event, guild, team)
 		);
 	}
 
-	InteractionFollowupCreateSpec buildUnsubscribeAllFollowUp(ChatInputInteractionEvent event, Guild guild) {
-		return InteractionFollowupCreateSpec.builder()
-				.content(UNSUBSCRIBED_FROM_ALL_MESSAGE)
-				.build();
+	InteractionReplyEditSpec buildUnsubscribeAllReplyEdit(ChatInputInteractionEvent event, Guild guild) {
+		return InteractionUtils.buildReplyEditSpec(UNSUBSCRIBED_FROM_ALL_MESSAGE);
 	}
 
-	InteractionFollowupCreateSpec buildUnsubscribeFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
-		return InteractionFollowupCreateSpec.builder()
-				.content(buildUnsubscribeMessage(team))
-				.build();
+	InteractionReplyEditSpec buildUnsubscribeReplyEdit(ChatInputInteractionEvent event, Guild guild, Team team) {
+		return InteractionUtils.buildReplyEditSpec(buildUnsubscribeMessage(team));
 	}
 
 	static final String HELP_MESSAGE = "Unsubscribe from Game Day Channels of the specified team."
@@ -132,18 +128,19 @@ public class UnsubscribeCommand extends Command {
 
 	private void unsubscribeGuild(Guild guild, Team team) {
 		long guildId = guild.getId().asLong();
-		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guildId, team);
-		List<Team> teams = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId).getTeams();
 
-		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
+		// Remove the team from the Guild Preferences
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guildId, team);
+
 		if (pref.isSingleNHLChannel() || Config.isDevGuild(guild)) {
 			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
+			List<Team> teams = pref.getTeams();
 			if (channel == null && !teams.isEmpty()) {
 				channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
 			} else if (teams.isEmpty()) {
 				NHLGameDayWatchChannel.removeChannel(guildId);
 			} else if (channel != null) {
-				channel.updateChannel();
+				channel.updateChannel(pref);
 			}
 
 		} else if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {

@@ -14,15 +14,20 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.Category;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
+import discord4j.discordjson.json.StartThreadFromMessageRequest;
 
 public class NHLGameDayWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayWatchChannel.class);
@@ -145,17 +150,37 @@ public class NHLGameDayWatchChannel extends Thread {
 	}
 
 	public void updateChannel() {
-		List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong())
-				.getTeams();
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData()
+				.getGuildPreferences(guild.getId().asLong());
+		updateChannel(pref);
+	}
+
+	public void updateChannel(GuildPreferences preferences) {
+		List<Team> teams = preferences.getTeams();
 		List<Game> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
 		for (Game game : games) {
 			int gamePk = game.getGameId();
-			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (!game.getGameState().isFinished()) {
 				// Start/Maintain gdc if they have not finished.
 				if (!gameDayThreads.containsKey(gamePk)) {
-					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.get(nhlBot, textChannel, gameTracker, guild);
+					MessageChannel msgChannel = textChannel;
+					if (preferences.isUseChannelThreads())
+					{
+						String threadMsg = GameDayThread.buildDetailsMessage(game);
+						Message message = DiscordManager.sendAndGetMessage(textChannel, threadMsg);
+						if (message != null) {
+							StartThreadFromMessageRequest request = StartThreadFromMessageRequest.builder()
+									.name(game.getThreadName())
+									.build();
+							ThreadChannel threadChannel = DiscordManager.block(message.createPublicThread(request));
+							if (threadChannel != null) {
+								msgChannel = threadChannel;
+								DiscordManager.pinMessage(message);
+							}
+						}
+					}
+					NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
+					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.get(nhlBot, msgChannel, gameTracker, guild);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			} else {

@@ -13,6 +13,7 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.PinnedMessageReference;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Category;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.presence.ClientPresence;
 import discord4j.core.spec.CategoryCreateSpec;
@@ -95,7 +96,7 @@ public class DiscordManager {
 	/*
 	 * Static Methods
 	 */
-	public static Message sendAndGetMessage(TextChannel channel, MessageCreateSpec messageSpec) {
+	public static Message sendAndGetMessage(MessageChannel channel, MessageCreateSpec messageSpec) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return null;
@@ -108,7 +109,7 @@ public class DiscordManager {
 		return block(channel.createMessage(messageSpec));
 	}
 
-	public static Message sendAndGetMessage(TextChannel channel, String message) {
+	public static Message sendAndGetMessage(MessageChannel channel, String message) {
 		if (message == null) {
 			logNullArgumentsStackTrace("`message` was null.");
 			return null;
@@ -118,7 +119,7 @@ public class DiscordManager {
 		return sendAndGetMessage(channel, messageCreateSpec);
 	}
 
-	public static void sendMessage(TextChannel channel, MessageCreateSpec messageSpec) {
+	public static void sendMessage(MessageChannel channel, MessageCreateSpec messageSpec) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return;
@@ -131,7 +132,7 @@ public class DiscordManager {
 		subscribe(channel.createMessage(messageSpec));
 	}
 
-	public static void sendMessage(TextChannel channel, String message) {
+	public static void sendMessage(MessageChannel channel, String message) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return;
@@ -257,7 +258,7 @@ public class DiscordManager {
 	 * @param channel
 	 *            channel to delete
 	 */
-	public static void deleteChannel(TextChannel channel) {
+	public static void deleteChannel(MessageChannel channel) {
 		if (channel == null) {
 			logNullArgumentsStackTrace("`channel` was null.");
 			return;

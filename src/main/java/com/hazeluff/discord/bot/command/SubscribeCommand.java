@@ -16,7 +16,7 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
-import discord4j.core.spec.InteractionFollowupCreateSpec;
+import discord4j.core.spec.InteractionReplyEditSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
@@ -68,11 +68,15 @@ public class SubscribeCommand extends Command {
 			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
 		}
 
-		return Command.replyAndDefer(event,
+		return Command.replyAndDeferEdit(event,
 				"Subscribing...",
 				() -> subscribeGuild(guild, team),
-				() -> buildFollowUp(event, guild, team)
+				() -> buildReplyEdit(guild, team)
 		);
+	}
+
+	InteractionReplyEditSpec buildReplyEdit(Guild guild, Team team) {
+		return InteractionReplyEditSpec.builder().contentOrNull(buildSubscribedMessage(guild, team)).build();
 	}
 
 	static final String HELP_MESSAGE = "Subscribe to create Game Day Channels of the most recent games for that team."
@@ -80,12 +84,6 @@ public class SubscribeCommand extends Command {
 			+ "[team] is the 3 letter code of the teams following:\n"
 			+ HelpCommand.listOfTeams()
 			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
-
-	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
-		return InteractionFollowupCreateSpec.builder()
-				.content(buildSubscribedMessage(guild, team))
-				.build();
-	}
 
 	private void subscribeGuild(Guild guild, Team team) {
 		Long guildId = guild.getId().asLong();

@@ -24,7 +24,7 @@ import com.hazeluff.nhl.game.RosterPlayer;
 import com.hazeluff.nhl.game.event.GoalEvent;
 
 import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
@@ -39,7 +39,7 @@ public class GoalMessagesManager {
 	private static final long COOLDOWN = 30000l;
 	private final NHLBot nhlBot;
 	private final Game game;
-	private final TextChannel channel;
+	private final MessageChannel channel;
 	private final GDCMeta meta;
 
 	private List<GoalEvent> prerunEvents = new ArrayList<>(); // Events before the start of the thread
@@ -48,7 +48,7 @@ public class GoalMessagesManager {
 
 	private ZonedDateTime lastMessageTime;
 
-	public GoalMessagesManager(NHLBot nhlBot, Game game, TextChannel channel, GDCMeta meta) {
+	public GoalMessagesManager(NHLBot nhlBot, Game game, MessageChannel channel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;

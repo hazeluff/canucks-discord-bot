@@ -2,13 +2,16 @@ package com.hazeluff.discord.bot.command;
 
 import java.util.function.Supplier;
 
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
+import discord4j.core.spec.InteractionReplyEditSpec;
 import reactor.core.publisher.Mono;
 
 public class InteractionUtils {
@@ -22,7 +25,13 @@ public class InteractionUtils {
 	public static Long getOptionAsLong(DeferrableInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
 				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asLong)
+				.map(ApplicationCommandInteractionOptionValue::asLong).orElse(null);
+	}
+
+	public static Mono<Channel> getOptionAsChannel(DeferrableInteractionEvent event, String option) {
+		return event.getInteraction().getCommandInteraction().get().getOption(option)
+				.flatMap(ApplicationCommandInteractionOption::getValue)
+				.map(ApplicationCommandInteractionOptionValue::asChannel)
 				.orElse(null);
 	}
 
@@ -68,23 +77,48 @@ public class InteractionUtils {
 		}, defferedReplySupplier);
 	}
 
-	public static Mono<Message> replyAndDefer(DeferrableInteractionEvent event, String initialReply,
-			Runnable defferedAction, Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
-		return event.reply(buildReplySpec(initialReply, null, true)).then(Mono.defer(() -> {
-			defferedAction.run();
-			return createSlowFollowUp(event, defferedReplySupplier);
+	public static Mono<Message> replyAndDefer(
+		DeferrableInteractionEvent event, 
+		String initialReply,
+		Runnable defferedAction, 
+		Supplier<InteractionFollowupCreateSpec> defferedReplySupplier
+	) {
+		return event.reply(buildReplySpec(initialReply, null, true))
+				.then(Mono.defer(() -> {
+					defferedAction.run();
+					return event.createFollowup(defferedReplySupplier.get());
 		}));
 	}
-
-	/**
-	 * 
-	 * @param event
-	 * @param specSupplier
-	 *            Specification that takes time to create.
-	 * @return
-	 */
-	public static Mono<Message> createSlowFollowUp(DeferrableInteractionEvent event,
-			Supplier<InteractionFollowupCreateSpec> specSupplier) {
-		return event.createFollowup(specSupplier.get());
+	
+	public static Mono<Message> replyAndDeferEdit(
+		ChatInputInteractionEvent event,
+		String initialReply,
+		Runnable defferedAction,
+		Supplier<InteractionReplyEditSpec> defferedReplySupplier
+	) {
+		return event.reply(buildReplySpec(initialReply, null, true))
+			.then(Mono.defer(() -> {
+				defferedAction.run();
+				return event.editReply(defferedReplySupplier.get());
+		}));
+	}
+	
+	public static InteractionFollowupCreateSpec buildFollowUpSpec(String message) {
+		return InteractionFollowupCreateSpec.builder()
+				.content(message)
+				.build();
+	}
+	
+	public static InteractionFollowupCreateSpec buildFollowUpSpec(String message, boolean ephemeral) {
+		return InteractionFollowupCreateSpec.builder()
+				.content(message)
+				.ephemeral(ephemeral)
+				.build();
+	}
+	
+	public static InteractionReplyEditSpec buildReplyEditSpec(String message) {
+		return InteractionReplyEditSpec.builder()
+				.contentOrNull(message)
+				.build();
 	}
 }

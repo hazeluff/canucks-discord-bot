@@ -22,9 +22,11 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
+import discord4j.core.spec.InteractionReplyEditSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -206,6 +208,10 @@ public abstract class Command extends ReactiveEventAdapter {
 		return InteractionUtils.getOptionAsLong(event, option);
 	}
 
+	protected static Mono<Channel> getOptionAsChannel(ChatInputInteractionEvent event, String option) {
+		return InteractionUtils.getOptionAsChannel(event, option);
+	}
+
 	public static Mono<Void> reply(ChatInputInteractionEvent event, String message) {
 		return reply(event, message, null, false);
 	}
@@ -236,5 +242,25 @@ public abstract class Command extends ReactiveEventAdapter {
 	public static Mono<Message> replyAndDefer(ChatInputInteractionEvent event, String initialReply,
 			Runnable defferedAction, Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
 		return InteractionUtils.replyAndDefer(event, initialReply, defferedAction, defferedReplySupplier);
+	}
+
+	public static Mono<Message> replyAndDeferEdit(
+			ChatInputInteractionEvent event,
+			String initialReply,
+			Runnable defferedAction,
+			Supplier<InteractionReplyEditSpec> defferedReplySupplier) {
+		return InteractionUtils.replyAndDeferEdit(event, initialReply, defferedAction, defferedReplySupplier);
+	}
+	
+	InteractionFollowupCreateSpec buildFollowUpSpec(String message) {
+		return InteractionUtils.buildFollowUpSpec(message);
+	}
+	
+	InteractionFollowupCreateSpec buildFollowUpSpec(String message, boolean ephemeral) {
+		return InteractionUtils.buildFollowUpSpec(message);
+	}
+	
+	InteractionReplyEditSpec buildReplyEditSpec(String message) {
+		return InteractionUtils.buildReplyEditSpec(message);
 	}
 }

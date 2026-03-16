@@ -16,6 +16,7 @@ import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 
@@ -27,7 +28,7 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 		return LOGGER;
 	}
 
-	private FourNationsGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel channel,
+	private FourNationsGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
 		super(nhlBot, gameTracker, guild, channel, preferences, meta);
 	}

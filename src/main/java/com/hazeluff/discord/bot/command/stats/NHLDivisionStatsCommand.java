@@ -82,10 +82,7 @@ public class NHLDivisionStatsCommand extends NHLStatsSubCommand {
 				.filter(standing -> division.equals(standing.getDivisionName()))
 				.sorted((TeamStandings s1, TeamStandings s2) -> s1.getDivisionSequence() - s2.getDivisionSequence())
 				.collect(Collectors.toList());
-
-		return InteractionFollowupCreateSpec.builder()
-				.content(buildReplyMessage(division, divisionStandings))
-				.build();
+		return InteractionUtils.buildFollowUpSpec(buildReplyMessage(division, divisionStandings));
 	}
 
 	static String buildReplyMessage(String division, List<TeamStandings> divisionStandings) {

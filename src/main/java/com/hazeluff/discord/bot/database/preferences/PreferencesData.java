@@ -65,10 +65,13 @@ public class PreferencesData extends DatabaseManager {
 			if (doc.containsKey("gdcChannelId")) {
 				gdcChannelId = doc.getLong("gdcChannelId");
 			}
+			
+			boolean useThreads = doc.getBoolean("useChannelThreads", false);
 
 			GuildPreferences preferences = new GuildPreferences(
 				teams,
-				gdcChannelId
+				gdcChannelId,
+				useThreads
 			);
 			guildPreferences.put(id, preferences);
 		}
@@ -79,7 +82,7 @@ public class PreferencesData extends DatabaseManager {
 
 	public GuildPreferences getGuildPreferences(long guildId) {
 		if (!guildPreferences.containsKey(guildId)) {
-			GuildPreferences newPref = new GuildPreferences(new HashSet<>(), null);
+			GuildPreferences newPref = new GuildPreferences();
 			guildPreferences.put(guildId, newPref);
 			saveToCollection(getCollection(), guildId, newPref);
 		}
@@ -112,7 +115,7 @@ public class PreferencesData extends DatabaseManager {
 	 * @param team
 	 *            team to unsubscribe from. null to unsubscribe from all.
 	 */
-	public void unsubscribeGuild(long guildId, Team team) {
+	public GuildPreferences unsubscribeGuild(long guildId, Team team) {
 		LOGGER.info("Unsubscribing guild from team. guildId={} team={}", guildId, team);
 		GuildPreferences pref = getPreferences(guildId);
 
@@ -121,6 +124,8 @@ public class PreferencesData extends DatabaseManager {
 		}
 
 		saveToCollection(getCollection(), guildId, pref);
+
+		return pref;
 	}
 
 	public void setGameDayChannelId(Long guildId, Long channelId) {
@@ -145,10 +150,12 @@ public class PreferencesData extends DatabaseManager {
 				.map(preferedTeam -> preferedTeam.getId())
 				.collect(Collectors.toList());
 		Long gdcChannelId = pref.getGameDayChannelId();
-
+		boolean useChannelThreads = pref.isUseChannelThreads();
+		
 		Document prefDoc = new Document()
 				.append("teams", teamIds)
-				.append("gdcChannelId", gdcChannelId);
+				.append("gdcChannelId", gdcChannelId)
+				.append("useChannelThreads", useChannelThreads);
 
 		guildCollection.updateOne(
 				new Document("id", guildId),

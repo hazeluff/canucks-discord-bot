@@ -77,10 +77,7 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 
 			String strTeam = InteractionUtils.getOptionAsString(event, "team");
 			if (!Team.isValid(strTeam)) {
-				return InteractionFollowupCreateSpec.builder()
-					.content(Command.getInvalidTeamCodeMessage(strTeam))
-					.ephemeral(true)
-					.build();
+				return InteractionUtils.buildFollowUpSpec(Command.getInvalidTeamCodeMessage(strTeam), true);
 			}
 			Team team = Team.parse(strTeam);
 			// Default team
@@ -89,8 +86,7 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 			}
 			// Only NHL Teams
 			if (!team.isNHLTeam()) {
-				return InteractionFollowupCreateSpec.builder().content(Command.NON_NHL_TEAM_MESSAGE).ephemeral(true)
-						.build();
+				return InteractionUtils.buildFollowUpSpec(Command.NON_NHL_TEAM_MESSAGE, true);
 			}
 
 			// Determine the Division the team is in
@@ -104,9 +100,7 @@ public class NHLWildcardStatsCommand extends NHLStatsSubCommand {
 
 			String message = buildReplyMessage(conference, conferenceStandings);
 
-			return InteractionFollowupCreateSpec.builder()
-					.content(message)
-					.build();
+			return InteractionUtils.buildFollowUpSpec(message);
 		};
 	}
 	

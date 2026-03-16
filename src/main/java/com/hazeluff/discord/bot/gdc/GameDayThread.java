@@ -102,29 +102,31 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			initChannel(); // ## Overridable ##
 
 			// Wait until close to start of game
-			LOGGER().info("Idling until near game start.");
 			waitAndSendReminders();
 
 			// Game is close to starting. Poll at higher rate than previously
 			LOGGER().info("Game is about to start. Polling more actively.");
 			boolean alreadyStarted = waitForStart();
+
 			// Game has started
 			if (!alreadyStarted) {
 				LOGGER().info("Game is about to start!");
-				updateStart(); // ## Overridable
+				if (!isInterrupted()) {
+					_updateStart();
+				}
 			} else {
 				LOGGER().info("Game has already started.");
 			}
 
-			while (!gameTracker.isFinished()) {
+			while (!gameTracker.isFinished() && !isInterrupted()) {
 				try {
-					Utils.sleep(ACTIVE_POLL_RATE_MS);
 					updateActive(); // ## Overridable ##
 				} catch (Exception e) {
 					LOGGER().error("Exception occured while running.", e);
 				}
+				sleepFor(ACTIVE_POLL_RATE_MS);
 			}
-			updateEnd(); // ## Overridable ##
+			_updateEnd(); // ## Overridable ##
 		} else {
 			LOGGER().info("Game is already finished");
 		}
@@ -137,9 +139,31 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 
 	protected abstract long timeUntilGame();
 
+	protected void updateStart() {
+		sendStartOfGameMessage();
+	}
 	protected abstract void initChannel();
 	protected abstract void updateActive();
 	protected abstract void updateEnd();
+
+	/**
+	 * Does actions for the start of the game.
+	 * 
+	 * @param game
+	 *            game of which it's channels will have the messages sent to
+	 */
+	protected void _updateStart() {
+		LOGGER().info("Sending start message.");
+		if (!isInterrupted()) {
+			updateStart();
+		}
+	}
+
+	private void _updateEnd() {
+		if (!isInterrupted()) {
+			updateEnd();
+		}
+	}
 
 	/**
 	 * Sends reminders of time till the game starts.
@@ -151,17 +175,16 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		boolean closeToStart;
 		long timeTillGameMs = Long.MAX_VALUE;
 		Map<Long, String> reminders = getReminders();
+		LOGGER().info("Waiting for game to start.");
 		do {
 			timeTillGameMs = timeUntilGame();
 			closeToStart = timeTillGameMs < CLOSE_TO_START_THRESHOLD_MS;
 			if (!closeToStart) {
-				updateOnReminderWait(); // ## Overridable ##
-
 				// Check to see if message should be sent.
 				long lowestThreshold = Long.MAX_VALUE;
 				String message = null;
 				Iterator<Entry<Long, String>> it = reminders.entrySet().iterator();
-				while (it.hasNext()) {
+				while (it.hasNext() && !isInterrupted()) {
 					Entry<Long, String> entry = it.next();
 					long threshold = entry.getKey();
 					if (threshold > timeTillGameMs) {
@@ -172,7 +195,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 						it.remove();
 					}
 				}
-				if (message != null && !firstPass) {
+				if (message != null && !firstPass && !isInterrupted()) {
 					sendMessage(message);
 				}
 				lowestThreshold = Long.MAX_VALUE;
@@ -186,10 +209,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	}
 
 	protected abstract Map<Long, String> getReminders();
-
-	protected void updateOnReminderWait() {
-		return;
-	}
 
 	protected String buildReminderMessage(String basicMessage) {
 		return basicMessage;
@@ -216,25 +235,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		return alreadyStarted;
 	}
 
-	/*
-	 * Start of Game
-	 */
-	/**
-	 * Overridable. Called once at the start of the game.
-	 */
-	protected void updateStart()
-	{
-		sendStartOfGameMessage();
-	}
-	
-	/**
-	 * Sends the 'Start of game' message to the game channels of the specified game.
-	 * 
-	 * @param game
-	 *            game of which it's channels will have the messages sent to
-	 */
 	protected void sendStartOfGameMessage() {
-		LOGGER().info("Sending start message.");
 		sendMessage(buildStartOfGameMessage());
 	}
 
@@ -391,6 +392,15 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 				time
 			);
 		return message;
+	}
+
+	public void sleepFor(long duration) {
+		try {
+			sleep(duration);
+		} catch (InterruptedException e) {
+			LOGGER.error("Sleep interupted");
+			interrupt();
+		}
 	}
 
 	/*

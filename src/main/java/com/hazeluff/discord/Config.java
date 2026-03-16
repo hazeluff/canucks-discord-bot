@@ -123,6 +123,10 @@ public class Config {
 		return loadBool("channels.ahl", true);
 	}
 
+	public static boolean isGDCWatchUseThreads() {
+		return loadBool("channels.threads", true);
+	}
+
 	/*
 	 * NHL Config
 	 */

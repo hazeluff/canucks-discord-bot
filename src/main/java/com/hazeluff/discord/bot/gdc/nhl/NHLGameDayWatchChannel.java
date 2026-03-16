@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
@@ -114,9 +115,9 @@ public class NHLGameDayWatchChannel extends Thread {
 	}
 
 	public void updateChannel() {
-		List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong())
-				.getTeams();
+		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
+				.getGuildPreferences(guild.getId().asLong());
+		List<Team> teams = preferences.getTeams();
 		List<Game> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
 		for (Game game : games) {
 			int gamePk = game.getGameId();

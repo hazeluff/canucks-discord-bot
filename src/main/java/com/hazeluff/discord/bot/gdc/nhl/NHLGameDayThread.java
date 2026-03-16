@@ -19,7 +19,7 @@ import com.hazeluff.nhl.game.event.PenaltyEvent;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
@@ -34,7 +34,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	protected final GoalMessagesManager goalMessages;
 	protected final PenaltyMessagesManager penaltyMessages;
 
-	public NHLGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel textChannel,
+	public NHLGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
 			GuildPreferences preferences, GDCMeta meta) {
 		super(nhlBot, gameTracker, guild, textChannel, preferences, meta);
 		this.gameTracker = gameTracker;

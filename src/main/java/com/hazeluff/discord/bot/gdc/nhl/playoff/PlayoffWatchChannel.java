@@ -9,10 +9,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
@@ -20,8 +22,11 @@ import com.hazeluff.nhl.game.Game;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.Category;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
+import discord4j.discordjson.json.StartThreadFromMessageRequest;
 
 public class PlayoffWatchChannel extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchChannel.class);
@@ -127,7 +132,25 @@ public class PlayoffWatchChannel extends Thread {
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				if (!gameDayThreads.containsKey(gamePk)) {
-					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.get(nhlBot, channel, gameTracker, guild);
+					MessageChannel msgChannel = channel;
+					if (Config.isGDCWatchUseThreads())
+					{
+						// TODO Check Metadata
+						String threadMsg = GameDayThread.buildDetailsMessage(game);
+						Message message = DiscordManager.sendAndGetMessage(channel, threadMsg);
+						if (message != null) {
+							DiscordManager.pinMessage(message);
+							StartThreadFromMessageRequest request = StartThreadFromMessageRequest.builder()
+									.name(game.getThreadName())
+									.build();
+							ThreadChannel threadChannel = DiscordManager.block(message.createPublicThread(request));
+							if (threadChannel != null) {
+								msgChannel = threadChannel;
+							}
+						}
+					}
+					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.get(nhlBot, msgChannel, gameTracker,
+							guild);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			}

@@ -32,6 +32,7 @@ import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
@@ -94,9 +95,9 @@ public class WordcloudCommand extends Command {
 		Long maxFont = getOptionAsLong(event, "maxfont");
 		
 		if (minFont == null || maxFont == null) {
-			sendWordcloud(channel, game);
+			sendWordcloud(channel, guild, game);
 		} else {
-			sendWordcloud(channel, game, new LinearFontScalar(minFont.intValue(), maxFont.intValue()));
+			sendWordcloud(channel, guild, game, new LinearFontScalar(minFont.intValue(), maxFont.intValue()));
 		}
 		return event.reply(ACKNOWLEDGED).withEphemeral(true);
 	}
@@ -107,8 +108,8 @@ public class WordcloudCommand extends Command {
 	static final String ACKNOWLEDGED = 
 			"Generating Wordcloud... Please wait. This could take a minute.";
 
-	public void sendWordcloud(TextChannel channel, Game game) {
-		sendWordcloud(channel, game, new LinearFontScalar(20, 140));
+	public void sendWordcloud(MessageChannel channel, Guild guild, Game game) {
+		sendWordcloud(channel, guild, game, new LinearFontScalar(20, 140));
 	}
 
 	/**
@@ -120,7 +121,7 @@ public class WordcloudCommand extends Command {
 	 * @param title
 	 * @param fontScaler
 	 */
-	public void sendWordcloud(TextChannel channel, Game game, FontScalar fontScaler) {
+	public void sendWordcloud(MessageChannel channel, Guild guild, Game game, FontScalar fontScaler) {
 		String title = NHLGameDayChannelThread.buildDetailsMessage(game);
 		new Thread(() -> {
 			Message generatingMessage = DiscordManager.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);
@@ -128,7 +129,6 @@ public class WordcloudCommand extends Command {
 			List<String> messages = DiscordManager.block(
 					channel.getMessagesBefore(generatingMessage.getId()).map(Message::getContent));
 
-			Guild guild = DiscordManager.block(channel.getGuild());
 			sendMessage(nhlBot.getWordcloudChannelManager().get(guild), getReply(title, messages, fontScaler));
 		}).start();
 	}

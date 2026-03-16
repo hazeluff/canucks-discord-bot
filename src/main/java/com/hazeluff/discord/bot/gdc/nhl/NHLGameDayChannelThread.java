@@ -24,6 +24,7 @@ import com.hazeluff.nhl.game.Game;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.Category;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
@@ -38,7 +39,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	}
 
 
-	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel textChannel,
+	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
 			GuildPreferences preferences, GDCMeta meta) {
 		super(nhlBot, gameTracker, guild, textChannel, preferences, meta);
 	}
@@ -241,7 +242,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 
 	protected void sendWordcloud() {
 		try {
-			new WordcloudCommand(nhlBot).sendWordcloud(channel, game);
+			new WordcloudCommand(nhlBot).sendWordcloud(channel, guild, game);
 		} catch (Exception e) {
 			LOGGER().error("Could not send Wordcloud.");
 		}

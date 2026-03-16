@@ -107,6 +107,12 @@ public class Game {
 		return niceName.toLowerCase();
 	}
 
+	public String getThreadName() {
+		String niceName = String.format("%.3s-vs-%.3s %s", getHomeTeam().getCode(), getAwayTeam().getCode(),
+				getNiceShortDate());
+		return niceName.toLowerCase();
+	}
+
 	public Team getAwayTeam() {
 		return scheduleData.getAwayTeam();
 	}

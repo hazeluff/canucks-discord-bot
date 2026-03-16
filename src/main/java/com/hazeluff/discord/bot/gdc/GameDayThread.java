@@ -23,7 +23,7 @@ import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
-import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 
@@ -46,7 +46,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	protected final GameTracker gameTracker;
 	
 	protected final Guild guild;
-	protected final TextChannel channel;
+	protected final MessageChannel channel;
 	protected final GuildPreferences preferences;
 	protected final GDCMeta meta;
 
@@ -56,7 +56,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 
 	protected AtomicBoolean started = new AtomicBoolean(false);
 
-	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, TextChannel channel,
+	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, MessageChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;

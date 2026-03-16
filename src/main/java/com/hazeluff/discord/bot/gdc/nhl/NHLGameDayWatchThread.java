@@ -14,7 +14,7 @@ import com.hazeluff.discord.nhl.NHLGameTracker;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.MessageChannel;
 
 public class NHLGameDayWatchThread extends NHLGameDayThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayWatchThread.class);
@@ -24,12 +24,12 @@ public class NHLGameDayWatchThread extends NHLGameDayThread {
 		return LOGGER;
 	}
 
-	private NHLGameDayWatchThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel channel,
+	private NHLGameDayWatchThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
 			GuildPreferences preferences, GDCMeta meta) {
 		super(nhlBot, gameTracker, guild, channel, preferences, meta);
 	}
 
-	public static NHLGameDayWatchThread get(NHLBot nhlBot, TextChannel textChannel, NHLGameTracker gameTracker, Guild guild) {
+	public static NHLGameDayWatchThread get(NHLBot nhlBot, MessageChannel textChannel, NHLGameTracker gameTracker, Guild guild) {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
 		GDCMeta meta = null;

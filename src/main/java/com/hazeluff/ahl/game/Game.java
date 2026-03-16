@@ -66,6 +66,16 @@ public class Game {
 		return date.format(DateTimeFormatter.ofPattern("yy-MM-dd"));
 	}
 
+	public String getThreadName() {
+		String niceName = String.format(
+			"%.3s-vs-%.3s %s", 
+			getHomeTeam().getTeamCode(),
+			getAwayTeam().getTeamCode(), 
+			getNiceShortDate()
+		);
+		return niceName.toLowerCase();
+	}
+
 	public Team getHomeTeam() {
 		return homeTeam;
 	}

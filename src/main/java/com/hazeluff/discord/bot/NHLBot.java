@@ -17,6 +17,7 @@ import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.channel.NHLBotCategoryManager;
 import com.hazeluff.discord.bot.channel.WordcloudChannelManager;
 import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.bot.command.SayCommand;
 import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
@@ -35,6 +36,7 @@ import discord4j.core.event.domain.message.ReactionAddEvent;
 import discord4j.core.event.domain.message.ReactionRemoveEvent;
 import discord4j.core.object.entity.Guild;
 import discord4j.discordjson.json.ApplicationCommandData;
+import discord4j.discordjson.json.ApplicationCommandPermissionsRequest;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
 import discord4j.rest.request.RouteMatcher;
@@ -75,7 +77,6 @@ public class NHLBot extends Thread {
 	 */
 	public static NHLBot create(com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler,
 			com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler,
-
 			String botToken) {
 		LOGGER.info("Creating " + Config.APPLICATION_NAME + " v" + Config.VERSION);
 		Thread.currentThread().setName(Config.APPLICATION_NAME);
@@ -203,15 +204,20 @@ public class NHLBot extends Thread {
 
 		// Dev Guilds
 		for (Long guildId : Config.DEV_GUILD_LIST) {
-			DiscordManager.block(restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,
-					guildId, allCommands));
+			DiscordManager.block(
+				restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,
+					guildId, allCommands)
+			);
 		}
 
 		// Canucks Guild
 		for (Long guildId : Config.SERVICED_GUILD_LIST) {
-			DiscordManager.block(restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,
-					guildId, commonCommands));
+			DiscordManager.block(
+				restClient.getApplicationService().bulkOverwriteGuildApplicationCommand(applicationId,
+					guildId, commonCommands)
+			);
 		}
+		
 	}
 
 	private static void attachSlashCommandListeners(NHLBot nhlBot) {
@@ -366,8 +372,10 @@ public class NHLBot extends Thread {
 	}
 
 	static List<Command> getSlashCommands(NHLBot nhlBot) {
-		return Config.getSlashCommands().stream().map(commandClass -> instantiateCommand(commandClass, nhlBot))
-				.filter(Objects::nonNull).collect(Collectors.toList());
+		return Config.getSlashCommands().stream()
+				.map(commandClass -> instantiateCommand(commandClass, nhlBot))
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 	}
 
 	@SuppressWarnings("rawtypes")

@@ -15,6 +15,7 @@ import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NHLStatsCommand;
 import com.hazeluff.discord.bot.command.NextGameCommand;
+import com.hazeluff.discord.bot.command.SayCommand;
 import com.hazeluff.discord.bot.command.ScheduleCommand;
 import com.hazeluff.discord.bot.command.SubscribeCommand;
 import com.hazeluff.discord.bot.command.UnsubscribeCommand;
@@ -255,7 +256,8 @@ public class Config {
 				ScheduleCommand.class,
 				BotStatsCommand.class,
 				UnsubscribeCommand.class,
-				WordcloudCommand.class
+				WordcloudCommand.class,
+				SayCommand.class
 		);
 	}
 

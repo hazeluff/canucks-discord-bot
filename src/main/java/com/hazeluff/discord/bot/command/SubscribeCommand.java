@@ -13,7 +13,7 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
-import discord4j.core.spec.InteractionFollowupCreateSpec;
+import discord4j.core.spec.InteractionReplyEditSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 
@@ -64,10 +64,10 @@ public class SubscribeCommand extends Command {
 		if (!team.isNHLTeam()) {
 			return event.reply(NON_NHL_TEAM_MESSAGE).withEphemeral(true);
 		}
-		return Command.replyAndDefer(event,
+		return Command.replyAndDeferEdit(event,
 				"Subscribing...",
 				() -> subscribeGuild(guild, team),
-				() -> buildFollowUp(event, guild, team)
+				() -> buildReplyEdit(guild, team)
 		);
 	}
 
@@ -77,10 +77,10 @@ public class SubscribeCommand extends Command {
 			+ HelpCommand.listOfTeams()
 			+ "\nYou can unsubscribe from them to remove the channels using `/unsubscribe [team]`.";
 
-	InteractionFollowupCreateSpec buildFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
+	InteractionReplyEditSpec buildReplyEdit(Guild guild, Team team) {
 		subscribeGuild(guild, team);
-		return InteractionFollowupCreateSpec.builder()
-				.content(buildSubscribedMessage(guild, team))
+		return InteractionReplyEditSpec.builder()
+				.contentOrNull(buildSubscribedMessage(guild, team))
 				.build();
 	}
 

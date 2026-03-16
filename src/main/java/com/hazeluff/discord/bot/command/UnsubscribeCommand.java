@@ -12,7 +12,7 @@ import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
-import discord4j.core.spec.InteractionFollowupCreateSpec;
+import discord4j.core.spec.InteractionReplyEditSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import reactor.core.publisher.Mono;
@@ -72,30 +72,30 @@ public class UnsubscribeCommand extends Command {
 	}
 
 	Mono<Message> unsubscibeAllAndReply(ChatInputInteractionEvent event, Guild guild) {
-		return replyAndDefer(event,
+		return replyAndDeferEdit(event,
 				"Unsubscribing...",
 				() -> unsubscribeGuild(guild, null),
-				() -> buildUnsubscribeAllFollowUp(event, guild)
+				() -> buildUnsubscribeAllReplyEdit()
 		);
 	}
 
 	Mono<Message> unsubscibeAndReply(ChatInputInteractionEvent event, Guild guild, Team team) {
-		return replyAndDefer(event,
+		return replyAndDeferEdit(event,
 				"Unsubscribing...",
 				() -> unsubscribeGuild(guild, team),
-				() -> buildUnsubscribeFollowUp(event, guild, team)
+				() -> buildUnsubscribeReplyEdit(team)
 		);
 	}
 
-	InteractionFollowupCreateSpec buildUnsubscribeAllFollowUp(ChatInputInteractionEvent event, Guild guild) {
-		return InteractionFollowupCreateSpec.builder()
-				.content(UNSUBSCRIBED_FROM_ALL_MESSAGE)
+	InteractionReplyEditSpec buildUnsubscribeAllReplyEdit() {
+		return InteractionReplyEditSpec.builder()
+				.contentOrNull(UNSUBSCRIBED_FROM_ALL_MESSAGE)
 				.build();
 	}
 
-	InteractionFollowupCreateSpec buildUnsubscribeFollowUp(ChatInputInteractionEvent event, Guild guild, Team team) {
-		return InteractionFollowupCreateSpec.builder()
-				.content(buildUnsubscribeMessage(team))
+	InteractionReplyEditSpec buildUnsubscribeReplyEdit(Team team) {
+		return InteractionReplyEditSpec.builder()
+				.contentOrNull(buildUnsubscribeMessage(team))
 				.build();
 	}
 

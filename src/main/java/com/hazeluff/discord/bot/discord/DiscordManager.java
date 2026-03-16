@@ -2,6 +2,8 @@ package com.hazeluff.discord.bot.discord;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -480,6 +482,14 @@ public class DiscordManager {
 		mono.onErrorResume(DiscordManager::handleError)
 				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(20)))
 				.subscribe();
+	}
+
+	public static <T> Map<String, T> blockToMap(Flux<T> flux, Function<T, String> mapper) {
+		return flux.onErrorResume(DiscordManager::handleError)
+				.retryWhen(Retry.fixedDelay(2, Duration.ofSeconds(10)))
+				.collectMap(mapper)
+				.blockOptional()
+				.orElseGet(() -> null);
 	}
 
 	public static <T> List<T> block(Flux<T> flux) {

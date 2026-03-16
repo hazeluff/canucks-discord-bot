@@ -23,10 +23,12 @@ import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
+import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
+import discord4j.core.spec.InteractionReplyEditSpec;
 import discord4j.core.spec.MessageCreateSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -239,6 +241,10 @@ public abstract class Command extends ReactiveEventAdapter {
 		return DiscordUtils.getOptionAsLong(event, option);
 	}
 
+	protected static Mono<Channel> getOptionAsChannel(ChatInputInteractionEvent event, String option) {
+		return DiscordUtils.getOptionAsChannel(event, option);
+	}
+
 	public static Mono<Void> reply(ChatInputInteractionEvent event, String message) {
 		return reply(event, message, null, false);
 	}
@@ -295,6 +301,19 @@ public abstract class Command extends ReactiveEventAdapter {
 				}));
 	}
 
+	public static Mono<Message> replyAndDeferEdit(
+			ChatInputInteractionEvent event,
+			String initialReply,
+			Runnable defferedAction,
+			Supplier<InteractionReplyEditSpec> defferedReplySupplier) {
+		return event
+				.reply(buildReplySpec(initialReply, null, true))
+				.then(Mono.defer(() -> {
+					defferedAction.run();
+					return createSlowReplyEdit(event, defferedReplySupplier);
+				}));
+	}
+
 	/**
 	 * 
 	 * @param event
@@ -306,5 +325,30 @@ public abstract class Command extends ReactiveEventAdapter {
 			ChatInputInteractionEvent event,
 			Supplier<InteractionFollowupCreateSpec> specSupplier) {
 		return event.createFollowup(specSupplier.get());
+	}
+
+	private static Mono<Message> createSlowReplyEdit(
+			ChatInputInteractionEvent event,
+			Supplier<InteractionReplyEditSpec> specSupplier) {
+		return event.editReply(specSupplier.get());
+	}
+	
+	InteractionFollowupCreateSpec buildFollowUp(String message) {
+		return InteractionFollowupCreateSpec.builder()
+				.content(message)
+				.build();
+	}
+	
+	InteractionFollowupCreateSpec buildFollowUp(String message, boolean ephemeral) {
+		return InteractionFollowupCreateSpec.builder()
+				.content(message)
+				.ephemeral(ephemeral)
+				.build();
+	}
+	
+	InteractionReplyEditSpec buildReplyEdit(String message, boolean ephemeral) {
+		return InteractionReplyEditSpec.builder()
+				.contentOrNull(message)
+				.build();
 	}
 }

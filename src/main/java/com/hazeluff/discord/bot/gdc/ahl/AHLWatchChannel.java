@@ -47,7 +47,7 @@ public class AHLWatchChannel extends Thread {
 
 	private final static Map<Long, AHLWatchChannel> channels = new ConcurrentHashMap<>();
 
-	AHLWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
+	AHLWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
 		this.channel = channel;
@@ -89,7 +89,7 @@ public class AHLWatchChannel extends Thread {
 			}
 		}
 		
-		AHLWatchChannel fnChannel = new AHLWatchChannel(nhlBot, guild, channel, meta);
+		AHLWatchChannel fnChannel = new AHLWatchChannel(nhlBot, guild, channel);
 
 		fnChannel.start();
 

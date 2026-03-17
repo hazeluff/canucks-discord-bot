@@ -1,9 +1,7 @@
 package com.hazeluff.discord.bot.database.preferences;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -44,7 +42,6 @@ public class PreferencesData extends DatabaseManager {
 		return database.getCollection("guilds");
 	}
 
-	@SuppressWarnings("unchecked")
 	static Map<Long, GuildPreferences> loadGuildPreferences(MongoCollection<Document> guildCollection) {
 		LOGGER.info("Loading Guild preferences...");
 		Map<Long, GuildPreferences> guildPreferences = new ConcurrentHashMap<>();
@@ -53,26 +50,7 @@ public class PreferencesData extends DatabaseManager {
 		while (iterator.hasNext()) {
 			Document doc = iterator.next();
 			long id = doc.getLong("id");
-			Set<Team> teams;
-
-			if (doc.containsKey("teams")) {
-				teams = ((List<Integer>) doc.get("teams")).stream().map(Team::parse).collect(Collectors.toSet());
-			} else {
-				teams = new HashSet<>();
-			}
-
-			Long gdcChannelId = null;
-			if (doc.containsKey("gdcChannelId")) {
-				gdcChannelId = doc.getLong("gdcChannelId");
-			}
-			
-			boolean useThreads = doc.getBoolean("useChannelThreads", false);
-
-			GuildPreferences preferences = new GuildPreferences(
-				teams,
-				gdcChannelId,
-				useThreads
-			);
+			GuildPreferences preferences = GuildPreferences.parse(doc);
 			guildPreferences.put(id, preferences);
 		}
 

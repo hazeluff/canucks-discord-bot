@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.bson.Document;
 
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
@@ -20,10 +23,26 @@ public class GuildPreferences {
 		useChannelThreads = false;
 	}
 
-	public GuildPreferences(Set<Team> teams, Long gdcChannelId, boolean useThreads) {
+	private GuildPreferences(Set<Team> teams, Long gdcChannelId, boolean useThreads) {
 		this.teams = teams;
 		this.gdcChannelId = gdcChannelId;
 		this.useChannelThreads = useThreads;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static GuildPreferences parse(Document doc) {
+		Set<Team> teams;
+		if (doc.containsKey("teams")) {
+			teams = ((List<Integer>) doc.get("teams")).stream().map(Team::parse).collect(Collectors.toSet());
+		} else {
+			teams = new HashSet<>();
+		}
+
+		Long gdcChannelId = doc.getLong("gdcChannelId");
+
+		boolean useThreads = doc.getBoolean("useChannelThreads", false);
+
+		return new GuildPreferences(teams, gdcChannelId, useThreads);
 	}
 
 	public List<Team> getTeams() {

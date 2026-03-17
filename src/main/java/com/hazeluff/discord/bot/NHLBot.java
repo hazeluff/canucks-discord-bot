@@ -23,7 +23,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
-import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
 import com.hazeluff.discord.utils.Utils;
 
@@ -121,19 +121,8 @@ public class NHLBot extends Thread {
 		// Manage WelcomeChannels (Only for my dev servers)
 		initWelcomeChannel();
 
-		// Start the Game Day Channels Manager (Individual Channels mode)
-		initGameDayChannelsManager();
-
-		// Init Game Day Watch Channels
-		initGameDayWatchChannels();
-
-		// (Special) Create Four Nations Channel
-		// initFourNationsChannel();
-
-		initAHLWatchChannel();
-
-		// (Special) Create Playoff watch Channel
-		// initPlayoffWatchChannel();
+		initDevServers();
+		initRegularServers();
 	}
 
 	void initPersistentData() {
@@ -152,13 +141,16 @@ public class NHLBot extends Thread {
 			LOGGER.info("Initializing Discord.");
 			// Init DiscordClient and DiscordManager
 			DiscordClient discordClient = DiscordClientBuilder.create(botToken)
-					// globally suppress any not found (404) error
-					.onClientResponse(ResponseFunction.emptyIfNotFound())
-					// (403) Forbidden will not be retried.
-					.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 403))
-					// (500) Error will be retried once.
+					// (400, 403, 404) Bad Request, Forbidden, Not Found
+					.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 400, 403, 404))
+					// (500) Specific Routes will be retried once.
+					.onClientResponse(
+							ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.GUILD_CHANNEL_CREATE), 500))
 					.onClientResponse(
 							ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.MESSAGE_CREATE), 500))
+					// (500)
+					.onClientResponse(
+							ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 500))
 					.build();
 			LOGGER.info("Logging into Discord.");
 			GatewayDiscordClient gatewayDiscordClient = discordClient.login().block();
@@ -229,18 +221,22 @@ public class NHLBot extends Thread {
 				.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
 	}
 
-	void initGameDayChannelsManager() {
-		LOGGER.info("Initializing GameDayChannelsManager.");
-		gameDayChannelsManager.start();
-	}
-
-	void initGameDayWatchChannels() {
-		LOGGER.info("Initializing GameDayWatchChannels. (Dev)");
+	void initDevServers() {
+		LOGGER.info("Initializing Threads and Managers for Dev Servers.");
 		getDiscordManager().getClient().getGuilds()
 			.filter(Config::isDevGuild)
-			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
+			.subscribe(guild -> {
+				NHLGdcGuildManager.getAndStart(this, guild);
+				NHLGameDayWatchChannel.getOrCreateChannel(this, guild);
+				PlayoffWatchChannel.getOrCreateChannel(this, guild);
+				AHLWatchChannel.getOrCreateChannel(this, guild);
+				// FourNationsWatchChannel.getOrCreateChannel(this, guild);
+			});
+		// gameDayChannelsManager.start(); // OLD METHOD
+	}
 
-		LOGGER.info("Initializing GameDayWatchChannels. (All)");
+	void initRegularServers() {
+		LOGGER.info("Initializing Threads and Managers for Regular Servers.");
 		getDiscordManager().getClient().getGuilds()
 			.filter(not(Config::isDevGuild))
 			.filter(guild -> {
@@ -248,27 +244,10 @@ public class NHLBot extends Thread {
 						.getGuildPreferences(guild.getId().asLong());
 				return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
 			})
-			.subscribe(guild -> NHLGameDayWatchChannel.getOrCreateChannel(this, guild));
-	}
-
-	@SuppressWarnings("unused")
-	private void initFourNationsChannel() {
-		LOGGER.info("Updating 'Four Nations' channels.");
-		getDiscordManager().getClient().getGuilds().filter(Config::isDevGuild)
-				.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
-	}
-
-	@SuppressWarnings("unused")
-	private void initPlayoffWatchChannel() {
-		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
-		getDiscordManager().getClient().getGuilds().filter(Config::isDevGuild)
-				.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
-	}
-
-	private void initAHLWatchChannel() {
-		LOGGER.info("Updating 'AHL Watch' channels.");
-		getDiscordManager().getClient().getGuilds().filter(Config::isDevGuild)
-				.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
+			.subscribe(guild -> {
+				NHLGdcGuildManager.getAndStart(this, guild);
+				NHLGameDayWatchChannel.getOrCreateChannel(this, guild);
+			});
 	}
 
 	public PersistentData getPersistentData() {

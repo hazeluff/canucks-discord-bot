@@ -1,6 +1,5 @@
 package com.hazeluff.discord.bot.database.preferences;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +43,6 @@ public class PreferencesData extends DatabaseManager {
 		return database.getCollection("guilds");
 	}
 
-	@SuppressWarnings("unchecked")
 	static Map<Long, GuildPreferences> loadGuildPreferences(MongoCollection<Document> guildCollection) {
 		LOGGER.info("Loading Guild preferences...");
 		Map<Long, GuildPreferences> guildPreferences = new ConcurrentHashMap<>();
@@ -53,20 +51,8 @@ public class PreferencesData extends DatabaseManager {
 		while (iterator.hasNext()) {
 			Document doc = iterator.next();
 			long id = doc.getLong("id");
-			List<Team> teams;
-
-			if (doc.containsKey("teams")) {
-				teams = ((List<Integer>) doc.get("teams")).stream().map(Team::parse).collect(Collectors.toList());
-			} else {
-				teams = new ArrayList<>();
-			}
-
-			guildPreferences.put(id, new GuildPreferences(new HashSet<>(teams)));
-
-			if (doc.containsKey("team")) {
-				saveToCollection(guildCollection, id, teams);
-			}
-
+			GuildPreferences prefs = GuildPreferences.parse(doc);
+			guildPreferences.put(id, prefs);
 		}
 
 		LOGGER.info("Guild Preferences loaded.");
@@ -77,7 +63,6 @@ public class PreferencesData extends DatabaseManager {
 		if (!guildPreferences.containsKey(guildId)) {
 			guildPreferences.put(guildId, new GuildPreferences(new HashSet<>()));
 		}
-
 		return guildPreferences.get(guildId);
 	}
 

@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.bson.Document;
 
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
@@ -17,6 +20,18 @@ public class GuildPreferences {
 
 	public GuildPreferences(Set<Team> teams) {
 		this.teams = teams;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static GuildPreferences parse(Document doc) {
+		Set<Team> teams;
+		if (doc.containsKey("teams")) {
+			teams = ((List<Integer>) doc.get("teams")).stream().map(Team::parse).collect(Collectors.toSet());
+		} else {
+			teams = new HashSet<>();
+		}
+
+		return new GuildPreferences(teams);
 	}
 
 	public List<Team> getTeams() {

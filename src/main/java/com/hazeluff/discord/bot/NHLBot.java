@@ -168,13 +168,16 @@ public class NHLBot extends Thread {
 			LOGGER.info("Initializing Discord.");
 			// Init DiscordClient and DiscordManager
 			DiscordClient discordClient = DiscordClientBuilder.create(botToken)
-					// globally suppress any not found (404) error
-					.onClientResponse(ResponseFunction.emptyIfNotFound())
-					// (403) Forbidden will not be retried.
-					.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 403))
-					// (500) Error will be retried once.
+					// (400, 403, 404) Bad Request, Forbidden, Not Found
+					.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 400, 403, 404))
+					// (500) Specific Routes will be retried once.
+					.onClientResponse(
+							ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.GUILD_CHANNEL_CREATE), 500))
 					.onClientResponse(
 							ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.MESSAGE_CREATE), 500))
+					// (500)
+					.onClientResponse(
+							ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 500))
 					.build();
 			LOGGER.info("Logging into Discord.");
 			GatewayDiscordClient gatewayDiscordClient = discordClient.login().block();

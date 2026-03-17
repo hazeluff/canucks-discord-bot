@@ -15,16 +15,19 @@ import com.mongodb.client.MongoDatabase;
  */
 public class PersistentData {
 	private final MongoDatabase database;
-
+	private final GuildMetaData guildMetaData;
 	private final PreferencesData preferencesData;
 	private final GDCMetaData gdcMetaData;
 	private final PlayoffWatchMetaData playoffWatchMetaData;
 
 
-	PersistentData(MongoDatabase database, PreferencesData preferencesData,
+	PersistentData(MongoDatabase database,
+			GuildMetaData guildMetaData,
+			PreferencesData preferencesData,
 			GDCMetaData gdcMetaData,
 			PlayoffWatchMetaData playoffWatchMetaData) {
 		this.database = database;
+		this.guildMetaData = guildMetaData;
 		this.preferencesData = preferencesData;
 		this.gdcMetaData = gdcMetaData;
 		this.playoffWatchMetaData = playoffWatchMetaData;
@@ -35,10 +38,11 @@ public class PersistentData {
 	}
 
 	static PersistentData load(MongoDatabase database) {
+		GuildMetaData guildMetaData = GuildMetaData.load(database);
 		PreferencesData preferencesManager = PreferencesData.load(database);
 		GDCMetaData gdcMetaData = GDCMetaData.load(database);
 		PlayoffWatchMetaData playoffWatchMetaData = PlayoffWatchMetaData.load(database);
-		return new PersistentData(database, preferencesManager, gdcMetaData, playoffWatchMetaData);
+		return new PersistentData(database, guildMetaData, preferencesManager, gdcMetaData, playoffWatchMetaData);
 	}
 
 	@SuppressWarnings("resource")
@@ -53,6 +57,10 @@ public class PersistentData {
 			client = new MongoClient(hostName, port);
 		}
 		return client.getDatabase(Config.MONGO_DATABASE_NAME);
+	}
+
+	public GuildMetaData getGuildMetaData() {
+		return guildMetaData;
 	}
 
 	public PreferencesData getPreferencesData() {

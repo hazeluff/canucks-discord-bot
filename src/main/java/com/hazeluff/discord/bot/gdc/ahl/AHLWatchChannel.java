@@ -14,7 +14,6 @@ import com.hazeluff.discord.ahl.AHLGameTracker;
 import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.utils.Utils;
 
@@ -47,7 +46,7 @@ public class AHLWatchChannel extends Thread {
 
 	private final static Map<Long, AHLWatchChannel> channels = new ConcurrentHashMap<>();
 
-	AHLWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
+	AHLWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
 		this.channel = channel;
@@ -82,15 +81,7 @@ public class AHLWatchChannel extends Thread {
 			}
 		}
 		
-		PlayoffWatchMeta meta = null;
-		if (channel != null) {
-			meta = nhlBot.getPersistentData().getPlayoffWatchMetaData().loadMeta(channel.getId().asLong());
-			if (meta == null) {
-				meta = PlayoffWatchMeta.of(channel.getId().asLong());
-			}
-		}
-		
-		AHLWatchChannel fnChannel = new AHLWatchChannel(nhlBot, guild, channel, meta);
+		AHLWatchChannel fnChannel = new AHLWatchChannel(nhlBot, guild, channel);
 
 		fnChannel.start();
 

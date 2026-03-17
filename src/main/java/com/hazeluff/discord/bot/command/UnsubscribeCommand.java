@@ -5,6 +5,8 @@ import java.util.List;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -128,8 +130,21 @@ public class UnsubscribeCommand extends Command {
 	}
 
 	private void unsubscribeGuild(Guild guild, Team team) {
-		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guild.getId().asLong(), team);
-		nhlBot.getGameDayChannelsManager().updateChannels(guild);
+		long guildId = guild.getId().asLong();
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
+
+		nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guildId, team);
+
+		NHLGdcGuildManager manager = NHLGdcGuildManager.getManager(guildId);
+		List<Team> teams = pref.getTeams();
+		if (manager == null && !teams.isEmpty()) {
+			manager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
+		} else if (teams.isEmpty()) {
+			NHLGdcGuildManager.removeManager(guildId);
+		} else if (manager != null) {
+			manager.updateChannels(pref);
+		}
+		// nhlBot.getGameDayChannelsManager().updateChannels(guild); // Old Method
 	}
 
 	static String buildUnsubscribeMessage(Team team) {

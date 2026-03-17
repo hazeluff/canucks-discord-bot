@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -84,8 +85,16 @@ public class SubscribeCommand extends Command {
 	}
 
 	private void subscribeGuild(Guild guild, Team team) {
-		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guild.getId().asLong(), team);
-		nhlBot.getGameDayChannelsManager().updateChannels(guild);
+		long guildId = guild.getId().asLong();
+		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
+
+		NHLGdcGuildManager gdcManager = NHLGdcGuildManager.getManager(guildId);
+		if (gdcManager == null) {
+			gdcManager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
+		} else {
+			gdcManager.updateChannels();
+		}
+		// nhlBot.getGameDayChannelsManager().updateChannels(guild); // Old Method
 	}
 
 	String buildSubscribedMessage(Guild guild, Team team) {

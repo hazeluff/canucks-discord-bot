@@ -116,8 +116,10 @@ public class NHLGateway {
 	public static Map<Integer, BsonDocument> getAllTeamRawGames() {
 		Map<Integer, BsonDocument> allGames = new HashMap<>();
 		for (Team team : Team.values()) {
-			Map<Integer, BsonDocument> teamGames = NHLGateway.getTeamRawGames(team, NHL_CURRENT_SEASON);
-			allGames.putAll(teamGames);
+			if (team.isNHLTeam()) {
+				Map<Integer, BsonDocument> teamGames = NHLGateway.getTeamRawGames(team, NHL_CURRENT_SEASON);
+				allGames.putAll(teamGames);
+			}
 		}
 		return allGames;
 	}

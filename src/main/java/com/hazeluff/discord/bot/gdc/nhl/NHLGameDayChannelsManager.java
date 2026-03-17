@@ -35,6 +35,7 @@ public class NHLGameDayChannelsManager extends Thread {
 	static final long INIT_UPDATE_RATE = 5000L;
 	// Poll for every 5 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 300000L;
+	static final long RETRY_RATE = 1800000L;
 
 	private final NHLBot nhlBot;
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
@@ -124,26 +125,9 @@ public class NHLGameDayChannelsManager extends Thread {
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
+				Utils.sleep(RETRY_RATE);
 			}
 		}
-	}
-
-	/**
-	 * Gets the guilds that are subscribed to the specified team.
-	 * 
-	 * @param team
-	 *            team that the guilds are subscribed to
-	 * @return list of IGuilds
-	 */
-	public List<Guild> getSubscribedGuilds(Team team) {
-		return nhlBot.getDiscordManager().getGuilds().stream().filter(guild -> {
-			long guildId = guild.getId().asLong();
-			return nhlBot.getPersistentData()
-					.getPreferencesData()
-					.getGuildPreferences(guildId)
-					.getTeams()
-					.contains(team);
-		}).collect(Collectors.toList());
 	}
 
 	/**

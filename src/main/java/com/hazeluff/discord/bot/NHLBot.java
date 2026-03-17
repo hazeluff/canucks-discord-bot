@@ -21,6 +21,7 @@ import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
 import com.hazeluff.discord.bot.listener.MessageListener;
@@ -250,8 +251,12 @@ public class NHLBot extends Thread {
 
 	void initGameDayChannelsManager() {
 		LOGGER.info("Initializing GameDayChannelsManager.");
+		getDiscordManager().getClient().getGuilds()
+				.subscribe(guild -> NHLGdcGuildManager.getAndStart(this, guild));
+		/* Old Manager (Manages all guilds in the class)
 		this.gameDayChannelsManager = new NHLGameDayChannelsManager(this);
 		gameDayChannelsManager.start();
+		*/
 	}
 
 	private void initFourNationsChannel() {

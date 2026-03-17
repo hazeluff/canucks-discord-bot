@@ -28,6 +28,7 @@ public class FourNationsWatchChannel extends Thread {
 	static final long INIT_UPDATE_RATE = 5000L;
 	// Poll for every 5 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 300000L;
+	static final long RETRY_RATE = 1800000L;
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
@@ -102,6 +103,7 @@ public class FourNationsWatchChannel extends Thread {
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
+				Utils.sleep(RETRY_RATE);
 			}
 		}
 	}

@@ -38,6 +38,7 @@ public class NHLGameDayWatchChannel extends Thread {
 	static final long INIT_UPDATE_RATE = 5000L;
 	// Poll for every 30 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 1800000L;
+	static final long RETRY_RATE = 3600000L;
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
@@ -109,10 +110,10 @@ public class NHLGameDayWatchChannel extends Thread {
 	}
 
 	public static void removeChannel(Long guildId) {
-		channels.remove(guildId);
-		NHLGameDayWatchChannel channel = getChannel(guildId);
+		NHLGameDayWatchChannel channel = channels.remove(guildId);
 		if(channel != null) {
 			DiscordManager.deleteChannel(channel.textChannel);
+			channel.interrupt();
 		}
 	}
 
@@ -145,6 +146,7 @@ public class NHLGameDayWatchChannel extends Thread {
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
+				Utils.sleep(RETRY_RATE);
 			}
 		}
 	}
@@ -164,18 +166,19 @@ public class NHLGameDayWatchChannel extends Thread {
 				// Start/Maintain gdc if they have not finished.
 				if (!gameDayThreads.containsKey(gamePk)) {
 					MessageChannel msgChannel = textChannel;
-					if (preferences.isUseChannelThreads())
+					if (true || preferences.isUseChannelThreads())
 					{
+						// TODO Check Metadata
 						String threadMsg = GameDayThread.buildDetailsMessage(game);
 						Message message = DiscordManager.sendAndGetMessage(textChannel, threadMsg);
 						if (message != null) {
+							DiscordManager.pinMessage(message);
 							StartThreadFromMessageRequest request = StartThreadFromMessageRequest.builder()
 									.name(game.getThreadName())
 									.build();
 							ThreadChannel threadChannel = DiscordManager.block(message.createPublicThread(request));
 							if (threadChannel != null) {
 								msgChannel = threadChannel;
-								DiscordManager.pinMessage(message);
 							}
 						}
 					}

@@ -330,6 +330,32 @@ public class DiscordManager {
 		return channel != null ? channel : createAndGetChannel(guild, channelName);
 	}
 
+	public static TextChannel getTextChannel(Guild guild, Long channelId) {
+		if (guild == null) {
+			logNullArgumentsStackTrace("`guild` was null.");
+			return null;
+		}
+
+		if (channelId == null) {
+			logNullArgumentsStackTrace("`channelId` was null.");
+			return null;
+		}
+		return block(guild.getChannelById(Snowflake.of(channelId)).cast(TextChannel.class));
+	}
+
+	public static MessageChannel getMessageChannel(Guild guild, Long channelId) {
+		if (guild == null) {
+			logNullArgumentsStackTrace("`guild` was null.");
+			return null;
+		}
+
+		if (channelId == null) {
+			logNullArgumentsStackTrace("`channelId` was null.");
+			return null;
+		}
+		return block(guild.getChannelById(Snowflake.of(channelId)).cast(MessageChannel.class));
+	}
+
 	/**
 	 * Pins the message to the specified channels
 	 * 
@@ -449,20 +475,6 @@ public class DiscordManager {
 		}
 
 		return block(channel.getCategory());
-	}
-
-	public static TextChannel getTextChannel(Guild guild, Long channelId) {
-		if (guild == null) {
-			logNullArgumentsStackTrace("`guild` was null.");
-			return null;
-		}
-
-		if (channelId == null) {
-			logNullArgumentsStackTrace("`channelId` was null.");
-			return null;
-		}
-
-		return block(guild.getChannelById(Snowflake.of(channelId)).cast(TextChannel.class));
 	}
 
 	public static List<TextChannel> getTextChannels(Guild guild) {

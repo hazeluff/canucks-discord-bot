@@ -10,6 +10,7 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -98,10 +99,13 @@ public class SubscribeCommand extends Command {
 			} else {
 				channel.updateChannel();
 			}
-		}
-
-		if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {
-			nhlBot.getGameDayChannelsManager().updateChannels(guild);
+		} else if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {
+			NHLGdcGuildManager gdcManager = NHLGdcGuildManager.getManager(guildId);
+			if (gdcManager == null) {
+				gdcManager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
+			} else {
+				gdcManager.updateChannels();
+			}
 		}
 	}
 

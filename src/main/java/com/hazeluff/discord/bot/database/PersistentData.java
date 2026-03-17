@@ -1,7 +1,6 @@
 package com.hazeluff.discord.bot.database;
 
 import com.hazeluff.discord.Config;
-import com.hazeluff.discord.bot.database.channel.ChannelMessagesData;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMetaData;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMetaData;
 import com.hazeluff.discord.bot.database.preferences.PreferencesData;
@@ -18,17 +17,14 @@ public class PersistentData {
 	private final MongoDatabase database;
 
 	private final PreferencesData preferencesData;
-	private final ChannelMessagesData channelMessagesData;
 	private final GDCMetaData gdcMetaData;
 	private final PlayoffWatchMetaData playoffWatchMetaData;
 
 
-	PersistentData(MongoDatabase database, PreferencesData preferencesData,
-			ChannelMessagesData channelMessagesData, GDCMetaData gdcMetaData,
+	PersistentData(MongoDatabase database, PreferencesData preferencesData, GDCMetaData gdcMetaData,
 			PlayoffWatchMetaData playoffWatchMetaData) {
 		this.database = database;
 		this.preferencesData = preferencesData;
-		this.channelMessagesData = channelMessagesData;
 		this.gdcMetaData = gdcMetaData;
 		this.playoffWatchMetaData = playoffWatchMetaData;
 	}
@@ -39,11 +35,9 @@ public class PersistentData {
 
 	static PersistentData load(MongoDatabase database) {
 		PreferencesData preferencesManager = PreferencesData.load(database);
-		ChannelMessagesData channelMessagesData = ChannelMessagesData.load(database);
 		GDCMetaData gdcMetaData = GDCMetaData.load(database);
 		PlayoffWatchMetaData playoffWatchMetaData = PlayoffWatchMetaData.load(database);
-		return new PersistentData(database, preferencesManager, channelMessagesData,
-				gdcMetaData, playoffWatchMetaData);
+		return new PersistentData(database, preferencesManager, gdcMetaData, playoffWatchMetaData);
 	}
 
 	@SuppressWarnings("resource")
@@ -62,10 +56,6 @@ public class PersistentData {
 
 	public PreferencesData getPreferencesData() {
 		return preferencesData;
-	}
-
-	public ChannelMessagesData getChannelMessagesData() {
-		return channelMessagesData;
 	}
 
 	public GDCMetaData getGDCMetaData() {

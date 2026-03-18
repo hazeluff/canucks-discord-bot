@@ -37,26 +37,26 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	}
 
 	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-			GuildPreferences preferences, GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, textChannel, preferences, meta);
+		GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, textChannel, meta);
 	}
 
-	public static NHLGameDayChannelThread get(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
+	public static NHLGameDayChannelThread getOrCreate(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
+		long guildId = guild.getId().asLong();
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
+				.getGuildPreferences(guildId);
 		TextChannel textChannel = getTextChannel(guild, gameTracker.getGame(), nhlBot, preferences);
 		GDCMeta meta = null;
 		if (textChannel != null) {
-			meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
-				textChannel.getId().asLong(),
-				gameTracker.getGame().getGameId()
-			);
+			long channelId = textChannel.getId().asLong();
+			int gameId = gameTracker.getGame().getGameId();
+			meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(channelId, gameId);
 			if (meta == null) {
-				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
+				meta = GDCMeta.forChannel(channelId, gameTracker.getGame().getGameId());
 			}
 		}
 		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel,
-				preferences, meta);
+			meta);
 
 		if (gameDayChannel.channel != null) {
 			gameDayChannel.start();
@@ -109,6 +109,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected void initChannel() {
 		loadMetadata();
 		initIntroMessage();
+		saveMetadata();
 	}
 
 	@Override
@@ -183,6 +184,8 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected String buildEndOfGameMessage() {
 		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
 
+		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
+			.getGuildPreferences(guild.getId().asLong());
 		List<Game> nextGames = preferences.getTeams().stream()
 				.map(team -> nhlBot.getNHLGameScheduler().getNextGame(team)).filter(Objects::nonNull)
 				.collect(Collectors.toList());

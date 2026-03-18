@@ -4,13 +4,11 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
@@ -18,7 +16,6 @@ import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
@@ -49,7 +46,7 @@ public class PlayoffWatchChannel extends Thread {
 		this.summaryUpdater = new PlayoffWatchSummaryUpdater(nhlBot, channel, meta);
 	}
 
-	public static PlayoffWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
+	public static PlayoffWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
 		TextChannel channel = null;
 		try {
 			channel = DiscordManager.getTextChannels(guild).stream()
@@ -126,12 +123,14 @@ public class PlayoffWatchChannel extends Thread {
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				if (!gameDayThreads.containsKey(gamePk)) {
-					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.get(nhlBot, channel, gameTracker, guild);
+					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.getOrCreate(nhlBot, channel, gameTracker, guild,
+						true);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			}
 		}
 		
+		/*
 		List<Game> inactivePlayoffGames = nhlBot.getNHLGameScheduler().getPlayoffGames().stream()
 				.filter(game -> !activeGames.contains(game))
 				.collect(Collectors.toList());
@@ -141,7 +140,7 @@ public class PlayoffWatchChannel extends Thread {
 				PlayoffWatchGameDayThread gdt = gameDayThreads.remove(gamePk);
 				gdt.unpinSummaryMessage();
 			} else {
-				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
+				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(
 					channel.getId().asLong(),
 					inactiveGame.getGameId()
 				);
@@ -156,6 +155,7 @@ public class PlayoffWatchChannel extends Thread {
 				}
 			}
 		}
+		*/
 	}
 
 	/**

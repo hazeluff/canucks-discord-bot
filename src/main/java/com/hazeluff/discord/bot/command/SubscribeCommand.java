@@ -95,9 +95,9 @@ public class SubscribeCommand extends Command {
 		if (pref.isSingleNHLChannel() || Config.isDevGuild(guild)) {
 			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
 			if (channel == null) {
-				channel = NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
+				channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
 			} else {
-				channel.updateChannel();
+				channel.update(pref);
 			}
 		} else if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {
 			NHLGdcGuildManager gdcManager = NHLGdcGuildManager.getManager(guildId);

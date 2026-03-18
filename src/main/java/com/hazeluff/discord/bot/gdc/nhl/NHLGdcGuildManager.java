@@ -149,7 +149,7 @@ public class NHLGdcGuildManager extends Thread {
 	NHLGameDayChannelThread createGameDayChannel(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
 		LOGGER.info("Creating channel. channelName={}, guild={}",
 				gameTracker.getGame().getNiceName(), guild.getName());
-		NHLGameDayChannelThread channel = NHLGameDayChannelThread.get(nhlBot, gameTracker, guild);
+		NHLGameDayChannelThread channel = NHLGameDayChannelThread.getOrCreate(nhlBot, gameTracker, guild);
 		gameDayChannels.put(gameTracker.getGame().getGameId(), channel);
 		return channel;
 	}

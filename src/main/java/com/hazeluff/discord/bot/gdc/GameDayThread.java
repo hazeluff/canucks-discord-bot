@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.utils.Utils;
@@ -43,10 +42,8 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	protected final NHLBot nhlBot;
 	
 	protected final GameTracker gameTracker;
-	
 	protected final Guild guild;
 	protected final MessageChannel channel;
-	protected final GuildPreferences preferences;
 	protected final GDCMeta meta;
 
 	protected Message introMessage;
@@ -55,13 +52,11 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 
 	protected AtomicBoolean started = new AtomicBoolean(false);
 
-	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, MessageChannel channel,
-			GuildPreferences preferences, GDCMeta meta) {
+	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, MessageChannel channel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
 		this.guild = guild;
 		this.channel = channel;
-		this.preferences = preferences;
 		this.meta = meta;
 	}
 
@@ -240,10 +235,14 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 
 	protected String buildStartOfGameMessage() {
 		List<String> messageList = Arrays.asList(
-				"Game is about to start! " + preferences.getCheer(), "Be Kind, Be Calm, Be Safe",
+			"Game is about to start!",
+			"Lets go team!",
+			"Be Kind, Be Calm, Be Safe",
 				"Be woke, be cool, a calm spirit is smarter.", "Get ready, go to the washroom, get your snacks, "
 						+ "get your drinks, get your ????, " + "get comfy, and watch us play.",
-				"I just hope everybody has fun", "Good Luck; Have Fun");
+			"I just hope everybody has fun",
+			"Good Luck; Have Fun"
+		);
 		return Utils.getRandom(messageList);
 	}
 

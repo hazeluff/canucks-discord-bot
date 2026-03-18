@@ -39,7 +39,7 @@ public class ManageConfigListener extends EventListener {
 		if (singleChannel) {
 			// Preferences is set within #getOrCreateChannel
 			// Start up NHLGameDayWatchChannel
-			NHLGameDayWatchChannel.getOrCreateChannel(nhlBot, guild);
+			NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
 			// Remove from GameDayChannelsManager
 			nhlBot.getGameDayChannelsManager().removeGuild(guildId);
 		} else { // individual channels

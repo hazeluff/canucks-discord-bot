@@ -227,9 +227,9 @@ public class NHLBot extends Thread {
 			.filter(Config::isDevGuild)
 			.subscribe(guild -> {
 				NHLGdcGuildManager.getAndStart(this, guild);
-				NHLGameDayWatchChannel.getOrCreateChannel(this, guild);
-				PlayoffWatchChannel.getOrCreateChannel(this, guild);
-				AHLWatchChannel.getOrCreateChannel(this, guild);
+				NHLGameDayWatchChannel.getOrCreate(this, guild);
+				PlayoffWatchChannel.getOrCreate(this, guild);
+				AHLWatchChannel.getOrCreate(this, guild);
 				// FourNationsWatchChannel.getOrCreateChannel(this, guild);
 			});
 		// gameDayChannelsManager.start(); // OLD METHOD
@@ -246,7 +246,7 @@ public class NHLBot extends Thread {
 			})
 			.subscribe(guild -> {
 				NHLGdcGuildManager.getAndStart(this, guild);
-				NHLGameDayWatchChannel.getOrCreateChannel(this, guild);
+				NHLGameDayWatchChannel.getOrCreate(this, guild);
 			});
 	}
 

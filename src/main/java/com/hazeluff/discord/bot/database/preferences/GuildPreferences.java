@@ -91,7 +91,7 @@ public class GuildPreferences {
 	}
 
 	public boolean isUseChannelThreads() {
-		return useChannelThreads;
+		return useChannelThreads || true;
 	}
 
 	@Override

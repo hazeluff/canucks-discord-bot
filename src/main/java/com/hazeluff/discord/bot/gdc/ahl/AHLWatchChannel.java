@@ -55,7 +55,7 @@ public class AHLWatchChannel extends Thread {
 		this.playoffGameDayThreads = new ConcurrentHashMap<>();
 	}
 
-	public static AHLWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
+	public static AHLWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
 		long guildId = guild.getId().asLong();
 		if (channels.containsKey(guildId)) {
 			return channels.get(guildId);
@@ -160,7 +160,7 @@ public class AHLWatchChannel extends Thread {
 				AHLGameDayThread gdt = regularGameDayThreads.remove(gameId);
 				gdt.unpinSummaryMessage();
 			} else {
-				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
+				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(
 					channel.getId().asLong(),
 						inactiveGame.getId()
 				);
@@ -197,7 +197,7 @@ public class AHLWatchChannel extends Thread {
 				AHLGameDayThread gdt = playoffGameDayThreads.remove(gameId);
 				gdt.unpinSummaryMessage();
 			} else {
-				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(channel.getId().asLong(),
+				GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(channel.getId().asLong(),
 						inactiveGame.getId());
 				if (meta != null) {
 					Long messageId = meta.getSummaryMessageId();

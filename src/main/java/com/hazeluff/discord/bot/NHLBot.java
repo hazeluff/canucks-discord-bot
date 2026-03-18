@@ -130,7 +130,9 @@ public class NHLBot extends Thread {
 
 		// Start the Game Day Channels Manager (channel-per-game; no central channel)
 		LOGGER.info("Initializing GameDayChannelsManager.");
-		getDiscordManager().getClient().getGuilds().subscribe(guild -> NHLGdcGuildManager.getAndStart(this, guild));
+		getDiscordManager().getClient().getGuilds()
+			.subscribe(guild -> NHLGdcGuildManager.getAndStart(this, guild));
+
 		/*
 		 * Old Manager (Manages all guilds in the class) 
 		 * this.gameDayChannelsManager = new NHLGameDayChannelsManager(this); gameDayChannelsManager.start();
@@ -139,7 +141,8 @@ public class NHLBot extends Thread {
 		// (Special) AHL Watch Channel
 		if (Config.isAHLWatchChannelEnabled()) {
 			LOGGER.info("Updating 'AHL Watch' channels.");
-			getDiscordManager().getClient().getGuilds().subscribe(guild -> AHLWatchChannel.getOrCreate(this, guild));
+			getDiscordManager().getClient().getGuilds()
+				.subscribe(guild -> AHLWatchChannel.getOrCreate(this, guild));
 		}
 
 		// (Special) Create Four Nations Watch Channel
@@ -181,17 +184,18 @@ public class NHLBot extends Thread {
 			LOGGER.info("Initializing Discord.");
 			// Init DiscordClient and DiscordManager
 			DiscordClient discordClient = DiscordClientBuilder.create(botToken)
-					// (400, 403, 404) Bad Request, Forbidden, Not Found
-					.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 400, 403, 404))
-					// (500) Specific Routes will be retried once.
-					.onClientResponse(
-							ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.GUILD_CHANNEL_CREATE), 500))
-					.onClientResponse(
-							ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.MESSAGE_CREATE), 500))
-					// (500)
-					.onClientResponse(
-							ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 500))
-					.build();
+				// (400, 403, 404) Bad Request, Forbidden, Not Found
+				.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 400, 403, 404))
+				// (500) Specific Routes will be retried once.
+				.onClientResponse(
+					ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.GUILD_CHANNEL_CREATE), 500))
+				.onClientResponse(
+					ResponseFunction.retryOnceOnErrorStatus(RouteMatcher.route(Routes.MESSAGE_CREATE), 500))
+				// (500)
+				.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 500))
+				// (418) I am also not a teapot or a cat.
+				.onClientResponse(ResponseFunction.emptyOnErrorStatus(RouteMatcher.any(), 418))
+				.build();
 			LOGGER.info("Logging into Discord.");
 			GatewayDiscordClient gatewayDiscordClient = discordClient.login().block();
 

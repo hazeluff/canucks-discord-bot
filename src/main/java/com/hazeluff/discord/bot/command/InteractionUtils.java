@@ -1,6 +1,11 @@
-package com.hazeluff.discord.utils;
+package com.hazeluff.discord.bot.command;
 
 import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.hazeluff.ahl.game.Game;
 
 import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
@@ -14,6 +19,8 @@ import discord4j.core.spec.InteractionReplyEditSpec;
 import reactor.core.publisher.Mono;
 
 public class InteractionUtils {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Game.class);
+
 	public static String getOptionAsString(DeferrableInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
 				.flatMap(ApplicationCommandInteractionOption::getValue)
@@ -77,23 +84,24 @@ public class InteractionUtils {
 	}
 
 	public static Mono<Message> replyAndDefer(DeferrableInteractionEvent event, String initialReply,
-			Runnable defferedAction, Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
+		Runnable defferedAction, Supplier<InteractionFollowupCreateSpec> defferedReplySupplier) {
 		return event.reply(buildReplySpec(initialReply, null, true)).then(Mono.defer(() -> {
 			defferedAction.run();
-			return createSlowFollowUp(event, defferedReplySupplier);
+			return event.createFollowup(defferedReplySupplier.get());
 		}));
 	}
 
-	/**
-	 * 
-	 * @param event
-	 * @param specSupplier
-	 *            Specification that takes time to create.
-	 * @return
-	 */
-	public static Mono<Message> createSlowFollowUp(DeferrableInteractionEvent event,
-			Supplier<InteractionFollowupCreateSpec> specSupplier) {
-		return event.createFollowup(specSupplier.get());
+	public static Mono<Message> replyAndDeferEdit(DeferrableInteractionEvent event, String initialReply,
+		Runnable defferedAction, Supplier<InteractionReplyEditSpec> defferedReplySupplier) {
+		return event.reply(buildReplySpec(initialReply, null, true)).then(Mono.defer(() -> {
+			try {
+				defferedAction.run();
+				return event.editReply(defferedReplySupplier.get());
+			} catch (Exception e) {
+				LOGGER.error("Error occured.", e);
+				return event.editReply(buildReplyEditSpec("Error occured."));
+			}
+		}));
 	}
 	
 	public static InteractionFollowupCreateSpec buildFollowUpSpec(String message) {

@@ -15,9 +15,9 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
+import com.hazeluff.discord.bot.command.InteractionUtils;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.discord.utils.InteractionUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.stats.TeamStandings;

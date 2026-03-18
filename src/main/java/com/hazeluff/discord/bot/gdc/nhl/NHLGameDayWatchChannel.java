@@ -196,8 +196,7 @@ public class NHLGameDayWatchChannel extends Thread {
 	
 	public void changeThreadUsage(boolean useThreads) {
 		if (this.useThreads == useThreads)
-			// No change, do nothing
-			return;
+			return; // No change, do nothing
 
 		// Update variable
 		this.useThreads = useThreads;

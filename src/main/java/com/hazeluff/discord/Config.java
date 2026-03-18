@@ -115,16 +115,16 @@ public class Config {
 		return null;
 	}
 
-	public static boolean isFourNationsEnabled() {
+	public static boolean isFourWatchChannelEnabled() {
 		return loadBool("channels.fournations", false);
 	}
 
-	public static boolean isAHLChannelEnabled() {
+	public static boolean isAHLWatchChannelEnabled() {
 		return loadBool("channels.ahl", true);
 	}
 
-	public static boolean isGDCWatchUseThreads() {
-		return loadBool("channels.threads", true);
+	public static boolean isPlayoffWatchChannelEnabled() {
+		return loadBool("channels.playoffs", false);
 	}
 
 	/*

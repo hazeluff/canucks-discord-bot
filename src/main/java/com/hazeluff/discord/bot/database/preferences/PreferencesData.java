@@ -76,13 +76,15 @@ public class PreferencesData extends DatabaseManager {
 	 * @param team
 	 *            team to subscribe to
 	 */
-	public void subscribeGuild(long guildId, Team team) {
+	public GuildPreferences subscribeGuild(long guildId, Team team) {
 		LOGGER.info("Subscribing guild to team. guildId={}, team={}", guildId, team);
 		GuildPreferences pref = getPreferences(guildId);
 
 		pref.addTeam(team);
 
 		saveToCollection(getCollection(), guildId, pref);
+
+		return pref;
 	}
 
 	/**
@@ -101,18 +103,9 @@ public class PreferencesData extends DatabaseManager {
 			pref.removeTeam(team);
 		}
 
-		saveToCollection(getCollection(), guildId, pref);
+		savePreferences(guildId, pref);
 
 		return pref;
-	}
-
-	public void setGameDayChannelId(Long guildId, Long channelId) {
-		LOGGER.info("Setting GDC Channel Id. guildId={} channelId={}", guildId, channelId);
-		GuildPreferences pref = getPreferences(guildId);
-
-		pref.setGameDayChannelId(channelId);
-
-		saveToCollection(getCollection(), guildId, pref);
 	}
 
 	private GuildPreferences getPreferences(Long guildId) {
@@ -123,6 +116,10 @@ public class PreferencesData extends DatabaseManager {
 		return guildPreferences.get(guildId);
 	}
 	
+	public void savePreferences(long guildId, GuildPreferences pref) {
+		saveToCollection(getCollection(), guildId, pref);
+	}
+
 	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, GuildPreferences pref) {
 		List<Integer> teamIds = pref.getTeams().stream()
 				.map(preferedTeam -> preferedTeam.getId())

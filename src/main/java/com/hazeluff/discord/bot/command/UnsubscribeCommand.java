@@ -132,21 +132,21 @@ public class UnsubscribeCommand extends Command {
 
 		// Remove the team from the Guild Preferences
 		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guildId, team);
+		List<Team> teams = pref.getTeams();
 
-		if (pref.isSingleNHLChannel() || Config.isDevGuild(guild)) {
-			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
-			List<Team> teams = pref.getTeams();
-			if (channel == null && !teams.isEmpty()) {
-				channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
-			} else if (teams.isEmpty()) {
-				NHLGameDayWatchChannel.removeChannel(guildId);
-			} else if (channel != null) {
-				channel.update(pref);
-			}
+		// #game-day-watch
+		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
+		if (channel == null && !teams.isEmpty()) {
+			channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
+		} else if (teams.isEmpty()) {
+			NHLGameDayWatchChannel.removeChannel(guildId);
+		} else if (channel != null) {
+			channel.update(pref);
+		}
 
-		} else if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {
+		// Dev-only (channel-per-game)
+		if (Config.isDevGuild(guildId)) {
 			NHLGdcGuildManager manager = NHLGdcGuildManager.getManager(guildId);
-			List<Team> teams = pref.getTeams();
 			if (manager == null && !teams.isEmpty()) {
 				manager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
 			} else if (teams.isEmpty()) {

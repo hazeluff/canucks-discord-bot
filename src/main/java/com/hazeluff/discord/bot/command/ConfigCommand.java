@@ -53,12 +53,12 @@ public class ConfigCommand extends Command {
 	}
 
 	public final static String SINGLE_BUTTON_ID = "nhl-config-single";
-	public final static String INDIVIDUAL_BUTTON_ID = "nhl-config-indv";
+	public final static String THREAD_BUTTON_ID = "nhl-config-thread";
 
 	private static TopLevelMessageComponent buildNHLConfigComponent() {
 		return ActionRow.of(
 			Button.secondary(SINGLE_BUTTON_ID, "Single"),
-			Button.secondary(INDIVIDUAL_BUTTON_ID, "Individual")
+			Button.secondary(THREAD_BUTTON_ID, "Individual")
 		);
 	}
 }

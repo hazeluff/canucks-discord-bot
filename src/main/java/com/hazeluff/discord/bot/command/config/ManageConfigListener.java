@@ -2,6 +2,7 @@ package com.hazeluff.discord.bot.command.config;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.ConfigCommand;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.bot.listener.EventListener;
@@ -26,28 +27,30 @@ public class ManageConfigListener extends EventListener {
 		Guild guild = DiscordManager.block(event.getInteraction().getGuild());
 		switch(event.getCustomId()) {
 		case ConfigCommand.SINGLE_BUTTON_ID:
-			changeGameDayChannelType(guild, true);
-			break;
-		case ConfigCommand.INDIVIDUAL_BUTTON_ID:
 			changeGameDayChannelType(guild, false);
+			break;
+		case ConfigCommand.THREAD_BUTTON_ID:
+			changeGameDayChannelType(guild, true);
 			break;
 		}
 	}
 
-	private void changeGameDayChannelType(Guild guild, boolean singleChannel) {
+	private void changeGameDayChannelType(Guild guild, boolean useThread) {
 		Long guildId = guild.getId().asLong();
-		if (singleChannel) {
-			// Preferences is set within #getOrCreateChannel
-			// Start up NHLGameDayWatchChannel
-			NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
-			// Remove from GameDayChannelsManager
-			nhlBot.getGameDayChannelsManager().removeGuild(guildId);
-		} else { // individual channels
-			nhlBot.getPersistentData().getPreferencesData().setGameDayChannelId(guildId, 0l);
-			// Remove NHLGameDayWatchChannel
-			NHLGameDayWatchChannel.removeChannel(guildId);
-			// Start up GameDayChannelsManager
-			nhlBot.getGameDayChannelsManager().updateChannels(guild);
-		}
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
+		
+		if(pref.isUseChannelThreads() == useThread)
+			return;
+		
+		// Update preferences
+		pref.setUseChannelThreads(useThread);
+		nhlBot.getPersistentData().getPreferencesData().savePreferences(guildId, pref);
+
+		NHLGameDayWatchChannel gdwChannel = NHLGameDayWatchChannel.getChannel(guildId);
+		if (gdwChannel == null)
+			gdwChannel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
+		else
+			gdwChannel.changeThreadUsage(useThread);
+
 	}
 }

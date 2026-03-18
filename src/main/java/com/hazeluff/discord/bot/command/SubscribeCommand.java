@@ -89,22 +89,23 @@ public class SubscribeCommand extends Command {
 	private void subscribeGuild(Guild guild, Team team) {
 		Long guildId = guild.getId().asLong();
 		// Update preferences
-		nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
 
-		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
-		if (pref.isSingleNHLChannel() || Config.isDevGuild(guild)) {
-			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
-			if (channel == null) {
-				channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
-			} else {
-				channel.update(pref);
-			}
-		} else if (pref.isChannelPerNHLGame() || Config.isDevGuild(guild)) {
-			NHLGdcGuildManager gdcManager = NHLGdcGuildManager.getManager(guildId);
-			if (gdcManager == null) {
-				gdcManager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
-			} else {
-				gdcManager.updateChannels();
+		// #game-day-watch
+		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
+		if (channel == null) {
+			channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
+		} else {
+			channel.update(pref);
+		}
+
+		// Dev-only (channel-per-game)
+		if (Config.isDevGuild(guildId)) {
+			NHLGdcGuildManager manager = NHLGdcGuildManager.getManager(guildId);
+			if (manager == null) {
+				manager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
+			} else if (manager != null) {
+				manager.updateChannels(pref);
 			}
 		}
 	}

@@ -13,7 +13,7 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class GuildPreferences {
 	private Set<Team> teams;
-	private Long gdcChannelId; // null - not set; 0 - individual games; otherwise - channel id of the gdc.
+	private Long gdcChannelId;
 	private boolean useChannelThreads; // gdcChannelId must be set;
 	// false - post updates in GDC Channel; true - send updates in GDC thread
 
@@ -82,12 +82,8 @@ public class GuildPreferences {
 		return gdcChannelId;
 	}
 
-	public boolean isSingleNHLChannel() {
-		return gdcChannelId == null || gdcChannelId != 0;
-	}
-
-	public boolean isChannelPerNHLGame() {
-		return gdcChannelId != null && gdcChannelId.longValue() == 0;
+	public void setUseChannelThreads(boolean useThreads) {
+		this.useChannelThreads = useThreads;
 	}
 
 	public boolean isUseChannelThreads() {

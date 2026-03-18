@@ -18,10 +18,8 @@ import com.hazeluff.discord.bot.channel.NHLBotCategoryManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.command.config.ManageConfigListener;
 import com.hazeluff.discord.bot.database.PersistentData;
-import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelsManager;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
@@ -47,7 +45,6 @@ public class NHLBot extends Thread {
 	private PersistentData persistantData;
 	private com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler;
 	private com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler;
-	private final NHLGameDayChannelsManager gameDayChannelsManager = new NHLGameDayChannelsManager(this);
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 	private final NHLBotCategoryManager nhlBotCategoryManager = new NHLBotCategoryManager(this);
 
@@ -239,13 +236,7 @@ public class NHLBot extends Thread {
 		LOGGER.info("Initializing Threads and Managers for Regular Servers.");
 		getDiscordManager().getClient().getGuilds()
 			.filter(not(Config::isDevGuild))
-			.filter(guild -> {
-				GuildPreferences preferences = getPersistentData().getPreferencesData()
-						.getGuildPreferences(guild.getId().asLong());
-				return preferences.isSingleNHLChannel() && !preferences.getTeams().isEmpty();
-			})
 			.subscribe(guild -> {
-				NHLGdcGuildManager.getAndStart(this, guild);
 				NHLGameDayWatchChannel.getOrCreate(this, guild);
 			});
 	}
@@ -264,10 +255,6 @@ public class NHLBot extends Thread {
 
 	public com.hazeluff.discord.ahl.AHLGameScheduler getAHLGameScheduler() {
 		return ahlGameScheduler;
-	}
-
-	public NHLGameDayChannelsManager getGameDayChannelsManager() {
-		return gameDayChannelsManager;
 	}
 
 	public GDCCategoryManager getGdcCategoryManager() {

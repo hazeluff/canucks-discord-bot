@@ -1,6 +1,5 @@
 package com.hazeluff.discord.bot.database.preferences;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -61,7 +60,7 @@ public class PreferencesData extends DatabaseManager {
 
 	public GuildPreferences getGuildPreferences(long guildId) {
 		if (!guildPreferences.containsKey(guildId)) {
-			guildPreferences.put(guildId, new GuildPreferences(new HashSet<>()));
+			guildPreferences.put(guildId, new GuildPreferences());
 		}
 		return guildPreferences.get(guildId);
 	}

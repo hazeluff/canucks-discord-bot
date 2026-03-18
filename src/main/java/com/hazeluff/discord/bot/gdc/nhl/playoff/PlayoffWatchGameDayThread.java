@@ -9,14 +9,18 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
+import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.MessageChannel;
+import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.discordjson.json.StartThreadFromMessageRequest;
 
 public class PlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchGameDayThread.class);
@@ -27,30 +31,73 @@ public class PlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 	}
 
 	private PlayoffWatchGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
-			GuildPreferences preferences, GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, preferences, meta);
+		GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, channel, meta);
 	}
 
-	public static PlayoffWatchGameDayThread get(NHLBot nhlBot, MessageChannel textChannel, NHLGameTracker gameTracker,
-			Guild guild) {
-		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
+	public static PlayoffWatchGameDayThread getOrCreate(NHLBot nhlBot, MessageChannel messageChannel,
+		NHLGameTracker gameTracker, Guild guild, boolean useThreads) {
+		long guildId = guild.getId().asLong();
+		int gameId = gameTracker.getGame().getGameId();
+
 		GDCMeta meta = null;
-		if (textChannel != null) {
-			meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
-				textChannel.getId().asLong(),
-				gameTracker.getGame().getGameId()
-			);
-			if (meta == null) {
-				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
-			}
+
+		if (messageChannel == null) {
+			LOGGER.warn(
+				"messageChannel is null (no parent for Thread/no Channel). GameDayChannel not started. guild={}",
+				guildId);
+			return new PlayoffWatchGameDayThread(nhlBot, gameTracker, guild, messageChannel, meta);
 		}
-		PlayoffWatchGameDayThread gdt = new PlayoffWatchGameDayThread(nhlBot, gameTracker, guild,
-				textChannel, preferences, meta);
+
+		MessageChannel parentChannel = messageChannel;
+		long parentChannelId = parentChannel.getId().asLong();
+
+		// GDC in threads
+		if (useThreads) {
+			messageChannel = null;
+			meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByParentId(parentChannelId, gameId);
+
+			// Try to get existing Thread (Channel)
+			if (meta != null) {
+				messageChannel = DiscordManager.getMessageChannel(guild, meta.getChannelId());
+			}
+
+			// Create new Thread (Channel) if none found/exist.
+			if (messageChannel == null) {
+				meta = null; // Generate new meta
+				Game game = gameTracker.getGame();
+				String threadMsg = "Game Day Thread: " + GameDayThread.buildDetailsMessage(game);
+				Message message = DiscordManager.sendAndGetMessage(parentChannel, threadMsg);
+				if (message != null) {
+					StartThreadFromMessageRequest request = StartThreadFromMessageRequest.builder()
+						.name(game.getThreadName()).build();
+					ThreadChannel threadChannel = DiscordManager.block(message.createPublicThread(request));
+					if (threadChannel != null) {
+						messageChannel = threadChannel;
+					}
+				}
+			}
+		} else {
+			meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(parentChannelId, gameId);
+			// WatchThread will be made from messageChannel
+		}
+
+		// Channel exists; No meta exists.
+		if (messageChannel != null && meta == null) {
+			// Generate new metadata
+			if (useThreads)
+				meta = GDCMeta.forThread(messageChannel.getId().asLong(), gameId, parentChannelId);
+			else
+				meta = GDCMeta.forChannel(messageChannel.getId().asLong(), gameId);
+			nhlBot.getPersistentData().getGDCMetaData().save(meta);
+		}
+
+		// Make and return WatchThread
+		PlayoffWatchGameDayThread gdt = new PlayoffWatchGameDayThread(nhlBot, gameTracker, guild, messageChannel, meta);
 		if (gdt.channel != null) {
 			gdt.start();
 		} else {
-			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}", guild.getId().asLong());
+			LOGGER.warn("GameDayChannel not started. `messageChannel` was null. guild={}", guildId);
 		}
 		return gdt;
 	}
@@ -60,6 +107,7 @@ public class PlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 		loadMetadata();
 		initSummaryMessage();
 		updateSummaryMessage();
+		saveMetadata();
 	}
 
 	@Override

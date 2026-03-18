@@ -74,6 +74,8 @@ public class PlayoffWatchSummaryUpdater extends Thread {
 				MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(newSummaryMessageEmbed).build();
 				DiscordManager.updateMessage(summaryMessage, messageSpec);
 			}
+		} else {
+			summaryMessage = getSummaryMessage();
 		}
 	}
 
@@ -226,7 +228,7 @@ public class PlayoffWatchSummaryUpdater extends Thread {
 		return strBuilder;
 	}
 
-	private void saveMetadata() {
+	void saveMetadata() {
 		nhlBot.getPersistentData().getPlayoffWatchMetaData().save(meta);
 	}
 

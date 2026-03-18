@@ -1,11 +1,8 @@
 package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,26 +37,25 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 
 
 	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-			GuildPreferences preferences, GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, textChannel, preferences, meta);
+		GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, textChannel, meta);
 	}
 
 	public static NHLGameDayChannelThread get(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
-		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
+		long guildId = guild.getId().asLong();
+		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
 		TextChannel textChannel = getTextChannel(guild, gameTracker.getGame(), nhlBot, preferences);
 		GDCMeta meta = null;
 		if (textChannel != null) {
-			meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
-				textChannel.getId().asLong(),
-				gameTracker.getGame().getGameId()
-			);
+			long channelId = textChannel.getId().asLong();
+			int gameId = gameTracker.getGame().getGameId();
+			meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(channelId, gameId);
 			if (meta == null) {
-				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
+				meta = GDCMeta.forChannel(channelId, gameId);
 			}
 		}
 		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel,
-				preferences, meta);
+			meta);
 
 		if (gameDayChannel.channel != null) {
 			gameDayChannel.start();
@@ -70,7 +66,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		return gameDayChannel;
 	}
 
-	static TextChannel getTextChannel(Guild guild, Game game, NHLBot nhlBot, GuildPreferences preferences) {
+	protected static TextChannel getTextChannel(Guild guild, Game game, NHLBot nhlBot, GuildPreferences preferences) {
 		TextChannel channel = null;
 		try {
 			String channelName = game.getNiceName();
@@ -111,6 +107,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		initIntroMessage();
 		initSummaryMessage();
 		updateSummaryMessage();
+		saveMetadata();
 	}
 
 	@Override
@@ -165,10 +162,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 
 	protected void sendCustomStartMessage() {
 		try {
-			List<Team> teams = preferences.getTeams();
-			if (teams.size() > 1)
-				return;
-			String message = CustomGameMessages.getStartGameMessage(game, teams.get(0));
+			String message = CustomGameMessages.getStartGameMessage(game, Team.VANCOUVER_CANUCKS);
 			if (channel != null && message != null) {
 				sendMessage(message);
 			}
@@ -212,26 +206,16 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected String buildEndOfGameMessage() {
 		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
 
-		List<Game> nextGames = preferences.getTeams().stream()
-				.map(team -> nhlBot.getNHLGameScheduler().getNextGame(team)).filter(Objects::nonNull)
-				.collect(Collectors.toList());
-
-		if (!nextGames.isEmpty()) {
-			if (nextGames.size() > 1) {
-
-			} else {
-				message += "\nThe next game is: " + buildDetailsMessage(nextGames.get(0));
-			}
+		Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(Team.VANCOUVER_CANUCKS);
+		if (nextGame != null) {
+			message += "\nThe next game is: " + buildDetailsMessage(nextGame);
 		}
 		return message;
 	}
 
 	protected void sendCustomEndMessage() {
 		try {
-			List<Team> teams = preferences.getTeams();
-			if (teams.size() > 1)
-				return;
-			String message = CustomGameMessages.getEndGameMessage(game, teams.get(0));
+			String message = CustomGameMessages.getEndGameMessage(game, Team.VANCOUVER_CANUCKS);
 			if (channel != null && message != null) {
 				sendMessage(message);
 			}

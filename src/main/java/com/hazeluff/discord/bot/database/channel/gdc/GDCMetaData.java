@@ -31,7 +31,11 @@ public class GDCMetaData extends DatabaseManager {
 	 *            designated id for the message. e.g. "gameday-summary"
 	 * @return
 	 */
-	public GDCMeta loadMeta(long channelId, long gameId) {
-		return GDCMeta.findFromCollection(getCollection(), channelId, gameId);
+	public GDCMeta loadMetaByChannelId(long channelId, long gameId) {
+		return GDCMeta.findByChannelId(getCollection(), channelId, gameId);
+	}
+
+	public GDCMeta loadMetaByParentId(long threadParentChannelId, long gameId) {
+		return GDCMeta.findByParentId(getCollection(), threadParentChannelId, gameId);
 	}
 }

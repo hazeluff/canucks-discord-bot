@@ -8,7 +8,6 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
@@ -35,8 +34,8 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	protected final PenaltyMessagesManager penaltyMessages;
 
 	public NHLGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-			GuildPreferences preferences, GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, textChannel, preferences, meta);
+		GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, textChannel, meta);
 		this.gameTracker = gameTracker;
 		this.game = gameTracker.getGame();
 
@@ -62,6 +61,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 
 	protected void initChannel() {
 		loadMetadata();
+		saveMetadata();
 	}
 
 	@Override
@@ -94,11 +94,9 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		// Load Penalty Messages
 		this.penaltyMessages.initEventMessages(meta.getPenaltyMessageIds());
 		this.penaltyMessages.initEvents(game.getPenaltyEvents());
-
-		saveMetadata();
 	}
 
-	private void saveMetadata() {
+	protected void saveMetadata() {
 		nhlBot.getPersistentData().getGDCMetaData().save(meta);
 	}
 
@@ -138,7 +136,6 @@ public abstract class NHLGameDayThread extends GameDayThread {
 			if (message != null) {
 				DiscordManager.pinMessage(message);
 				meta.setIntroMessageId(message.getId().asLong());
-				saveMetadata();
 			}
 		}
 		return message;
@@ -220,7 +217,6 @@ public abstract class NHLGameDayThread extends GameDayThread {
 			if (message != null) {
 				DiscordManager.pinMessage(message);
 				meta.setSummaryMessageId(message.getId().asLong());
-				saveMetadata();
 			}
 		}
 		return message;

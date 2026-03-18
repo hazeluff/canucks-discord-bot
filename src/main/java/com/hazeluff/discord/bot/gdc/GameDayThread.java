@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.listener.IEventProcessor;
+import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
@@ -47,7 +47,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	
 	protected final Guild guild;
 	protected final MessageChannel channel;
-	protected final GuildPreferences preferences;
 	protected final GDCMeta meta;
 
 	protected Message introMessage;
@@ -56,13 +55,11 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 
 	protected AtomicBoolean started = new AtomicBoolean(false);
 
-	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, MessageChannel channel,
-			GuildPreferences preferences, GDCMeta meta) {
+	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, MessageChannel channel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
 		this.guild = guild;
 		this.channel = channel;
-		this.preferences = preferences;
 		this.meta = meta;
 	}
 
@@ -306,7 +303,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		switch (rndIdx) {
 		case 0:
 			// "<cheer>"
-			message = String.format(message, preferences.getCheer());
+			message = String.format(message, Team.VANCOUVER_CANUCKS.getCheer());
 		case 1:
 			// "Key to the game: <keys>."
 			message = String.format(message, Utils.getRandom(KEYS_TO_GAME));

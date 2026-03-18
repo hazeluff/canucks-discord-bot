@@ -102,7 +102,7 @@ public class NHLGameDayWatchChannel extends Thread {
 					Utils.sleep(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channel...");
-					updateChannel();
+					update();
 					lastUpdate = schedulerUpdate;
 				} else {
 					LOGGER.debug("Waiting for GameScheduler to update...");
@@ -115,7 +115,7 @@ public class NHLGameDayWatchChannel extends Thread {
 		}
 	}
 
-	public void updateChannel() {
+	public void update() {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
 		List<Team> teams = preferences.getTeams();
@@ -126,7 +126,7 @@ public class NHLGameDayWatchChannel extends Thread {
 			if (!game.getGameState().isFinished()) {
 				// Start/Maintain gdc if they have not finished.
 				if (!gameDayThreads.containsKey(gamePk)) {
-					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.get(nhlBot, channel, gameTracker, guild);
+					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.getOrCreate(nhlBot, channel, gameTracker, guild, true);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			} else {

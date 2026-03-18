@@ -13,13 +13,20 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class GuildPreferences {
 	private Set<Team> teams;
+	private Long gdcChannelId; // null - not set; 0 - individual games; otherwise - channel id of the gdc.
+	private boolean useChannelThreads; // gdcChannelId must be set;
+	// false - post updates in GDC Channel; true - send updates in GDC thread
 
 	public GuildPreferences() {
 		this.teams = new HashSet<>();
+		gdcChannelId = null;
+		useChannelThreads = false;
 	}
 
-	public GuildPreferences(Set<Team> teams) {
+	private GuildPreferences(Set<Team> teams, Long gdcChannelId, boolean useThreads) {
 		this.teams = teams;
+		this.gdcChannelId = gdcChannelId;
+		this.useChannelThreads = useThreads;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -31,7 +38,11 @@ public class GuildPreferences {
 			teams = new HashSet<>();
 		}
 
-		return new GuildPreferences(teams);
+		Long gdcChannelId = doc.getLong("gdcChannelId");
+
+		boolean useThreads = doc.getBoolean("useChannelThreads", false);
+
+		return new GuildPreferences(teams, gdcChannelId, useThreads);
 	}
 
 	public List<Team> getTeams() {
@@ -63,11 +74,33 @@ public class GuildPreferences {
 		}
 	}
 
+	public void setGameDayChannelId(Long channelId) {
+		this.gdcChannelId = channelId;
+	}
+
+	public Long getGameDayChannelId() {
+		return gdcChannelId;
+	}
+
+	public boolean isSingleNHLChannel() {
+		return gdcChannelId == null || gdcChannelId != 0;
+	}
+
+	public boolean isChannelPerNHLGame() {
+		return gdcChannelId != null && gdcChannelId.longValue() == 0;
+	}
+
+	public boolean isUseChannelThreads() {
+		return useChannelThreads;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((gdcChannelId == null) ? 0 : gdcChannelId.hashCode());
 		result = prime * result + ((teams == null) ? 0 : teams.hashCode());
+		result = prime * result + (useChannelThreads ? 1231 : 1237);
 		return result;
 	}
 
@@ -80,10 +113,17 @@ public class GuildPreferences {
 		if (getClass() != obj.getClass())
 			return false;
 		GuildPreferences other = (GuildPreferences) obj;
+		if (gdcChannelId == null) {
+			if (other.gdcChannelId != null)
+				return false;
+		} else if (!gdcChannelId.equals(other.gdcChannelId))
+			return false;
 		if (teams == null) {
 			if (other.teams != null)
 				return false;
 		} else if (!teams.equals(other.teams))
+			return false;
+		if (useChannelThreads != other.useChannelThreads)
 			return false;
 		return true;
 	}

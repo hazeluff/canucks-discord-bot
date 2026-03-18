@@ -10,7 +10,6 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.Game;
@@ -28,25 +27,22 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 	}
 
 	private FourNationsGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel channel,
-			GuildPreferences preferences, GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, preferences, meta);
+		GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, channel, meta);
 	}
 
 	public static FourNationsGameDayThread get(NHLBot nhlBot, TextChannel textChannel, NHLGameTracker gameTracker, Guild guild) {
-		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
 		GDCMeta meta = null;
 		if (textChannel != null) {
-			meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
-				textChannel.getId().asLong(),
-				gameTracker.getGame().getGameId()
-			);
+			long channelId = textChannel.getId().asLong();
+			int gameId = gameTracker.getGame().getGameId();
+			meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(channelId, gameId);
 			if (meta == null) {
-				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getGameId());
+				meta = GDCMeta.forChannel(channelId, gameId);
 			}
 		}
-		FourNationsGameDayThread gameDayChannel = new FourNationsGameDayThread(nhlBot, gameTracker, guild,
-				textChannel, preferences, meta);
+		FourNationsGameDayThread gameDayChannel = new FourNationsGameDayThread(nhlBot, gameTracker, guild, textChannel,
+			meta);
 
 		if (gameDayChannel.channel != null) {
 			gameDayChannel.start();
@@ -60,6 +56,7 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 	protected void initChannel() {
 		initSummaryMessage();
 		updateSummaryMessage();
+		saveMetadata();
 	}
 
 	@Override

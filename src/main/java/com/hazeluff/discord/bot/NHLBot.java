@@ -266,7 +266,7 @@ public class NHLBot extends Thread {
 		if (Config.isFourNationsEnabled()) {
 			LOGGER.info("Updating 'Four Nations' channels.");
 			getDiscordManager().getClient().getGuilds()
-					.subscribe(guild -> FourNationsWatchChannel.getOrCreateChannel(this, guild));
+					.subscribe(guild -> FourNationsWatchChannel.getOrCreate(this, guild));
 		}
 	}
 
@@ -274,14 +274,14 @@ public class NHLBot extends Thread {
 	private void initPlayoffWatchChannel() {
 		LOGGER.info("Updating 'NHL Playoff Watch' channels.");
 		getDiscordManager().getClient().getGuilds()
-				.subscribe(guild -> PlayoffWatchChannel.getOrCreateChannel(this, guild));
+				.subscribe(guild -> PlayoffWatchChannel.getOrCreate(this, guild));
 	}
 
 	private void initAHLWatchChannel() {
 		if (Config.isAHLChannelEnabled()) {
 			LOGGER.info("Updating 'AHL Watch' channels.");
 			getDiscordManager().getClient().getGuilds()
-					.subscribe(guild -> AHLWatchChannel.getOrCreateChannel(this, guild));
+					.subscribe(guild -> AHLWatchChannel.getOrCreate(this, guild));
 		}
 	}
 

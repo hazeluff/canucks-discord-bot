@@ -46,7 +46,7 @@ public class FourNationsWatchChannel extends Thread {
 		this.gameDayThreads = new ConcurrentHashMap<>();
 	}
 
-	public static FourNationsWatchChannel getOrCreateChannel(NHLBot nhlBot, Guild guild) {
+	public static FourNationsWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
 		long guildId = guild.getId().asLong();
 		if (channels.containsKey(guildId)) {
 			return channels.get(guildId);

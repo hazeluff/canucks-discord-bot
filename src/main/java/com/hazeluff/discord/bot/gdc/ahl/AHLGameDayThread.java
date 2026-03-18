@@ -17,7 +17,6 @@ import com.hazeluff.ahl.game.event.Player;
 import com.hazeluff.discord.ahl.AHLGameTracker;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
-import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.utils.DateUtils;
@@ -46,8 +45,8 @@ public class AHLGameDayThread extends GameDayThread {
 	protected final ShootoutMessagesManager shootoutMessages;
 
 	private AHLGameDayThread(NHLBot nhlBot, AHLGameTracker gameTracker, Guild guild, TextChannel channel,
-			GuildPreferences preferences, GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, preferences, meta);
+		GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, channel, meta);
 		this.gameTracker = gameTracker;
 		this.game = gameTracker.getGame();
 
@@ -62,20 +61,16 @@ public class AHLGameDayThread extends GameDayThread {
 	}
 
 	public static AHLGameDayThread get(NHLBot nhlBot, TextChannel textChannel, AHLGameTracker gameTracker, Guild guild) {
-		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(guild.getId().asLong());
 		GDCMeta meta = null;
 		if (textChannel != null) {
-			meta = nhlBot.getPersistentData().getGDCMetaData().loadMeta(
-				textChannel.getId().asLong(),
-				gameTracker.getGame().getId()
-			);
+			long channelId = textChannel.getId().asLong();
+			int gameId = gameTracker.getGame().getId();
+			meta = nhlBot.getPersistentData().getGDCMetaData().loadMetaByChannelId(channelId, gameId);
 			if (meta == null) {
-				meta = GDCMeta.of(textChannel.getId().asLong(), gameTracker.getGame().getId());
+				meta = GDCMeta.forChannel(channelId, gameId);
 			}
 		}
-		AHLGameDayThread gdt = new AHLGameDayThread(nhlBot, gameTracker, guild,
-				textChannel, preferences, meta);
+		AHLGameDayThread gdt = new AHLGameDayThread(nhlBot, gameTracker, guild, textChannel, meta);
 
 		// gdt.updateMessages(); // Uncomment to force messages to be sent (for testing)
 

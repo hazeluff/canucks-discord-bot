@@ -29,7 +29,7 @@ public class ConfigCommand extends Command {
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 				.name(getName())
-				.description("Configure the bot. Use this on your server.")
+				.description("Configure the bot. Use this on your own server.")
                 .build();
 	}
 
@@ -44,8 +44,8 @@ public class ConfigCommand extends Command {
 		return event.reply()
 				.withEphemeral(true)
 				.withContent("Select which configuration you want:\n"
-						+ "**Single** - All games will be created in a single channel `#game-day-watch` (default)\n"
-						+ "**Individual** - Each game will be created as a separate channel `#van-vs-edm-15-11-25`.\n"
+						+ "**Single Channel** - All games will be created in a single channel `#game-day-watch` (default)\n"
+						+ "**Individual Thread** - Each game will be created as a separate threads within #game-day-watch.\n"
 						+ "\tThe most recent, and next upcoming games are maintained as channels (max. 2 at a time).\n"
 						+ "\tOlder games/channels are deleted.")
 				.withComponents(buildNHLConfigComponent());
@@ -57,8 +57,8 @@ public class ConfigCommand extends Command {
 
 	private static TopLevelMessageComponent buildNHLConfigComponent() {
 		return ActionRow.of(
-			Button.secondary(SINGLE_BUTTON_ID, "Single"),
-			Button.secondary(THREAD_BUTTON_ID, "Individual")
+			Button.secondary(SINGLE_BUTTON_ID, "Single Channel"),
+			Button.secondary(THREAD_BUTTON_ID, "Individual Threads")
 		);
 	}
 }

@@ -100,6 +100,7 @@ public class SubscribeCommand extends Command {
 		}
 
 		// Dev-only (channel-per-game)
+		/*
 		if (Config.isDevGuild(guildId)) {
 			NHLGdcGuildManager manager = NHLGdcGuildManager.getManager(guildId);
 			if (manager == null) {
@@ -108,6 +109,7 @@ public class SubscribeCommand extends Command {
 				manager.updateChannels(pref);
 			}
 		}
+		*/
 	}
 
 	String buildSubscribedMessage(Guild guild, Team team) {

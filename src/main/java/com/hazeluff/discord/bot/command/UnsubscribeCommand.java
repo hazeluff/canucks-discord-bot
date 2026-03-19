@@ -143,7 +143,7 @@ public class UnsubscribeCommand extends Command {
 		} else if (channel != null) {
 			channel.update(pref);
 		}
-
+		/*
 		// Dev-only (channel-per-game)
 		if (Config.isDevGuild(guildId)) {
 			NHLGdcGuildManager manager = NHLGdcGuildManager.getManager(guildId);
@@ -155,6 +155,7 @@ public class UnsubscribeCommand extends Command {
 				manager.updateChannels(pref);
 			}
 		}
+		*/
 	}
 
 	static String buildUnsubscribeMessage(Team team) {

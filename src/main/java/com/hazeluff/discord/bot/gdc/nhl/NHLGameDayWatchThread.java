@@ -69,7 +69,7 @@ public class NHLGameDayWatchThread extends NHLGameDayThread {
 				Message message = DiscordManager.sendAndGetMessage(parentChannel, threadMsg);
 				if (message != null) {
 					StartThreadFromMessageRequest request = StartThreadFromMessageRequest.builder()
-						.name(game.getThreadName())
+						.name(GameDayThread.buildThreadTitle(game))
 						.build();
 					ThreadChannel threadChannel = DiscordManager.block(message.createPublicThread(request));
 					if (threadChannel != null) {

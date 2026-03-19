@@ -164,7 +164,6 @@ public class NHLGameDayWatchChannel extends Thread {
 	public void update(GuildPreferences preferences) {
 		List<Team> teams = preferences.getTeams();
 		boolean useThreads = preferences.isUseChannelThreads();
-
 		List<Game> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
 		for (Game game : games) {
 			int gamePk = game.getGameId();

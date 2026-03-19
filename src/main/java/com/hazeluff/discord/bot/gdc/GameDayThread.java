@@ -306,6 +306,27 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			);
 		return message;
 	}
+	
+	/**
+	 * Gets the message that NHLBot will respond with when queried about this game
+	 * 
+	 * @param game
+	 *            the game to get the message for
+	 * @param timeZone
+	 *            the time zone to localize to
+	 * 
+	 * @return message in the format: "The next game is:\n<br>
+	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
+	 */
+	public static String buildThreadTitle(Game game) {
+		String message = String.format(
+			"%s vs %s [%s]",
+			game.getHomeTeam().getFullName(), 
+			game.getAwayTeam().getFullName(),
+			game.getThreadDate()
+		);
+		return message;
+	}
 
 	public void sleepFor(long duration) {
 		try {

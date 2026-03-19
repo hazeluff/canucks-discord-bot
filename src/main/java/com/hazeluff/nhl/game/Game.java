@@ -77,6 +77,10 @@ public class Game {
 		return getStartTime().format(DateTimeFormatter.ofPattern("yy-MM-dd"));
 	}
 
+	public String getThreadDate() {
+		return getStartTime().format(DateTimeFormatter.ofPattern("MMM d yyyy"));
+	}
+
 	/**
 	 * Gets the date in the format "EEEE dd MMM yyyy"
 	 * 
@@ -101,16 +105,6 @@ public class Game {
 	public String getNiceName() {
 		String niceName = String.format(
 			"%.3s-vs-%.3s-%s", 
-			getHomeTeam().getCode(),
-			getAwayTeam().getCode(), 
-			getNiceShortDate()
-		);
-		return niceName.toLowerCase();
-	}
-
-	public String getThreadName() {
-		String niceName = String.format(
-			"%.3s-vs-%.3s %s", 
 			getHomeTeam().getCode(),
 			getAwayTeam().getCode(), 
 			getNiceShortDate()

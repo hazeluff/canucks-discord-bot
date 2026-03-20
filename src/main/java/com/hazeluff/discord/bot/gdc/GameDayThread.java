@@ -321,8 +321,8 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	public static String buildThreadTitle(Game game) {
 		String message = String.format(
 			"%s vs %s [%s]",
-			game.getHomeTeam().getFullName(), 
-			game.getAwayTeam().getFullName(),
+			game.getHomeTeam().getCode(), 
+			game.getAwayTeam().getCode(),
 			game.getThreadDate()
 		);
 		return message;

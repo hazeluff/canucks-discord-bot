@@ -45,7 +45,7 @@ public class ConfigCommand extends Command {
 				.withEphemeral(true)
 				.withContent("Select which configuration you want:\n"
 						+ "**Single Channel** - All games will be created in a single channel `#game-day-watch` (default)\n"
-						+ "**Individual Thread** - Each game will be created as a separate threads within #game-day-watch.\n"
+						+ "**Individual Threads** - Each game will be created as a separate threads within #game-day-watch.\n"
 						+ "\tThe most recent, and next upcoming games are maintained as channels (max. 2 at a time).\n"
 						+ "\tOlder games/channels are deleted.")
 				.withComponents(buildNHLConfigComponent());

@@ -92,38 +92,39 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		setThreadName();
 		LOGGER().info("Started thread.");
 
-		if (!gameTracker.isGameFinished()) {
-			initChannel(); // ## Overridable ##
-
-			// Wait until close to start of game
-			waitAndSendReminders();
-
-			// Game is close to starting. Poll at higher rate than previously
-			LOGGER().info("Game is about to start. Polling more actively.");
-			boolean alreadyStarted = waitForStart();
-
-			// Game has started
-			if (!alreadyStarted) {
-				LOGGER().info("Game is about to start!");
-				if (!isInterrupted()) {
-					_updateStart();
-				}
-			} else {
-				LOGGER().info("Game has already started.");
-			}
-
-			while (!gameTracker.isFinished() && !isInterrupted()) {
-				try {
-					updateActive(); // ## Overridable ##
-				} catch (Exception e) {
-					LOGGER().error("Exception occured while running.", e);
-				}
-				sleepFor(ACTIVE_POLL_RATE_MS);
-			}
-			_updateEnd(); // ## Overridable ##
-		} else {
+		if (gameTracker.isGameFinished()) {
 			LOGGER().info("Game is already finished");
+			return;
 		}
+
+		initChannel(); // ## Overridable ##
+
+		// Wait until close to start of game
+		waitAndSendReminders();
+
+		// Game is close to starting. Poll at higher rate than previously
+		LOGGER().info("Game is about to start. Polling more actively.");
+		boolean alreadyStarted = waitForStart();
+
+		// Game has started
+		if (!alreadyStarted) {
+			LOGGER().info("Game is about to start!");
+			if (!isInterrupted()) {
+				_updateStart();
+			}
+		} else {
+			LOGGER().info("Game has already started.");
+		}
+
+		while (!gameTracker.isFinished() && !isInterrupted()) {
+			try {
+				updateActive(); // ## Overridable ##
+			} catch (Exception e) {
+				LOGGER().error("Exception occured while running.", e);
+			}
+			sleepFor(ACTIVE_POLL_RATE_MS);
+		}
+		_updateEnd(); // ## Overridable ##
 	}
 
 	/*

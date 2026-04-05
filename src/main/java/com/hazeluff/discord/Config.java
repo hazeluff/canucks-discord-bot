@@ -68,16 +68,11 @@ public class Config {
 		"Je suis Canadien",
 		"Fuck the oilers",
 		"Fuck the leafs",
-		"\"I am not a cat\"",
+		"I am not a cat",
 		"Can't stop, won't stop",
 		"Operating from No Fun City",
 		"\"Follow your dreams. Listen to your heart. Obey your passion.\"", // Pat Quinn
 		"is at the combination hockey game and grocery store",
-		"Watching: The Lego Movie (2014)",
-		"Watching: Mewtwo Strikes Back (1999)",
-		"Playing: ULTRAKILL",
-		"Listening: Linkin Park - Meteora (2003)",
-		"Lucky Star",
 		"No items, Fox only, Final Destination",
 		"There's a creeper on the roof. LA-LA-LA-LA-LA",
 		"It was 4-1",
@@ -92,7 +87,8 @@ public class Config {
 		"Math is for blockers",
 		"Let It Rip!",
 		"Sell the team!",
-		"Canucks - NHL's 51st team!"
+		"Canucks - NHL's 51st team!",
+		"As for me, I like the team."
 	);
 
 	public static String GetCustomGDCStartMessage(Game game) {

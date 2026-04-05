@@ -17,36 +17,29 @@ public class FriendlyTopic extends Topic {
 	}
 
 	private static final List<String> replies = Arrays.asList(
-			"I hope you have a %s day.",
-			"May peace be with you.",
-			"Hi There. :kissing_heart:",
-			"Hey, How you doin'? :wink:",
-			"Bonjour",
-			"こんにちは",
-			"Hiya!",
-			"Hi, How's your day?",
-			"I'm glad you noticed me. :D", 
-			"Hi there!",
-			"Hi! Have you heard of the Church of Pettersson?",
-			"Hey now, you're a Brockstar. Get your skates on. Go play!",
-			"https://www.youtube.com/watch?v=ZZ5LpwO-An4", // HEYYEYAAEYAAAEYAEYAA
-			"Yes, boss.",
-			"Yo",
-			"Yo!"			
+		"I hope you have a %s day.",
+		"Feeling: `%s`", // good
+		"May peace be with you.",
+		"Hi There. :kissing_heart:",
+		"Hey, How you doin'? :wink:",
+		"Bonjour",
+		"你好",
+		"こんにちは",
+		"Hiya!",
+		"Hi, How's your day?",
+		"I'm glad you noticed me. :D", 
+		"Hi there!",
+		"Hi! Have you heard of the Church of Pettersson?",
+		"Hey now, you're a Brockstar. Get your skates on. Go play!",
+		"https://www.youtube.com/watch?v=ZZ5LpwO-An4", // HEYYEYAAEYAAAEYAEYAA
+		"Yes, boss.",
+		"Yo",
+		"Yo!"
 	);
 
 	private static final List<String> niceAdjectives = Arrays.asList(
-			"nice",
-			"wonderful",
-			"terrific",
-			"spectacular",
-			"radical",
-			"spledid",
-			"cromulent",
-			"awesome",
-			"ausgezeichnet",
-			"excellent",
-			"beautiful"
+		"nice", "wonderful", "terrific", "spectacular", "radical", "spledid", "cromulent", "awesome", "ausgezeichnet",
+		"excellent", "beautiful", "funky"
 	);
 
 	@Override
@@ -56,6 +49,9 @@ public class FriendlyTopic extends Topic {
 		switch(randIdx)
 		{
 		case 0:
+			reply = String.format(reply, Utils.getRandom(niceAdjectives));
+			break;
+		case 1:
 			reply = String.format(reply, Utils.getRandom(niceAdjectives));
 			break;
 		}

@@ -16,47 +16,46 @@ public class LovelyTopic extends Topic {
 	}
 
 	private static final List<String> replies = Arrays.asList(
-			"I %s %s.",
-			"Take me out to dinner? :%s:",
-			"How about drinks? :%s:",
-			"Love you too.",
-			"<3",
-			"Baka",
-			"UwU",
-			":blush:",
-			":wink:",
-			"I think it's better we stay friends...",
-			":heart_eyes:",
-			":heart_eyes_cat:",
-			"Thanks.",
-			"Thank you, come again.",
-			"b-b-b-baka",
-			"This will not buy you favors with the mods.",
-			"Meet you by the dumpsters behind Wendy's.",
-			"If you want to be my lover, you gotta get with my friends.",
-			"I'm just a clanker."			
+		"I %s %s.",
+		"Take me out to dinner? :%s:",
+		"How about drinks? :%s:",
+		"Love you too.",
+		"<3",
+		"Baka",
+		"UwU",
+		":blush:",
+		":wink:",
+		"I think it's better we stay friends...",
+		":heart_eyes:",
+		":heart_eyes_cat:",
+		"Thanks.",
+		"Thank you, come again.",
+		"b-b-b-baka",
+		"This will not buy you favors with the mods.",
+		"Meet you by the dumpsters behind Wendy's.",
+		"If you want to be my lover, you gotta get with my friends.",
+		"I'm just a clanker."
 	);
 	
 	private static final List<String> waysToLike = Arrays.asList(
-			"like", "love", "enjoy", "am a enjoyer of", "appreciate"
+		"like", "love", "enjoy", "am a enjoyer of", "appreciate"
 	);
 	
 	private static final List<String> thingsToLike = Arrays.asList(
-			"everyone", "Hazeluff", "turtles", "cats", "dogs", "food", "cooking", "sewing", "money", "Pokemon",
-			"Magic: The Gathering", "YuGiOh", "Canada", "hockey", "Green Day", "Linkin Park", "Eminem", "Hatsune Miku",
-			"freedom", "GorillaZ", "Wu Tang Clan", "Bahn Mi", "Star Kebab", "Dick's", "going to Japan", "video games",
-			"Minecraft", "UltraKill", "Dota2", "Starcraft", "Warcraft", "onii-chan", "onee-chan", "the cool shoe shine",
-			"pumped up kicks", "WoW", "420", "69", "Batman", "Spiderman", "The Spirit"
+		"everyone", "Hazeluff", "turtles", "cats", "dogs", "food", "cooking", "sewing", "money", "Pokemon",
+		"Magic: The Gathering", "YuGiOh", "Canada", "hockey", "Green Day", "Linkin Park", "Eminem", "Hatsune Miku",
+		"freedom", "GorillaZ", "Wu Tang Clan", "Bahn Mi", "Star Kebab", "Dick's", "going to Japan", "video games",
+		"Minecraft", "UltraKill", "Dota2", "Starcraft", "Warcraft", "onii-chan", "onee-chan", "the cool shoe shine",
+		"pumped up kicks", "WoW", "420", "69", "Batman", "Spiderman", "The Spirit"
 	);
 
 	private static final List<String> foodEmojis = Arrays.asList(
-			"hotdog", "hamburger", "fries", "ramen", "dogs", "bagel", "pancake", "pizza", "stuffed_pita", "burrito",
-			"onigiri", "curry", "sushi", "spaghetti", "icecream", "cake", "donut", "takeout_box", "bento",
-			"meat_on_bone"
+		"hotdog", "hamburger", "fries", "ramen", "dogs", "bagel", "pancake", "pizza", "stuffed_pita", "burrito",
+		"onigiri", "curry", "sushi", "spaghetti", "icecream", "cake", "donut", "takeout_box", "bento", "meat_on_bone"
 	);
 
 	private static final List<String> drinkEmojis = Arrays.asList(
-			"beer", "bubble_tea", "whiskey", "champagne", "sake"
+		"beer", "bubble_tea", "whiskey", "champagne", "sake"
 	);
 	
 	@Override

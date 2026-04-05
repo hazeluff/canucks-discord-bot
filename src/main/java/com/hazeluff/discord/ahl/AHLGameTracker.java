@@ -67,14 +67,18 @@ public class AHLGameTracker extends Thread implements GameTracker {
 	}
 
 	public void updateGame() {
-		BsonArray jsonPlayByPlay = AHLGateway.getGamePlayByPlay(this.game.getId());
-		if (jsonPlayByPlay != null) {
-			this.game.updatePlayByPlay(jsonPlayByPlay);
-		}
+		try {
+			BsonArray jsonPlayByPlay = AHLGateway.getGamePlayByPlay(this.game.getId());
+			if (jsonPlayByPlay != null) {
+				this.game.updatePlayByPlay(jsonPlayByPlay);
+			}
 
-		BsonDocument jsonSummary = AHLGateway.getGameSummary(this.game.getId());
-		if (jsonSummary != null) {
-			this.game.updateGameSummary(jsonSummary);
+			BsonDocument jsonSummary = AHLGateway.getGameSummary(this.game.getId());
+			if (jsonSummary != null) {
+				this.game.updateGameSummary(jsonSummary);
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Error occurred while updating game.", e);
 		}
 	}
 
@@ -96,8 +100,9 @@ public class AHLGameTracker extends Thread implements GameTracker {
 		setThreadName();
 		LOGGER.info("Started thread for [" + game.getId() + "]");
 
-		updateGame();
 		try {
+			updateGame();
+
 			if (!game.isFinished()) {
 				// Wait until close to start of game
 				LOGGER.info("Idling until near game start.");
@@ -159,6 +164,8 @@ public class AHLGameTracker extends Thread implements GameTracker {
 			} else {
 				LOGGER.info("Game is already finished");
 			}
+		} catch (Exception e) {
+			LOGGER.info("Error occurred.", e);
 		} finally {
 			gameTrackers.remove(game);
 			finished.set(true);

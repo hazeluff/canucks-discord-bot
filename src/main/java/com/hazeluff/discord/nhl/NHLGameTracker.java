@@ -66,19 +66,24 @@ public class NHLGameTracker extends Thread implements GameTracker {
 	}
 
 	public void updateGame() {
-		BsonDocument jsonPlayByPlay = NHLGateway.getPlayByPlay(this.game.getGameId());
-		if (jsonPlayByPlay != null) {
-			this.game.updatePlayByPlay(jsonPlayByPlay);
-		}
-		BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
-		if (jsonBoxScore != null) {
-			this.game.updateBoxScore(jsonBoxScore);
-		}
-		BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
-		if (jsonRightRail != null) {
-			this.game.updateRightRail(jsonRightRail);
+		try {
+			BsonDocument jsonPlayByPlay = NHLGateway.getPlayByPlay(this.game.getGameId());
+			if (jsonPlayByPlay != null) {
+				this.game.updatePlayByPlay(jsonPlayByPlay);
+			}
+			BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
+			if (jsonBoxScore != null) {
+				this.game.updateBoxScore(jsonBoxScore);
+			}
+			BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
+			if (jsonRightRail != null) {
+				this.game.updateRightRail(jsonRightRail);
+			}
+		} catch (Exception e) {
+			LOGGER.warn("Error occurred while updating game.", e);
 		}
 	}
+
 
 	@Override
 	public void start() {
@@ -162,6 +167,8 @@ public class NHLGameTracker extends Thread implements GameTracker {
 			} else {
 				LOGGER.info("Game is already finished");
 			}
+		} catch (Exception e) {
+			LOGGER.info("Error occurred.", e);
 		} finally {
 			gameTrackers.remove(game);
 			finished.set(true);

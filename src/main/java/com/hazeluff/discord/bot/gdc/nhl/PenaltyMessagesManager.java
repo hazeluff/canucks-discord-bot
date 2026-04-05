@@ -162,7 +162,7 @@ public class PenaltyMessagesManager {
 
 		RosterPlayer committedByPlayer = game.getPlayer(event.getCommittedByPlayerId());
 		if (committedByPlayer != null) {
-			description.append(committedByPlayer.getFullName());
+			description.append(committedByPlayer.getUniqueName());
 		}
 
 		description.append(String.format("\n**%s** - **%s** minutes",

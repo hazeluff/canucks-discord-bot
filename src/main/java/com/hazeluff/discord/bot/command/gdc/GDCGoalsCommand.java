@@ -103,18 +103,18 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 						.map(game::getPlayer)
 						.collect(Collectors.toList());
 				details.append(String.format("**%s** @ %s - **%-18s**", 
-						scorer.getTeam().getCode(), goalEvent.getPeriodTime(), scorer.getFullName()));
+					scorer.getTeam().getCode(), goalEvent.getPeriodTime(), scorer.getUniqueName()));
 				if (assists.size() > 0) {
 					details.append("  Assists: ");
-					details.append(assists.get(0).getFullName());
+					details.append(assists.get(0).getUniqueName());
 				}
 				if (assists.size() > 1) {
 					details.append(", ");
-					details.append(assists.get(1).getFullName());
+					details.append(assists.get(1).getUniqueName());
 				}
 			} else {
 				details.append(String.format("**%s** - **%-18s**", 
-						scorer.getTeam().getCode(), scorer.getFullName()));
+					scorer.getTeam().getCode(), scorer.getUniqueName()));
 			}
 		} else {
 			details.append(String.format("**%s** - (%-18s)", 

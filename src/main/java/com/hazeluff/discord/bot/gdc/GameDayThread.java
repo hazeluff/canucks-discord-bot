@@ -95,38 +95,41 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		setThreadName();
 		LOGGER().info("Started thread.");
 
-		if (!gameTracker.isGameFinished()) {
-			initChannel(); // ## Overridable ##
+		updateActive();
 
-			// Wait until close to start of game
-			waitAndSendReminders();
-
-			// Game is close to starting. Poll at higher rate than previously
-			LOGGER().info("Game is about to start. Polling more actively.");
-			boolean alreadyStarted = waitForStart();
-
-			// Game has started
-			if (!alreadyStarted) {
-				LOGGER().info("Game is about to start!");
-				if (!isInterrupted()) {
-					_updateStart();
-				}
-			} else {
-				LOGGER().info("Game has already started.");
-			}
-
-			while (!gameTracker.isFinished() && !isInterrupted()) {
-				try {
-					updateActive(); // ## Overridable ##
-				} catch (Exception e) {
-					LOGGER().error("Exception occured while running.", e);
-				}
-				sleepFor(ACTIVE_POLL_RATE_MS);
-			}
-			_updateEnd(); // ## Overridable ##
-		} else {
+		if (gameTracker.isGameFinished()) {
 			LOGGER().info("Game is already finished");
+			return;
 		}
+
+		initChannel(); // ## Overridable ##
+
+		// Wait until close to start of game
+		waitAndSendReminders();
+
+		// Game is close to starting. Poll at higher rate than previously
+		LOGGER().info("Game is about to start. Polling more actively.");
+		boolean alreadyStarted = waitForStart();
+
+		// Game has started
+		if (!alreadyStarted) {
+			LOGGER().info("Game is about to start!");
+			if (!isInterrupted()) {
+				_updateStart();
+			}
+		} else {
+			LOGGER().info("Game has already started.");
+		}
+
+		while (!gameTracker.isFinished() && !isInterrupted()) {
+			try {
+				updateActive(); // ## Overridable ##
+			} catch (Exception e) {
+				LOGGER().error("Exception occured while running.", e);
+			}
+			sleepFor(ACTIVE_POLL_RATE_MS);
+		}
+		_updateEnd(); // ## Overridable ##
 	}
 
 	/*
@@ -237,53 +240,53 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 	}
 
 	protected static final List<String> START_OF_GAME_MESSAGES = Arrays.asList(
-			"%s", // team cheer
-			"Key to the game: %s.",
-			"Get ready for your scheduled `%s`.",
-			"Predicted Score: `%s-%s %s %s`",
-			"Whale team `%s`",
-			"Sponsored by\\*: %s\n-# *not actually",
-			"Be Kind, Be Calm, Be Safe",
-			"Be woke, be cool, a calm spirit is smarter.",
-			"Get ready, go to the washroom, get your snacks, "
-					+ "get your drinks, get your ????, "
-					+ "get comfy, and watch us play.",
-			"I just hope everybody has fun.", 
-			"Good Luck; Have Fun.",
-			"No dooming.",
-			"Mods are not asleep.",
-			"Never Day Sie Team!",
-			"Be nice to each other."
+		"%s", // team cheer
+		"Key to the game: %s.",
+		"Get ready for your scheduled `%s`.",
+		"Predicted Score: `%s-%s %s %s`",
+		"Whale team `%s`",
+		"Sponsored by\\*: %s\n-# *not actually",
+		"Be Kind, Be Calm, Be Safe",
+		"Be woke, be cool, a calm spirit is smarter.",
+		"Get ready, go to the washroom, get your snacks, "
+			+ "get your drinks, get your ????, "
+			+ "get comfy, and watch us play.",
+		"I just hope everybody has fun.", 
+		"Good Luck; Have Fun.",
+		"No dooming.",
+		"Mods are not asleep.",
+		"Never Day Sie Team!",
+		"Be nice to each other."
 	);
 
 	protected static final List<String> KEYS_TO_GAME = Arrays.asList(
-			"Speed, Agility, Power", 
-			"Get pucks deep", 
-			"Get shots on net", 
-			"Finish hits", 
-			"Playing our own game", 
-			"Applying pressure",
-			"Play a complete 60 minute game",
-			"Get a good start",
-			"Block shots"
-	);
-
-	protected static final List<String> GAME_RESULTS = Arrays.asList(
-			"Good", "Bad", "Not Ok", "Ok", "Hanging On", "Dead Inside", "Despsarate", "Sucky", "Stimky", "Dieing",
-			"Trying", "Still belongs to Aqua"
+		"Speed, Agility, Power", 
+		"Get pucks deep", 
+		"Get shots on net", 
+		"Finish hits", 
+		"Playing our own game", 
+		"Applying pressure",
+		"Play a complete 60 minute game",
+		"Get a good start",
+		"Block shots"
 	);
 
 	protected static final List<String> TEAM_DESCRIPTIONS = Arrays.asList(
-			"Win", "Loss", "OTL", "SO Loss", "Misery",
-			"Dispointment", "Funtime", "Excitement", "Chaos", "SHUTOUT Win", "Injury", "Ref Contraversy",
-			"Getting Rekt", "Comeback"
+		"Good", "Bad", "Not Ok", "Ok", "Hanging On", "Dead Inside", "Despsarate", "Sucky", "Stimky", "Dieing",
+		"Trying", "still owned by Aqua", "Mid", "Average", "Acceptable", "Unaceptable", "Exciting"
+	);
+
+	protected static final List<String> GAME_RESULTS = Arrays.asList(
+		"Win", "Loss", "OTL", "SO Loss", "Misery",
+		"Dispointment", "Funtime", "Excitement", "Chaos", "SHUTOUT Win", "Injury", "Ref Contraversy",
+		"Getting Rekt", "Comeback", "Shootout Win"
 	);
 
 	protected static final List<String> SPONSORS = Arrays.asList(
-			"Hazeluff", "Tooo", "Aleks", "Khan", "The Devil", "Hockey Night In Canada", "PlayBetKings365Now",
-			"LIVE SPORTS! ESPN+ ORIGINALS!\n-# THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
-			"Mountain Dew Game Fuel + Doritos", "Your Tax Dollars", "Your Nitro Boosts! Boost TODAY (and forever)!",
-			"Your Hopes and Dreams", "Robux", "Vbucks", "Bitcoin", "NFTs"
+		"Hazeluff", "Tooo", "Aleks", "Khan", "The Devil", "Hockey Night In Canada", "PlayBetKings365Now",
+		"LIVE SPORTS! ESPN+ ORIGINALS!\n-# THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
+		"Mountain Dew Game Fuel + Doritos", "Your Tax Dollars", "Your Nitro Boosts! Boost TODAY (and forever)!",
+		"Your Hopes and Dreams", "Robux", "Vbucks", "Bitcoin", "NFTs"
 	);
 
 	protected static final String START_OF_GAME_MSG = "Game is about to start!";

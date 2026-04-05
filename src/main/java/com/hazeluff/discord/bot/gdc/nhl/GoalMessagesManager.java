@@ -236,17 +236,17 @@ public class GoalMessagesManager {
 		}
 		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 		Color embedColor = scorer != null
-				? scorer.getTeam().getColor()
-				: Color.WHITE;
+			? scorer.getTeam().getColor()
+			: Color.WHITE;
 		String scorerName = scorer != null
-				? scorer.getFullName()
-				: "¯\\_(ツ)_/¯";
+			? scorer.getUniqueName()
+			: "¯\\_(ツ)_/¯";
 
 		if (game.getGameType().isShootout(event.getPeriod())) {
 			return builder
-					.color(embedColor)
-					.addField(scorerName, "Shootout goal", false)
-					.footer("Shootout", null).build();
+			.color(embedColor)
+			.addField(scorerName, "Shootout goal", false)
+			.footer("Shootout", null).build();
 		} else {
 			String teamName = game.getGameType().isFourNations()
 					? event.getTeam().getLocationName()
@@ -257,11 +257,11 @@ public class GoalMessagesManager {
 					.collect(Collectors.toList());
 
 			String assists = assistPlayers.size() > 0
-					? " Assists: " + assistPlayers.get(0).getFullName()
-					: "(Unassisted)";
+				? " Assists: " + assistPlayers.get(0).getUniqueName()
+				: "(Unassisted)";
 
 			if (assistPlayers.size() > 1) {
-				assists += ", " + assistPlayers.get(1).getFullName();
+				assists += ", " + assistPlayers.get(1).getUniqueName();
 			}
 			String fAssists = assists;
 			String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();

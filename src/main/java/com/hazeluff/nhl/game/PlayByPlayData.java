@@ -3,6 +3,8 @@ package com.hazeluff.nhl.game;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -24,6 +26,8 @@ public class PlayByPlayData {
 
 	private final TeamStats homeStats;
 	private final TeamStats awayStats;
+
+	private Map<Integer, RosterPlayer> players;
 
 	PlayByPlayData(BsonDocument pbpJson, TeamStats homeStats, TeamStats awayStats) {
 		this.jsonPbp = new AtomicReference<>(pbpJson);
@@ -176,8 +180,40 @@ public class PlayByPlayData {
 	}
 
 	public Map<Integer, RosterPlayer> getPlayers() {
-		return parseRosterSpots(getJson().getArray("rosterSpots"));
+		if (players == null || players.isEmpty()) {
+			players = parseRosterSpots(getJson().getArray("rosterSpots"));
+			for (Integer playerId : getPlayersWithDuplicateNames(players)) {
+				players.get(playerId).setNameDuplication(true);
+			}
+		}
+
+		return players;
 	}
+
+	private List<Integer> getPlayersWithDuplicateNames(Map<Integer, RosterPlayer> players) {
+		List<Integer> duplication = new CopyOnWriteArrayList<>();
+		for (Entry<Integer, RosterPlayer> p1 : players.entrySet()) {
+			Integer p1Id = p1.getKey();
+			if (duplication.contains(p1Id))
+				continue;
+				
+			for (Entry<Integer, RosterPlayer> p2 : players.entrySet()) {
+				Integer p2Id = p2.getKey();
+				if (p1Id == p2Id)
+					continue;
+				
+				if (duplication.contains(p2Id))
+					continue;
+				
+				if(p1.getValue().getFullName().equals(p2.getValue().getFullName())) {
+					duplication.add(p1Id);
+					duplication.add(p2Id);
+				}
+			}
+		}
+		return duplication;
+	}
+
 
 	@Override
 	public int hashCode() {

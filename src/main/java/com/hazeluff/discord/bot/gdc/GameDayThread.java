@@ -95,8 +95,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		setThreadName();
 		LOGGER().info("Started thread.");
 
-		updateActive();
-
 		if (gameTracker.isGameFinished()) {
 			LOGGER().info("Game is already finished");
 			return;

@@ -10,10 +10,10 @@
       </encoder>
     </appender>
     
-    <appender name="GameScheduler" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <file>logs/scheduler.log</file>
+    <appender name="NHLGameScheduler" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/nhl-scheduler.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/older/scheduler-%i.log.zip</fileNamePattern>
+        <fileNamePattern>logs/older/nhl-scheduler-%i.log.zip</fileNamePattern>
         <minIndex>1</minIndex>
         <maxIndex>2</maxIndex>
       </rollingPolicy>
@@ -25,10 +25,10 @@
       </encoder>
     </appender>
     
-    <appender name="GameDayChannelManager" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <file>logs/gdc-manager.log</file>
+    <appender name="AHLGameScheduler" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/ahl-scheduler.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/older/gdc-manager-%i.log.zip</fileNamePattern>
+        <fileNamePattern>logs/older/ahl-scheduler-%i.log.zip</fileNamePattern>
         <minIndex>1</minIndex>
         <maxIndex>2</maxIndex>
       </rollingPolicy>
@@ -40,10 +40,85 @@
       </encoder>
     </appender>
     
-    <appender name="NHLGateway" class="ch.qos.logback.core.rolling.RollingFileAppender">
-      <file>logs/nhl-gateway.log</file>
+    <appender name="NHLGDW" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/nhl-gdt-watch.log</file>
       <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
-        <fileNamePattern>logs/older/gdc-manager-%i.log.zip</fileNamePattern>
+        <fileNamePattern>logs/older/nhl-gdt-watch-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>5MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="NHLGDT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/nhl-gdt.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/nhl-gdt-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>5MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="NHLGDCManager" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/nhl-gdc-mngr.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/nhl-gdc-mngr-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>5MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="AHLGDW" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/ahl-gdt-watch.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/ahl-gdt-watch-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>5MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="AHLGDT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/ahl-gdt.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/ahl-gdt-%i.log.zip</fileNamePattern>
+        <minIndex>1</minIndex>
+        <maxIndex>2</maxIndex>
+      </rollingPolicy>
+      <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+        <maxFileSize>5MB</maxFileSize>
+      </triggeringPolicy>
+      <encoder>
+        <pattern>${pattern}</pattern>
+      </encoder>
+    </appender>
+    
+    <appender name="Gateway" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <file>logs/gateway.log</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+        <fileNamePattern>logs/older/gateway-%i.log.zip</fileNamePattern>
         <minIndex>1</minIndex>
         <maxIndex>2</maxIndex>
       </rollingPolicy>
@@ -115,28 +190,57 @@
       </encoder>
     </appender>
     
-    <logger name="com.hazeluff.discord.bot.gdc.GameDayChannelsManager" level="info" additivity="false">
+    <logger name="com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel" level="info" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="GameDayChannelManager"/>
+      <appender-ref ref="NHLGDW"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.nhl.GameScheduler" level="info" additivity="false">
+    <logger name="com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread" level="info" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="GameScheduler"/>
+      <appender-ref ref="NHLGDT"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.nhl.GameTracker" level="info" additivity="false">
+    <logger name="com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager" level="info" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="GameScheduler"/>
+      <appender-ref ref="NHLGDCManager"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="AHLGDW"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.bot.gdc.ahl.AHLGameDayThread" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="AHLGDT"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.nhl.NHLGameScheduler" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="NHLGameScheduler"/>
     </logger>
     
     <logger name="com.hazeluff.nhl.game.Game" level="info" additivity="false">
       <appender-ref ref="Console"/>
-      <appender-ref ref="GameScheduler"/>
+      <appender-ref ref="NHLGameScheduler"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.nhl.NHLGateway" level="info" additivity="false">
-      <appender-ref ref="NHLGateway"/>
+    <logger name="com.hazeluff.discord.ahl.AHLGameScheduler" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="AHLGameScheduler"/>
+    </logger>
+    
+    <logger name="com.hazeluff.ahl.game.Game" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="AHLGameScheduler"/>
+    </logger>
+    
+    <logger name="com.hazeluff.nhl.NHLGateway" level="info" additivity="false">
+      <appender-ref ref="Gateway"/>
+    </logger>
+    
+    <logger name="com.hazeluff.ahl.AHLGateway" level="info" additivity="false">
+      <appender-ref ref="Gateway"/>
     </logger>
     
     <logger name="com.hazeluff.discord.bot.ExceptionHandler" additivity="false">
@@ -152,11 +256,6 @@
     <logger name="com.hazeluff.discord.*" level="warn" additivity="false">
       <appender-ref ref="Console"/>
       <appender-ref ref="NHLBotError"/>
-    </logger>
-    
-    <logger name="com.kennycason.kumo.WordCloud" level="error" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="System"/>
     </logger>
     
     <root level="info">

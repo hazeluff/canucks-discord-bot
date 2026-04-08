@@ -17,7 +17,7 @@ import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
@@ -28,16 +28,15 @@ import discord4j.core.object.entity.channel.TextChannel;
  * This class is used to manage creating GDCs for a guild.<br/>
  * Channels are created for each "active" game the guild is subscribed to.
  */
-public class NHLGdcGuildManager extends Thread {
+public class NHLGdcGuildManager extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGdcGuildManager.class);
 
 	private final static Map<Long, NHLGdcGuildManager> managers = new ConcurrentHashMap<>();
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
-	// Poll for every 5 minutes - if the scheduler has updated
-	static final long UPDATE_RATE = 300000L;
-	static final long RETRY_RATE = 1800000L;
+	// Poll for every 30 minutes - if the scheduler has updated
+	static final long UPDATE_RATE = 1800000L;
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
@@ -102,18 +101,18 @@ public class NHLGdcGuildManager extends Thread {
 				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
-					Utils.sleep(INIT_UPDATE_RATE);
+					sleepFor(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channels...");
 					updateChannels();
 					lastUpdate = schedulerUpdate;
 				} else {
 					LOGGER.debug("Waiting for GameScheduler to update...");
-					Utils.sleep(UPDATE_RATE);
+					sleepFor(UPDATE_RATE);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
-				Utils.sleep(RETRY_RATE);
+				sleepFor(UPDATE_RATE);
 			}
 		}
 	}
@@ -267,14 +266,5 @@ public class NHLGdcGuildManager extends Thread {
 
 	boolean isGameActive(List<Team> teams, String channelName) {
 		return nhlBot.getNHLGameScheduler().isGameActive(teams, channelName);
-	}
-
-	/**
-	 * Used for stubbing the loop of {@link #run()} for tests.
-	 * 
-	 * @return
-	 */
-	boolean isStop() {
-		return false;
 	}
 }

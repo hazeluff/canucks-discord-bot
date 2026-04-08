@@ -16,7 +16,7 @@ import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
@@ -24,7 +24,7 @@ import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
 
-public class NHLGameDayWatchChannel extends Thread {
+public class NHLGameDayWatchChannel extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayWatchChannel.class);
 
 	public static final String CHANNEL_NAME = "game-day-watch";
@@ -33,7 +33,6 @@ public class NHLGameDayWatchChannel extends Thread {
 	static final long INIT_UPDATE_RATE = 5000L;
 	// Poll for every 30 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 1800000L;
-	static final long RETRY_RATE = 3600000L;
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
@@ -139,18 +138,18 @@ public class NHLGameDayWatchChannel extends Thread {
 				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
-					Utils.sleep(INIT_UPDATE_RATE);
+					sleepFor(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channel...");
 					update();
 					lastUpdate = schedulerUpdate;
 				} else {
 					LOGGER.debug("Waiting for GameScheduler to update...");
-					Utils.sleep(UPDATE_RATE);
+					sleepFor(UPDATE_RATE);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
-				Utils.sleep(RETRY_RATE);
+				sleepFor(UPDATE_RATE);
 			}
 		}
 	}
@@ -208,14 +207,5 @@ public class NHLGameDayWatchChannel extends Thread {
 
 		// Re-init the channels
 		update();
-	}
-
-	/**
-	 * Used for stubbing the loop of {@link #run()} for tests.
-	 * 
-	 * @return
-	 */
-	boolean isStop() {
-		return false;
 	}
 }

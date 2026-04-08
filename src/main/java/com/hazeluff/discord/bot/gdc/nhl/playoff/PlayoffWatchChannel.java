@@ -12,7 +12,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
-import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
@@ -20,7 +20,7 @@ import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
 
-public class PlayoffWatchChannel extends Thread {
+public class PlayoffWatchChannel extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchChannel.class);
 
 	public static final String CHANNEL_NAME = "playoffs-watch";
@@ -97,7 +97,7 @@ public class PlayoffWatchChannel extends Thread {
 				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
-					Utils.sleep(INIT_UPDATE_RATE);
+					sleepFor(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channels...");
 					try {
@@ -108,7 +108,7 @@ public class PlayoffWatchChannel extends Thread {
 					lastUpdate = schedulerUpdate;
 				} else {
 					LOGGER.debug("Waiting for GameScheduler to update...");
-					Utils.sleep(UPDATE_RATE);
+					sleepFor(UPDATE_RATE);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
@@ -156,14 +156,5 @@ public class PlayoffWatchChannel extends Thread {
 			}
 		}
 		*/
-	}
-
-	/**
-	 * Used for stubbing the loop of {@link #run()} for tests.
-	 * 
-	 * @return
-	 */
-	boolean isStop() {
-		return false;
 	}
 }

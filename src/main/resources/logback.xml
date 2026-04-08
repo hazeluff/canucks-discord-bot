@@ -195,14 +195,14 @@
       <appender-ref ref="NHLGDW"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread" level="info" additivity="false">
-      <appender-ref ref="Console"/>
-      <appender-ref ref="NHLGDT"/>
-    </logger>
-    
     <logger name="com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager" level="info" additivity="false">
       <appender-ref ref="Console"/>
       <appender-ref ref="NHLGDCManager"/>
+    </logger>
+    
+    <logger name="com.hazeluff.discord.bot.gdc.nhl" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="NHLGDT"/>
     </logger>
     
     <logger name="com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel" level="info" additivity="false">
@@ -210,7 +210,7 @@
       <appender-ref ref="AHLGDW"/>
     </logger>
     
-    <logger name="com.hazeluff.discord.bot.gdc.ahl.AHLGameDayThread" level="info" additivity="false">
+    <logger name="com.hazeluff.discord.bot.gdc.ahl" level="info" additivity="false">
       <appender-ref ref="Console"/>
       <appender-ref ref="AHLGDT"/>
     </logger>

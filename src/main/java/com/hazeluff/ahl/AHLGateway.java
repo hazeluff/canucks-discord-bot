@@ -83,6 +83,10 @@ public class AHLGateway {
 	}
 
 	public static BsonArray getSchedule(int team, int season, int month) {
+		if(team > 0)
+			LOGGER.info("Retrieving Season Schedule for team[{}]: season={}, month={}", team, season, month);
+		else
+			LOGGER.info("Retrieving Season Schedule: season={}, month={}", season, month);
 		try {
 			String strJsonBracket = fetchSchedule(team, season, month);
 			strJsonBracket = stripParentheses(strJsonBracket);

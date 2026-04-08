@@ -43,7 +43,6 @@ public class NHLGameDayWatchThread extends NHLGameDayThread {
 		int gameId = gameTracker.getGame().getGameId();
 
 		GDCMeta meta = null;
-
 		if (messageChannel == null) {
 			LOGGER.warn("messageChannel is null (no parent for Thread/no Channel). GameDayChannel not started. guild={}", guildId);
 			return new NHLGameDayWatchThread(nhlBot, gameTracker, guild, messageChannel, meta, useThreads);

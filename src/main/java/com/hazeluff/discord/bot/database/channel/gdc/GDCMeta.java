@@ -85,7 +85,9 @@ public class GDCMeta {
 
 	static GDCMeta findByParentId(MongoCollection<Document> collection, Long parentChannelId, long gameId) {
 		return findFromCollection(collection,
-			new Document().append(PARENT_CHANNEL_ID_KEY, parentChannelId).append(GAME_ID_KEY, gameId));
+			new Document()
+				.append(PARENT_CHANNEL_ID_KEY, parentChannelId)
+				.append(GAME_ID_KEY, gameId));
 	}
 
 	void saveToCollection(MongoCollection<Document> collection) {

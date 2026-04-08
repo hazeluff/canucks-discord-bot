@@ -41,6 +41,7 @@ public class NHLGameScheduler extends Thread {
 
 	// Poll for if the day has rolled over every 30 minutes
 	static final long UPDATE_RATE = 1800000L;
+	static final long RETRY_RATE = 300000L;
 
 	private Map<Integer, Game> games = new ConcurrentHashMap<>();
 	private AtomicBoolean init = new AtomicBoolean(false);
@@ -114,18 +115,19 @@ public class NHLGameScheduler extends Thread {
 		while (!isStop()) {
 			LOGGER.info("Checking for update [lastUpdate={}]", getLastUpdate().toString());
 			LocalDate today = Utils.getCurrentDate(Config.SERVER_ZONE);
-			if (today.compareTo(getLastUpdate()) > 0) {
-				LOGGER.info("New day detected [today={}]. Updating schedule and trackers...", today.toString());
-				try {
+			try {
+				if (today.compareTo(getLastUpdate()) > 0) {
+					LOGGER.info("New day detected [today={}]. Updating schedule and trackers...", today.toString());
 					updateGameSchedule();
 					updateTrackers();
 					lastUpdate.set(today);
 					LOGGER.info("Successfully updated games.");
-				} catch (Exception e) {
-					LOGGER.error("Error occured when updating games.", e);
 				}
+				Utils.sleep(UPDATE_RATE);
+			} catch (Exception e) {
+				LOGGER.error("Error occured when updating games.", e);
+				Utils.sleep(RETRY_RATE);
 			}
-			Utils.sleep(UPDATE_RATE);
 		}
 	}
 

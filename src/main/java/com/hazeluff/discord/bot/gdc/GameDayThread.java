@@ -14,12 +14,11 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.listener.IEventProcessor;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
-import discord4j.core.event.domain.Event;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
@@ -27,7 +26,7 @@ import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
 
-public abstract class GameDayThread extends Thread implements IEventProcessor {
+public abstract class GameDayThread extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameDayThread.class);
 
 	protected Logger LOGGER() {
@@ -100,25 +99,29 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			return;
 		}
 
-		initChannel(); // ## Overridable ##
+		// (Pre-Game) Init + Start of Game
+		try {
+			initChannel(); // ## Overridable ##
 
-		// Wait until close to start of game
-		waitAndSendReminders();
+			// Wait until close to start of game
+			waitAndSendReminders();
 
-		// Game is close to starting. Poll at higher rate than previously
-		LOGGER().info("Game is about to start. Polling more actively.");
-		boolean alreadyStarted = waitForStart();
+			// Game is close to starting. Poll at higher rate than previously
+			LOGGER().info("Game is about to start. Polling more actively.");
+			boolean alreadyStarted = waitForStart();
 
-		// Game has started
-		if (!alreadyStarted) {
-			LOGGER().info("Game is about to start!");
-			if (!isInterrupted()) {
-				_updateStart();
+			// Game has started
+			if (!alreadyStarted) {
+				LOGGER().info("Game is about to start!");
+				_updateStart(); // ## Override updateStart() ##
+			} else {
+				LOGGER().info("Game has already started.");
 			}
-		} else {
-			LOGGER().info("Game has already started.");
+		} catch (Exception e) {
+			LOGGER().error("Exception occured during start of Thread.", e);
 		}
 
+		// (In-Progress) Game Updates
 		while (!gameTracker.isFinished() && !isInterrupted()) {
 			try {
 				updateActive(); // ## Overridable ##
@@ -127,7 +130,9 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			}
 			sleepFor(ACTIVE_POLL_RATE_MS);
 		}
-		_updateEnd(); // ## Overridable ##
+
+		// (Post-Game)
+		_updateEnd(); // ## Override updateEnd() ##
 	}
 
 	/*
@@ -201,7 +206,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 				firstPass = false;
 				LOGGER().trace("Idling until near game start. Sleeping for [" + IDLE_POLL_RATE_MS + "]");
 
-				Utils.sleep(IDLE_POLL_RATE_MS);
+				sleepFor(IDLE_POLL_RATE_MS);
 			}
 		} while (!closeToStart && !isInterrupted());
 	}
@@ -227,7 +232,7 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 			started = gameTracker.isGameStarted();
 			if (!started && !isInterrupted()) {
 				LOGGER().trace("Game almost started. Sleeping for [" + ACTIVE_POLL_RATE_MS + "]");
-				Utils.sleep(ACTIVE_POLL_RATE_MS);
+				sleepFor(ACTIVE_POLL_RATE_MS);
 			}
 		} while (!started && !isInterrupted());
 		return alreadyStarted;
@@ -352,11 +357,6 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 		}
 	}
 
-	@Override
-	public void process(Event event) {
-		// Do Nothing
-	}
-
 	boolean isBotSelf(User user) {
 		return user.getId().equals(nhlBot.getDiscordManager().getId());
 	}
@@ -390,22 +390,5 @@ public abstract class GameDayThread extends Thread implements IEventProcessor {
 				time
 			);
 		return message;
-	}
-
-	public void sleepFor(long duration) {
-		try {
-			sleep(duration);
-		} catch (InterruptedException e) {
-			LOGGER.error("Sleep interupted");
-			interrupt();
-		}
-	}
-
-	/*
-	 * Thread Management
-	 */
-	@Override
-	public void interrupt() {
-		super.interrupt();
 	}
 }

@@ -15,7 +15,7 @@ import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.discord.utils.InterruptableThread;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -23,7 +23,7 @@ import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
 
-public class AHLWatchChannel extends Thread {
+public class AHLWatchChannel extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AHLWatchChannel.class);
 
 	private static final Team TEAM = Team.ABBY_NUCKS;
@@ -33,7 +33,6 @@ public class AHLWatchChannel extends Thread {
 	static final long INIT_UPDATE_RATE = 5000L;
 	// Poll for every 5 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 300000L;
-	static final long RETRY_RATE = 1800000L;
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
@@ -102,7 +101,7 @@ public class AHLWatchChannel extends Thread {
 				LocalDate schedulerUpdate = nhlBot.getAHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
-					Utils.sleep(INIT_UPDATE_RATE);
+					sleepFor(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channels...");
 					try {
@@ -113,11 +112,11 @@ public class AHLWatchChannel extends Thread {
 					lastUpdate = schedulerUpdate;
 				} else {
 					LOGGER.debug("Waiting for GameScheduler to update...");
-					Utils.sleep(UPDATE_RATE);
+					sleepFor(UPDATE_RATE);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
-				Utils.sleep(RETRY_RATE);
+				sleepFor(UPDATE_RATE);
 			}
 		}
 	}
@@ -202,14 +201,5 @@ public class AHLWatchChannel extends Thread {
 				}
 			}
 		}
-	}
-
-	/**
-	 * Used for stubbing the loop of {@link #run()} for tests.
-	 * 
-	 * @return
-	 */
-	boolean isStop() {
-		return false;
 	}
 }

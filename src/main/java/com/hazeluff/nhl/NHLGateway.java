@@ -172,7 +172,7 @@ public class NHLGateway {
 			String strBoxscore = fetchRawRightRail(gameId);
 			return BsonDocument.parse(strBoxscore);
 		} catch (HttpException e) {
-			LOGGER.error("Failed to get right rail for game: " + gameId);
+			LOGGER.error("Failed to get right-rail for game: " + gameId);
 			return null;
 		}
 	}

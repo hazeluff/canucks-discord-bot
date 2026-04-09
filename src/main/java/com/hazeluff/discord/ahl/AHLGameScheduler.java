@@ -28,6 +28,7 @@ import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.ahl.game.Game;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.ahl.AHLTeams.Team;
+import com.hazeluff.discord.bot.SchedulerException;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
 
@@ -154,12 +155,18 @@ public class AHLGameScheduler extends Thread {
 
 	static Map<Integer, Game> initAllRegularGames() {
 		LOGGER.info("Initializing All Regular Games...");
-		return buildGames(getRegularSeasonSchedule());
+		BsonArray jsonRegularScheduleGames = getRegularSeasonSchedule();
+		if (jsonRegularScheduleGames == null)
+			throw new RuntimeException("Could not fetch AHL Regular Schedule");
+		return buildGames(jsonRegularScheduleGames);
 	}
 
 	static Map<Integer, Game> initAllPlayoffGames() {
 		LOGGER.info("Initializing All Playoff Games...");
-		return buildGames(getPlayoffSeasonSchedule());
+		BsonArray jsonPlayoffScheduleGames = getPlayoffSeasonSchedule();
+		if (jsonPlayoffScheduleGames == null)
+			throw new RuntimeException("Could not fetch AHL Playoff Schedule");
+		return buildGames(jsonPlayoffScheduleGames);
 	}
 
 	static Map<Integer, Game> buildGames(BsonArray rawArray) {
@@ -211,17 +218,18 @@ public class AHLGameScheduler extends Thread {
 
 	void updateRegularGameSchedule() {
 		LOGGER.info("Updating regular game schedule.");
-		BsonArray jsonRegularScheduleGames = getRegularSeasonSchedule();
-		updateGamesMap(this.regularGames, jsonRegularScheduleGames);
+		updateGamesMap(this.regularGames, getRegularSeasonSchedule());
 	}
 
 	void updatePlayoffGameSchedule() {
 		LOGGER.info("Updating playoff game schedule.");
-		BsonArray jsonPlayoffScheduleGames = getPlayoffSeasonSchedule();
-		updateGamesMap(this.playoffGames, jsonPlayoffScheduleGames);
+		updateGamesMap(this.playoffGames, getPlayoffSeasonSchedule());
 	}
 
 	void updateGamesMap(Map<Integer, Game> games, BsonArray newGamesArray) {
+		if (newGamesArray == null)
+			throw new SchedulerException("`newGamesArray` was null");
+
 		newGamesArray.stream()
 			.map(BsonValue::asDocument)
 			.forEach(jsonScheduleGame -> {

@@ -110,9 +110,7 @@ public abstract class GameDayThread extends InterruptableThread {
 			// Game has started
 			if (!alreadyStarted) {
 				LOGGER().info("Game is about to start!");
-				if (!isInterrupted()) {
-					_updateStart();
-				}
+				_updateStart();
 			} else {
 				LOGGER().info("Game has already started.");
 			}

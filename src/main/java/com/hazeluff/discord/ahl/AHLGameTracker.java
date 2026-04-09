@@ -183,6 +183,7 @@ public class AHLGameTracker extends Thread implements GameTracker {
 	 * @return true, if this tracker is finished<br>
 	 *         false, otherwise
 	 */
+	@Override
 	public boolean isFinished() {
 		return finished.get();
 	}

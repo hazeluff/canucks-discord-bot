@@ -76,17 +76,17 @@ public class GDCCommand extends Command {
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		TextChannel channel = getChannel(event);
+		TextChannel textChannel = getTextChannel(event);
+		if (textChannel != null) {
+			if (textChannel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
+				// Not in game day channel
+				return reply(event, "GDC Commands not supported for Four Nations channel.", true);
+			}
 
-		if (channel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
-			// Not in game day channel
-			return reply(event, "GDC Commands not supported for Four Nations channel.", true);
-		}
-
-
-		if (!channel.getName().equals(NHLGameDayWatchChannel.CHANNEL_NAME)) {
-			// Not in game day channel
-			return reply(event, "GDC Commands must be used in a Game Day Channel.", true);
+			if (!textChannel.getName().equals(NHLGameDayWatchChannel.CHANNEL_NAME)) {
+				// Not in game day channel
+				return reply(event, "GDC Commands must be used in a Game Day Channel.", true);
+			}
 		}
 
 		List<Team> teams = nhlBot.getPersistentData().getPreferencesData()

@@ -3,6 +3,9 @@ package com.hazeluff.discord.bot.gdc.nhl;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
@@ -24,6 +27,12 @@ import discord4j.core.spec.MessageEditSpec;
 import discord4j.discordjson.possible.Possible;
 
 public abstract class NHLGameDayThread extends GameDayThread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayThread.class);
+
+	@Override
+	protected Logger LOGGER() {
+		return LOGGER;
+	}
 
 	protected final NHLGameTracker gameTracker;
 	protected final Game game;
@@ -261,21 +270,5 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		String message = getMatchupName();
 		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
 		return message;
-	}
-
-	/*
-	 * On Demand Actions
-	 */
-	/**
-	 * Used to update all messages/pins.
-	 */
-	public void refresh() {
-		try {
-			gameTracker.updateGame();
-			updateMessages();
-			updateSummaryMessage();
-		} catch (Exception e) {
-			LOGGER().error("Exception occured while refreshing.", e);
-		}
 	}
 }

@@ -181,14 +181,17 @@ public class NHLGameTracker extends Thread implements GameTracker {
 	 * @return true, if this tracker is finished<br>
 	 *         false, otherwise
 	 */
+	@Override
 	public boolean isFinished() {
 		return finished.get();
 	}
 
+	@Override
 	public boolean isGameFinished() {
 		return game.getGameState().isFinished();
 	}
 
+	@Override
 	public boolean isGameStarted() {
 		return game.getGameState().isStarted();
 	}

@@ -23,6 +23,7 @@ import discord4j.core.object.entity.Member;
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
@@ -228,8 +229,12 @@ public abstract class Command extends ReactiveEventAdapter {
 		return DiscordManager.block(event.getInteraction().getGuild());
 	}
 
-	protected TextChannel getChannel(ChatInputInteractionEvent event) {
+	protected TextChannel getTextChannel(ChatInputInteractionEvent event) {
 		return DiscordManager.block(event.getInteraction().getChannel().cast(TextChannel.class));
+	}
+
+	protected MessageChannel getChannel(ChatInputInteractionEvent event) {
+		return DiscordManager.block(event.getInteraction().getChannel().cast(MessageChannel.class));
 	}
 
 	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {

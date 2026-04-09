@@ -79,7 +79,7 @@ public class WordcloudCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		Guild guild = getGuild(event);
-		TextChannel channel = getChannel(event);
+		TextChannel channel = getTextChannel(event);
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!isOwner(guild, user)
 				&& !hasPermissions(guild, user, Arrays.asList(Permission.ADMINISTRATOR))) {

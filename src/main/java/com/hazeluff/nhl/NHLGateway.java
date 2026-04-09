@@ -114,14 +114,21 @@ public class NHLGateway {
 
 	// Interface
 	public static Map<Integer, BsonDocument> getAllTeamRawGames() {
-		Map<Integer, BsonDocument> allGames = new HashMap<>();
-		for (Team team : Team.values()) {
-			if (team.isNHLTeam()) {
-				Map<Integer, BsonDocument> teamGames = NHLGateway.getTeamRawGames(team, NHL_CURRENT_SEASON);
-				allGames.putAll(teamGames);
+		try {
+
+			Map<Integer, BsonDocument> allGames = new HashMap<>();
+			for (Team team : Team.values()) {
+				if (team.isNHLTeam()) {
+					Map<Integer, BsonDocument> teamGames = NHLGateway.getTeamRawGames(team, NHL_CURRENT_SEASON);
+					if (teamGames != null)
+						allGames.putAll(teamGames);
+				}
 			}
+			return allGames;
+		} catch (Exception e) {
+			LOGGER.error("Exception occured fetching raw games.", e);
+			return null;
 		}
-		return allGames;
 	}
 
 	public static Map<Integer, BsonDocument> getTeamRawGames(Team team, Season season) {
@@ -143,6 +150,7 @@ public class NHLGateway {
 			});
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
+			return null;
 		}
 		return games;
 	}

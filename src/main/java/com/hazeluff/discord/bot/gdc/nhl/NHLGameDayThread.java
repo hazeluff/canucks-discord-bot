@@ -3,6 +3,9 @@ package com.hazeluff.discord.bot.gdc.nhl;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
@@ -25,6 +28,12 @@ import discord4j.core.spec.MessageEditSpec;
 import discord4j.discordjson.possible.Possible;
 
 public abstract class NHLGameDayThread extends GameDayThread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameDayThread.class);
+
+	@Override
+	protected Logger LOGGER() {
+		return LOGGER;
+	}
 
 	protected final NHLGameTracker gameTracker;
 	protected final Game game;

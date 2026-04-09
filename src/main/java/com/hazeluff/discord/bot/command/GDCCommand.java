@@ -76,7 +76,7 @@ public class GDCCommand extends Command {
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		TextChannel channel = getChannel(event);
+		TextChannel channel = getTextChannel(event);
 		if (Config.isFourWatchChannelEnabled() && channel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
 			// Not in game day channel
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()

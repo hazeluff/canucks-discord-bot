@@ -46,7 +46,13 @@ public enum GameState {
 	}
 
 	public boolean isLive() {
-		return LIVE.equals(this);
+		switch (this) {
+		case LIVE:
+		case CRIT:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	public boolean isFinished() {

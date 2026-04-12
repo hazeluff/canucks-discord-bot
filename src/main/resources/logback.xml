@@ -248,6 +248,11 @@
       <appender-ref ref="SystemErr"/>
     </logger>
     
+    <logger name="com.hazeluff.discord.bot" level="info" additivity="false">
+      <appender-ref ref="Console"/>
+      <appender-ref ref="NHLBot"/>
+    </logger>
+    
     <logger name="com.hazeluff.discord" level="info" additivity="false">
       <appender-ref ref="Console"/>
       <appender-ref ref="NHLBot"/>

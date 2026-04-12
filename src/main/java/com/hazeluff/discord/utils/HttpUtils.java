@@ -7,8 +7,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -25,62 +23,16 @@ public class HttpUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
 
 	public static String get(URI uri) throws HttpException {
-		HttpClient client = HttpClientBuilder.create()
-			.setConnectionTimeToLive(5, TimeUnit.SECONDS)
-			.build();
-		HttpGet request = new HttpGet(uri);
-		HttpResponse response = null;
-		int retries = Config.HTTP_REQUEST_RETRIES;
-		int httpStatusCode = -1;
-		do {
-			try {
-				response = client.execute(request);
-				httpStatusCode = response == null ? -1 : response.getStatusLine().getStatusCode();
-			} catch (Throwable e) {
-				LOGGER.error("Failed to request page [" + uri.toString() + "]", e);
-			}
-		} while ((response == null || httpStatusCode != 200) && retries-- > 0);
-
-		if ((response == null || httpStatusCode != 200) && retries <= 0) {
-			String message = "Failed to get page after (" + Config.HTTP_REQUEST_RETRIES + ") retries.";
-			LOGGER.error(message);
-			throw new HttpException(message);
-		}
-
-		try {
-			BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
-			StringBuffer result = new StringBuffer();
-			String line = "";
-			while ((line = rd.readLine()) != null) {
-				result.append(line);
-			}
-			return result.toString();
-		} catch (Throwable e) {
-			LOGGER.error("Error reading response");
-			throw new HttpException(e);
-		}
-	}
-
-	public static String new_get(URI uri) throws HttpException {
 		int retries = Config.HTTP_REQUEST_RETRIES;
 		int httpStatusCode = -1;
 
 		CloseableHttpClient client = HttpClientBuilder.create()
-			.setDefaultSocketConfig(
-				SocketConfig.custom()
-					.setSoTimeout(10000)
-	                .build()
-            )
-			.setConnectionTimeToLive(10, TimeUnit.SECONDS)
-			.build();
+			.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(10000).build())
+			.setConnectionTimeToLive(10, TimeUnit.SECONDS).build();
 
 		HttpGet request = new HttpGet(uri);
-		RequestConfig requestConfig = RequestConfig.custom()
-			.setMaxRedirects(1)
-			.setSocketTimeout(10000)
-			.setConnectTimeout(10000)
-			.setConnectionRequestTimeout(10000)
-			.build();
+		RequestConfig requestConfig = RequestConfig.custom().setMaxRedirects(1).setSocketTimeout(10000)
+			.setConnectTimeout(10000).setConnectionRequestTimeout(10000).build();
 		request.setConfig(requestConfig);
 
 		BufferedReader br = null;
@@ -96,8 +48,10 @@ public class HttpUtils {
 					httpStatusCode = response == null ? -1 : response.getStatusLine().getStatusCode();
 				} catch (Throwable e) {
 					LOGGER.error("Failed to request page [" + uri.toString() + "]", e);
+					Utils.sleep(5000);
 				}
-				Utils.sleep(5000);
+				if (response == null || httpStatusCode != 200 && retries > 0)
+					Utils.sleep(5000);
 			} while ((response == null || httpStatusCode != 200) && retries-- > 0);
 
 			if ((response == null || httpStatusCode != 200) && retries <= 0) {

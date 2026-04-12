@@ -169,14 +169,9 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 				ZonedDateTime lastFinal = null;
 				boolean stopUpdates = false;
 				do {
-					if (game.getGameId() == 2025021275)
-						LOGGER.info("!TEST! UPDATE. finished={}", game.getGameState().isFinished());
 					try {
 						updateGame();
 
-						if (game.getGameId() == 2025021275)
-							LOGGER.info("!TEST! UPDATED. finished={},lastFinal={}", game.getGameState().isFinished(),
-								lastFinal);
 						// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
 						if (game.getGameState().isFinished()) {
 							if (lastFinal == null) {
@@ -192,8 +187,6 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 							LOGGER.debug("Game not finished.");
 						}
 
-						if (game.getGameId() == 2025021275)
-							LOGGER.info("!TEST! UPDATE END. finished={}", game.getGameState().isFinished());
 						sleepFor(ACTIVE_POLL_RATE_MS);
 					} catch (Exception e) {
 						LOGGER.error("Error occured while in main update loop.", e);

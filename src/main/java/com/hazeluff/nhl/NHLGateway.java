@@ -152,11 +152,7 @@ public class NHLGateway {
 
 	public static BsonDocument getPlayByPlay(int gameId) {
 		try {
-			if (gameId == 2025021275)
-				System.out.println("!TEST! getPlayByPlay");
 			String strPlayByPlay = fetchRawPlayByPlay(gameId);
-			if (gameId == 2025021275)
-				System.out.println("!TEST! getPlayByPlay fetched");
 			return BsonDocument.parse(strPlayByPlay);
 		} catch (Exception e) {
 			LOGGER.error("Failed to get play-by-play for game: " + gameId, e);

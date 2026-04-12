@@ -190,6 +190,9 @@ public class NHLGameScheduler extends Thread {
 		LOGGER.info("Updating game schedule.");
 
 		Map<Integer, BsonDocument> jsonFetchedGames = NHLGateway.getAllTeamRawGames();
+		if (jsonFetchedGames == null || jsonFetchedGames.isEmpty())
+			return;
+
 		jsonFetchedGames.entrySet().stream().forEach(jsonFetchedGame -> {
 			int gamePk = jsonFetchedGame.getKey();
 			BsonDocument jsonSchedule = jsonFetchedGame.getValue();

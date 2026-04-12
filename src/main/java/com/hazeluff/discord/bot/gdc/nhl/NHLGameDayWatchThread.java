@@ -104,6 +104,11 @@ public class NHLGameDayWatchThread extends NHLGameDayThread {
 	}
 
 	@Override
+	protected boolean isGameInit() {
+		return game.isInit();
+	}
+
+	@Override
 	protected void initChannel() {
 		loadMetadata();
 		initIntroMessage();

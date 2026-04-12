@@ -54,6 +54,11 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 	}
 
 	@Override
+	protected boolean isGameInit() {
+		return game.isInit();
+	}
+
+	@Override
 	protected void initChannel() {
 		initSummaryMessage();
 		updateSummaryMessage();

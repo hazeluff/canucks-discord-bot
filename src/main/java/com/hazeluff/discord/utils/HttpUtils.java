@@ -1,15 +1,20 @@
 package com.hazeluff.discord.utils;
 
 import java.io.BufferedReader;
-import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +25,9 @@ public class HttpUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
 
 	public static String get(URI uri) throws HttpException {
-		HttpClient client = HttpClientBuilder.create().build();
+		HttpClient client = HttpClientBuilder.create()
+			.setConnectionTimeToLive(5, TimeUnit.SECONDS)
+			.build();
 		HttpGet request = new HttpGet(uri);
 		HttpResponse response = null;
 		int retries = Config.HTTP_REQUEST_RETRIES;
@@ -29,28 +36,124 @@ public class HttpUtils {
 			try {
 				response = client.execute(request);
 				httpStatusCode = response == null ? -1 : response.getStatusLine().getStatusCode();
-			} catch (IOException e) {
+			} catch (Throwable e) {
 				LOGGER.error("Failed to request page [" + uri.toString() + "]", e);
 			}
 		} while ((response == null || httpStatusCode != 200) && retries-- > 0);
+
 		if ((response == null || httpStatusCode != 200) && retries <= 0) {
 			String message = "Failed to get page after (" + Config.HTTP_REQUEST_RETRIES + ") retries.";
 			LOGGER.error(message);
 			throw new HttpException(message);
 		}
 
-		BufferedReader rd;
 		try {
-			rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
 			StringBuffer result = new StringBuffer();
 			String line = "";
 			while ((line = rd.readLine()) != null) {
 				result.append(line);
 			}
 			return result.toString();
-		} catch (UnsupportedOperationException | IOException e) {
+		} catch (Throwable e) {
 			LOGGER.error("Error reading response");
 			throw new HttpException(e);
+		}
+	}
+
+	public static String new_get(URI uri) throws HttpException {
+		int retries = Config.HTTP_REQUEST_RETRIES;
+		int httpStatusCode = -1;
+
+		CloseableHttpClient client = HttpClientBuilder.create()
+			.setDefaultSocketConfig(
+				SocketConfig.custom()
+					.setSoTimeout(10000)
+	                .build()
+            )
+			.setConnectionTimeToLive(10, TimeUnit.SECONDS)
+			.build();
+
+		HttpGet request = new HttpGet(uri);
+		RequestConfig requestConfig = RequestConfig.custom()
+			.setMaxRedirects(1)
+			.setSocketTimeout(10000)
+			.setConnectTimeout(10000)
+			.setConnectionRequestTimeout(10000)
+			.build();
+		request.setConfig(requestConfig);
+
+		BufferedReader br = null;
+		InputStreamReader isr = null;
+		InputStream is = null;
+
+		CloseableHttpResponse response = null;
+
+		try {
+			do {
+				try {
+					response = client.execute(request);
+					httpStatusCode = response == null ? -1 : response.getStatusLine().getStatusCode();
+				} catch (Throwable e) {
+					LOGGER.error("Failed to request page [" + uri.toString() + "]", e);
+				}
+				Utils.sleep(5000);
+			} while ((response == null || httpStatusCode != 200) && retries-- > 0);
+
+			if ((response == null || httpStatusCode != 200) && retries <= 0) {
+				String message = "Failed to get page after (" + Config.HTTP_REQUEST_RETRIES + ") retries.";
+				LOGGER.error(message);
+				throw new HttpException(message);
+			}
+			is = response.getEntity().getContent();
+			isr = new InputStreamReader(is);
+			br = new BufferedReader(isr);
+			StringBuffer result = new StringBuffer();
+			String line = "";
+			BufferedReader rd = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+			while ((line = rd.readLine()) != null) {
+				result.append(line);
+			}
+			response.getEntity().getContent().close();
+			return result.toString();
+		} catch (Throwable e) {
+			throw new HttpException(e);
+		} finally {
+			try {
+				request.reset();
+			} catch (Throwable e) {
+				LOGGER.error("Error closing request", e);
+			}
+
+			try {
+				client.close();
+			} catch (Throwable e) {
+				LOGGER.error("Error closing client", e);
+			}
+
+			if (br != null) {
+				try {
+					br.close();
+				} catch (Throwable e) {
+					LOGGER.error("Error closing BufferedReader", e);
+				}
+			}
+
+			if (isr != null) {
+				try {
+					isr.close();
+				} catch (Throwable e) {
+					LOGGER.error("Error closing InputStreamReader", e);
+				}
+			}
+
+			if (is != null) {
+				try {
+					is.close();
+				} catch (Throwable e) {
+					LOGGER.error("Error closing InputStream", e);
+				}
+			}
 		}
 	}
 

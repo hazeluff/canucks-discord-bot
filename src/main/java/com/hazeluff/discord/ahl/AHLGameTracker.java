@@ -14,7 +14,7 @@ import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.ahl.game.Game;
 import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.discord.utils.InterruptableThread;
 
 /**
  * <p>
@@ -29,8 +29,13 @@ import com.hazeluff.discord.utils.Utils;
  * Events are sent as messages to the channels created.
  * </p>
  */
-public class AHLGameTracker extends Thread implements GameTracker {
+public class AHLGameTracker extends InterruptableThread implements GameTracker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AHLGameTracker.class);
+
+	@Override
+	protected Logger LOGGER() {
+		return LOGGER;
+	}
 
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
@@ -78,7 +83,7 @@ public class AHLGameTracker extends Thread implements GameTracker {
 				this.game.updateGameSummary(jsonSummary);
 			}
 		} catch (Exception e) {
-			LOGGER.warn("Error occurred while updating game.", e);
+			LOGGER.error("Error occurred while updating game.", e);
 		}
 	}
 
@@ -115,9 +120,9 @@ public class AHLGameTracker extends Thread implements GameTracker {
 					updateGame();
 					if (!closeToStart) {
 						LOGGER.trace("Idling until near game start. Sleeping for [" + IDLE_POLL_RATE_MS + "]");
-						Utils.sleep(IDLE_POLL_RATE_MS);
+						sleepFor(IDLE_POLL_RATE_MS);
 					}
-				} while (!closeToStart);
+				} while (!closeToStart && !isInterrupted());
 				LOGGER.info("Game is about to start. Polling more actively.");
 				// Game is close to starting. Poll at higher rate than previously
 				
@@ -127,9 +132,9 @@ public class AHLGameTracker extends Thread implements GameTracker {
 					updateGame();
 					started = game.isStarted();
 					if (!started) {
-						Utils.sleep(ACTIVE_POLL_RATE_MS);
+						sleepFor(ACTIVE_POLL_RATE_MS);
 					}
-				} while (!started);
+				} while (!started && !isInterrupted());
 				// - wait for start of game
 				
 				// Game has started
@@ -139,32 +144,37 @@ public class AHLGameTracker extends Thread implements GameTracker {
 				ZonedDateTime lastFinal = null;
 				boolean stopUpdates = false;
 				do {
-					updateGame();
+					try {
+						updateGame();
 
-					// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
-					if (game.isFinished()) {
-						if (lastFinal == null) {
-							LOGGER.debug("Game finished. Continuing polling...");
-							lastFinal = ZonedDateTime.now();
+						// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
+						if (game.isFinished()) {
+							if (lastFinal == null) {
+								LOGGER.debug("Game finished. Continuing polling...");
+								lastFinal = ZonedDateTime.now();
+							}
+							long timeAfterFinal = DateUtils.diffMs(lastFinal, ZonedDateTime.now());
+							LOGGER.debug("Game finished. timeAfterFinal={}(ms)", timeAfterFinal);
+
+							stopUpdates = timeAfterFinal > POST_GAME_UPDATE_DURATION;
+						} else {
+							lastFinal = null;
+							LOGGER.debug("Game not finished.");
 						}
-						long timeAfterFinal = DateUtils.diffMs(lastFinal, ZonedDateTime.now());
-						LOGGER.debug("Game finished. timeAfterFinal={}(ms)", timeAfterFinal);
 
-						stopUpdates = timeAfterFinal > POST_GAME_UPDATE_DURATION;
-					} else {
-						lastFinal = null;
-						LOGGER.debug("Game not finished.");
+						sleepFor(ACTIVE_POLL_RATE_MS);
+					} catch (Exception e) {
+						LOGGER.error("Error occured while in main update loop.", e);
+						sleepFor(ACTIVE_POLL_RATE_MS);
 					}
-
-					Utils.sleep(ACTIVE_POLL_RATE_MS);
-				} while (!stopUpdates);
+				} while (!stopUpdates && !isInterrupted());
 				// - main update loop
 				
 				LOGGER.info("Game thread finished");
 			} else {
 				LOGGER.info("Game is already finished");
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOGGER.info("Error occurred.", e);
 		} finally {
 			gameTrackers.remove(game);

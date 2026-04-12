@@ -74,12 +74,15 @@ public class NHLGateway {
 	// Fetchers
 	static String fetchRawGames(Team team, Season season) throws HttpException {
 		URI uri = HttpUtils.buildUri(getClubScheduleSeasonUrl(team.getCode(), season.getStartYear()));
-		return HttpUtils.getAndRetry(uri, 2, 10000l, "Get Raw Games: team=" + team + ", season=" + season);
+		String result = HttpUtils.get(uri);
+		return result;
 	}
 
 	static String fetchRawPlayByPlay(int gameId) throws HttpException {
-		URI uri = HttpUtils.buildUri(getPlayByPlayUrl(gameId));
-		return HttpUtils.get(uri);
+		String url = getPlayByPlayUrl(gameId);
+		URI uri = HttpUtils.buildUri(url);
+		String result = HttpUtils.get(uri);
+		return result;
 	}
 
 	static String fetchRawBoxScore(int gameId) throws HttpException {
@@ -149,20 +152,24 @@ public class NHLGateway {
 
 	public static BsonDocument getPlayByPlay(int gameId) {
 		try {
+			if (gameId == 2025021275)
+				System.out.println("!TEST! getPlayByPlay");
 			String strPlayByPlay = fetchRawPlayByPlay(gameId);
+			if (gameId == 2025021275)
+				System.out.println("!TEST! getPlayByPlay fetched");
 			return BsonDocument.parse(strPlayByPlay);
-		} catch (HttpException e) {
-			LOGGER.error("Failed to get play-by-play for game: " + gameId);
+		} catch (Exception e) {
+			LOGGER.error("Failed to get play-by-play for game: " + gameId, e);
 			return null;
 		}
 	}
 
 	public static BsonDocument getBoxScore(int gameId) {
 		try {
-			String strBoxscore = fetchRawPlayByPlay(gameId);
+			String strBoxscore = fetchRawBoxScore(gameId);
 			return BsonDocument.parse(strBoxscore);
-		} catch (HttpException e) {
-			LOGGER.error("Failed to get boxscore for game: " + gameId);
+		} catch (Exception e) {
+			LOGGER.error("Failed to get boxscore for game: " + gameId, e);
 			return null;
 		}
 	}
@@ -171,8 +178,8 @@ public class NHLGateway {
 		try {
 			String strBoxscore = fetchRawRightRail(gameId);
 			return BsonDocument.parse(strBoxscore);
-		} catch (HttpException e) {
-			LOGGER.error("Failed to get right-rail for game: " + gameId);
+		} catch (Exception e) {
+			LOGGER.error("Failed to get right-rail for game: " + gameId, e);
 			return null;
 		}
 	}
@@ -191,7 +198,7 @@ public class NHLGateway {
 					.collect(Collectors.toList());
 			return new TeamPlayerStats(goalies, skaters);
 		} catch (HttpException e) {
-			LOGGER.error("Failed to get team stats: team=" + team + ", season=" + season);
+			LOGGER.error("Failed to get team stats: team=" + team + ", season=" + season, e);
 			return null;
 		}
 	}

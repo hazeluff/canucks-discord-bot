@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.discord.utils.Utils;
+import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.game.Game;
 
@@ -28,8 +28,13 @@ import com.hazeluff.nhl.game.Game;
  * Events are sent as messages to the channels created.
  * </p>
  */
-public class NHLGameTracker extends Thread implements GameTracker {
+public class NHLGameTracker extends InterruptableThread implements GameTracker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLGameTracker.class);
+
+	@Override
+	protected Logger LOGGER() {
+		return LOGGER;
+	}
 
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
@@ -66,21 +71,37 @@ public class NHLGameTracker extends Thread implements GameTracker {
 	}
 
 	public void updateGame() {
+		if (game.getGameId() == 2025021275)
+			System.out.println("========");
 		try {
+			if (game.getGameId() == 2025021275)
+				System.out.println("!TEST! pbp");
 			BsonDocument jsonPlayByPlay = NHLGateway.getPlayByPlay(this.game.getGameId());
+			if (game.getGameId() == 2025021275)
+				System.out.println("!TEST! pbp fetched");
 			if (jsonPlayByPlay != null) {
 				this.game.updatePlayByPlay(jsonPlayByPlay);
 			}
+			if (game.getGameId() == 2025021275)
+				System.out.println("!TEST! pbp updated");
+		} catch (Throwable e) {
+			LOGGER.error("Error occurred while updating play-by-play.", e);
+		}
+		try {
 			BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
 			if (jsonBoxScore != null) {
 				this.game.updateBoxScore(jsonBoxScore);
 			}
+		} catch (Throwable e) {
+			LOGGER.error("Error occurred while updating box-score.", e);
+		}
+		try {
 			BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
 			if (jsonRightRail != null) {
 				this.game.updateRightRail(jsonRightRail);
 			}
-		} catch (Exception e) {
-			LOGGER.warn("Error occurred while updating game.", e);
+		} catch (Throwable e) {
+			LOGGER.error("Error occurred while updating right-rail.", e);
 		}
 	}
 
@@ -104,7 +125,21 @@ public class NHLGameTracker extends Thread implements GameTracker {
 		LOGGER.info("Started thread for [" + game.getGameId() + "]");
 
 		try {
-			updateGame();
+			int retries = 3;
+			while (retries > 0 && !game.isInit()) {
+				try {
+					updateGame();
+				} catch (Throwable e) {
+					LOGGER.warn("Error initializing game.", e);
+					sleepFor(5000);
+				}
+				retries--;
+			}
+
+			if (!game.isInit()) {
+				throw new RuntimeException("Failed to initialize Game[" + game.getGameId() + "] properly.");
+			}
+			LOGGER.info("Thread initialized for [" + game.getGameId() + "]");
 
 			if (!game.getGameState().isFinished()) {
 				// Wait until close to start of game
@@ -118,9 +153,9 @@ public class NHLGameTracker extends Thread implements GameTracker {
 					updateGame();
 					if (!closeToStart) {
 						LOGGER.trace("Idling until near game start. Sleeping for [" + IDLE_POLL_RATE_MS + "]");
-						Utils.sleep(IDLE_POLL_RATE_MS);
+						sleepFor(IDLE_POLL_RATE_MS);
 					}
-				} while (!closeToStart);
+				} while (!closeToStart && !isInterrupted());
 				LOGGER.info("Game is about to start. Polling more actively.");
 				// Game is close to starting. Poll at higher rate than previously
 				
@@ -130,9 +165,9 @@ public class NHLGameTracker extends Thread implements GameTracker {
 					updateGame();
 					started = game.getGameState().isStarted();
 					if (!started) {
-						Utils.sleep(ACTIVE_POLL_RATE_MS);
+						sleepFor(ACTIVE_POLL_RATE_MS);
 					}
-				} while (!started);
+				} while (!started && !isInterrupted());
 				// - wait for start of game
 				
 				// Game has started
@@ -142,37 +177,49 @@ public class NHLGameTracker extends Thread implements GameTracker {
 				ZonedDateTime lastFinal = null;
 				boolean stopUpdates = false;
 				do {
-					updateGame();
+					if (game.getGameId() == 2025021275)
+						LOGGER.info("!TEST! UPDATE. finished={}", game.getGameState().isFinished());
+					try {
+						updateGame();
 
-					// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
-					if (game.getGameState().isFinished()) {
-						if (lastFinal == null) {
-							LOGGER.debug("Game finished. Continuing polling...");
-							lastFinal = ZonedDateTime.now();
+						if (game.getGameId() == 2025021275)
+							LOGGER.info("!TEST! UPDATED. finished={},lastFinal={}", game.getGameState().isFinished(),
+								lastFinal);
+						// Loop terminates when the GameStatus is Final and 10 minutes has elapsed
+						if (game.getGameState().isFinished()) {
+							if (lastFinal == null) {
+								LOGGER.debug("Game finished. Continuing polling...");
+								lastFinal = ZonedDateTime.now();
+							}
+							long timeAfterFinal = DateUtils.diffMs(lastFinal, ZonedDateTime.now());
+							LOGGER.debug("Game finished. timeAfterFinal={}(ms)", timeAfterFinal);
+
+							stopUpdates = timeAfterFinal > POST_GAME_UPDATE_DURATION;
+						} else {
+							lastFinal = null;
+							LOGGER.debug("Game not finished.");
 						}
-						long timeAfterFinal = DateUtils.diffMs(lastFinal, ZonedDateTime.now());
-						LOGGER.debug("Game finished. timeAfterFinal={}(ms)", timeAfterFinal);
 
-						stopUpdates = timeAfterFinal > POST_GAME_UPDATE_DURATION;
-					} else {
-						lastFinal = null;
-						LOGGER.debug("Game not finished.");
+						if (game.getGameId() == 2025021275)
+							LOGGER.info("!TEST! UPDATE END. finished={}", game.getGameState().isFinished());
+						sleepFor(ACTIVE_POLL_RATE_MS);
+					} catch (Exception e) {
+						LOGGER.error("Error occured while in main update loop.", e);
+						sleepFor(ACTIVE_POLL_RATE_MS);
 					}
-
-					Utils.sleep(ACTIVE_POLL_RATE_MS);
-				} while (!stopUpdates);
+				} while (!stopUpdates && !isInterrupted());
 				// - main update loop
 				
 				LOGGER.info("Game thread finished");
 			} else {
 				LOGGER.info("Game is already finished");
 			}
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			LOGGER.info("Error occurred.", e);
 		} finally {
+			LOGGER.info("Thread Completed");
 			gameTrackers.remove(game);
 			finished.set(true);
-			LOGGER.info("Thread Completed");
 		}
 	}
 

@@ -58,10 +58,10 @@ public class BoxScoreData {
 		return players;
 	}
 
-	public void update(BsonDocument playByPlayJson) {
-		this.jsonBoxScore.set(playByPlayJson);
-		this.homeStats.update(playByPlayJson.getDocument("homeTeam"));
-		this.awayStats.update(playByPlayJson.getDocument("awayTeam"));
+	public void update(BsonDocument bsJson) {
+		this.jsonBoxScore.set(bsJson);
+		this.homeStats.update(bsJson.getDocument("homeTeam"));
+		this.awayStats.update(bsJson.getDocument("awayTeam"));
 	}
 
 	public BsonDocument getJson() {

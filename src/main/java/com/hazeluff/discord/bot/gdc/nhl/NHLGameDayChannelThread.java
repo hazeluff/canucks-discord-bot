@@ -102,6 +102,11 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		return channel;
 	}
 
+	@Override
+	protected boolean isGameInit() {
+		return game.isInit();
+	}
+
 	/*
 	 * Run method overrides
 	 */

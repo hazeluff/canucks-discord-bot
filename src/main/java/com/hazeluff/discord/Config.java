@@ -156,7 +156,7 @@ public class Config {
 	public static final ZoneId ZONE_ID = ZoneId.of("America/Toronto");
 	public static final long GUILD_ID = 238870084003561472l;
 
-	public static final int HTTP_REQUEST_RETRIES = 3;
+	public static final int HTTP_REQUEST_RETRIES = 2;
 	
 	private static final String MONGO_HOST_KEY = "mongo.host";
 	private static final String MONGO_HOST_DEFAULT = "localhost";

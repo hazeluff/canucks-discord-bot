@@ -101,6 +101,15 @@ public abstract class GameDayThread extends InterruptableThread {
 
 		// (Pre-Game) Init + Start of Game
 		try {
+			// Wait for Game to be initialized
+			while (!isGameInit() && !isInterrupted()) {
+				if (gameTracker.isGameFinished()) {
+					LOGGER().error("GameTracker finished while waiting for Game initialization.");
+					return;
+				}
+				sleepFor(5000);
+			}
+
 			initChannel(); // ## Overridable ##
 
 			// Wait until close to start of game
@@ -144,6 +153,15 @@ public abstract class GameDayThread extends InterruptableThread {
 
 	protected void updateStart() {
 		sendStartOfGameMessage();
+	}
+
+	/**
+	 * Override if game initialization needs to be waited on.
+	 * 
+	 * @return
+	 */
+	protected boolean isGameInit() {
+		return true;
 	}
 	protected abstract void initChannel();
 	protected abstract void updateActive();

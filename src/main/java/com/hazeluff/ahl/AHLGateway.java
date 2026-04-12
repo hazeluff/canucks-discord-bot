@@ -77,7 +77,7 @@ public class AHLGateway {
 			String appKey = Utils.regexCapture(strConfig, "var\\s*appKey\\s*=\\s*'(\\w*)'");
 			String clientCode = Utils.regexCapture(strConfig, "var\\s*clientCode\\s*=\\s*\"(\\w*)\"");
 			return new String[] { appKey, clientCode };
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -92,7 +92,7 @@ public class AHLGateway {
 			strJsonBracket = stripParentheses(strJsonBracket);
 			BsonArray array = BsonArray.parse(strJsonBracket);
 			return array.get(0).asDocument().getArray("sections").get(0).asDocument().getArray("data");
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			LOGGER.error("Exception occured fetching schedule.", e);
 			return null;
 		}
@@ -103,7 +103,7 @@ public class AHLGateway {
 			String strJsonBracket = fetchGameSummary(gameId);
 			strJsonBracket = stripParentheses(strJsonBracket);
 			return BsonDocument.parse(strJsonBracket);
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			LOGGER.error("Exception occured fetching game summary.", e);
 			return null;
 		}
@@ -114,7 +114,7 @@ public class AHLGateway {
 			String strJsonBracket = fetchGamePlayByPlay(gameId);
 			strJsonBracket = stripParentheses(strJsonBracket);
 			return BsonArray.parse(strJsonBracket);
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			LOGGER.error("Exception occured fetching game summary.", e);
 			return null;
 		}

@@ -11,7 +11,6 @@ public class BotRunner {
 
 	public static void main(String[] args) {
 		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
-
 		/*
 		 * Script Only Deploy/Start
 		 */

@@ -6,6 +6,10 @@ import org.slf4j.LoggerFactory;
 public abstract class InterruptableThread extends Thread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(InterruptableThread.class);
 
+	protected Logger LOGGER() {
+		return LOGGER;
+	}
+
 	protected boolean isStop() {
 		return isInterrupted();
 	}
@@ -14,7 +18,7 @@ public abstract class InterruptableThread extends Thread {
 		try {
 			sleep(duration);
 		} catch (InterruptedException e) {
-			LOGGER.error("Sleep interupted");
+			LOGGER().warn("Sleep interupted");
 			interrupt();
 		}
 	}

@@ -74,7 +74,8 @@ public class NHLGateway {
 	// Fetchers
 	static String fetchRawGames(Team team, Season season) throws HttpException {
 		URI uri = HttpUtils.buildUri(getClubScheduleSeasonUrl(team.getCode(), season.getStartYear()));
-		return HttpUtils.getAndRetry(uri, 2, 10000l, "Get Raw Games: team=" + team + ", season=" + season);
+		String result = HttpUtils.get(uri);
+		return result;
 	}
 
 	static String fetchRawPlayByPlay(int gameId) throws HttpException {
@@ -148,7 +149,7 @@ public class NHLGateway {
 					LOGGER.warn("Could not parse 'id': " + jsonGame.toString());
 				}
 			});
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
 			return null;
 		}
@@ -159,18 +160,18 @@ public class NHLGateway {
 		try {
 			String strPlayByPlay = fetchRawPlayByPlay(gameId);
 			return BsonDocument.parse(strPlayByPlay);
-		} catch (HttpException e) {
-			LOGGER.error("Failed to get play-by-play for game: " + gameId);
+		} catch (Exception e) {
+			LOGGER.error("Failed to get play-by-play for game: " + gameId, e);
 			return null;
 		}
 	}
 
 	public static BsonDocument getBoxScore(int gameId) {
 		try {
-			String strBoxscore = fetchRawPlayByPlay(gameId);
+			String strBoxscore = fetchRawBoxScore(gameId);
 			return BsonDocument.parse(strBoxscore);
-		} catch (HttpException e) {
-			LOGGER.error("Failed to get boxscore for game: " + gameId);
+		} catch (Exception e) {
+			LOGGER.error("Failed to get boxscore for game: " + gameId, e);
 			return null;
 		}
 	}
@@ -179,8 +180,8 @@ public class NHLGateway {
 		try {
 			String strBoxscore = fetchRawRightRail(gameId);
 			return BsonDocument.parse(strBoxscore);
-		} catch (HttpException e) {
-			LOGGER.error("Failed to get right rail for game: " + gameId);
+		} catch (Exception e) {
+			LOGGER.error("Failed to get right rail for game: " + gameId, e);
 			return null;
 		}
 	}
@@ -198,8 +199,8 @@ public class NHLGateway {
 					.map(SkaterStats::parse)
 					.collect(Collectors.toList());
 			return new TeamPlayerStats(goalies, skaters);
-		} catch (HttpException e) {
-			LOGGER.error("Failed to get team stats: team=" + team + ", season=" + season);
+		} catch (Exception e) {
+			LOGGER.error("Failed to get team stats: team=" + team + ", season=" + season, e);
 			return null;
 		}
 	}
@@ -213,7 +214,7 @@ public class NHLGateway {
 					.collect(Collectors.toMap(
 							jsonSeason -> mapStandingsEndToStartYear(jsonSeason.getString("standingsStart").getValue()),
 							jsonSeason -> jsonSeason.getString("standingsEnd").getValue()));
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
 			return null;
 		}
@@ -227,7 +228,7 @@ public class NHLGateway {
 					.map(BsonValue::asDocument)
 					.map(TeamStandings::parse)
 					.collect(Collectors.toList());
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			LOGGER.error("Exception occured fetching game schedule.", e);
 			return null;
 		}
@@ -244,7 +245,7 @@ public class NHLGateway {
 							series -> series.getSeriesLetter(),
 						UnaryOperator.identity()
 					));
-		} catch (HttpException e) {
+		} catch (Exception e) {
 			LOGGER.error("Exception occured fetching playoff bracket.", e);
 			return null;
 		}

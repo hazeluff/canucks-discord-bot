@@ -191,7 +191,7 @@ public class NHLGameScheduler extends Thread {
 		LOGGER.info("Updating game schedule.");
 
 		Map<Integer, BsonDocument> jsonFetchedGames = NHLGateway.getAllTeamRawGames();
-		if (jsonFetchedGames == null)
+		if (jsonFetchedGames == null || jsonFetchedGames.isEmpty())
 			return;
 
 		jsonFetchedGames.entrySet().stream().forEach(jsonFetchedGame -> {

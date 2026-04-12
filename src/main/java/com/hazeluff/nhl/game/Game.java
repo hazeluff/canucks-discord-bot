@@ -37,6 +37,10 @@ public class Game {
 		this.rrData = null;
 	}
 
+	public boolean isInit() {
+		return pbpData != null && bsData != null && rrData != null;
+	}
+
 	public static Game parse(BsonDocument jsonScheduleGame) {
 		ScheduleData scheduleInfo = ScheduleData.parse(jsonScheduleGame);
 		if (scheduleInfo != null) {
@@ -155,8 +159,6 @@ public class Game {
 		BoxScoreData newBoxScoreData = BoxScoreData.parse(jsonBoxScore);
 		if (newBoxScoreData != null) {
 			this.bsData = newBoxScoreData;
-		} else {
-			LOGGER.error("Could not parse json: jsonBoxScore=" + jsonBoxScore);
 		}
 	}
 
@@ -174,8 +176,6 @@ public class Game {
 		RightRailData newRightRailData = RightRailData.parse(jsonRightRail);
 		if (newRightRailData != null) {
 			this.rrData = newRightRailData;
-		} else {
-			LOGGER.error("Could not parse json: jsonRightRail=" + jsonRightRail);
 		}
 	}
 
@@ -193,8 +193,6 @@ public class Game {
 		PlayByPlayData newPbpInfo = PlayByPlayData.parse(jsonPlayByPlay);
 		if (newPbpInfo != null) {
 			this.pbpData = newPbpInfo;
-		} else {
-			LOGGER.error("Could not parse json: jsonPlayByPlay=" + jsonPlayByPlay);
 		}
 	}
 

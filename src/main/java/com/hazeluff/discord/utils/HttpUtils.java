@@ -21,7 +21,7 @@ import com.hazeluff.discord.Config;
 
 public class HttpUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
-
+	
 	public static String get(URI uri) throws HttpException {
 		int retries = Config.HTTP_REQUEST_RETRIES;
 		int httpStatusCode = -1;
@@ -31,8 +31,12 @@ public class HttpUtils {
 			.setConnectionTimeToLive(10, TimeUnit.SECONDS).build();
 
 		HttpGet request = new HttpGet(uri);
-		RequestConfig requestConfig = RequestConfig.custom().setMaxRedirects(1).setSocketTimeout(10000)
-			.setConnectTimeout(10000).setConnectionRequestTimeout(10000).build();
+		RequestConfig requestConfig = RequestConfig.custom()
+			.setMaxRedirects(1)
+			.setSocketTimeout(10000)
+			.setConnectTimeout(10000)
+			.setConnectionRequestTimeout(10000)
+			.build();
 		request.setConfig(requestConfig);
 
 		BufferedReader br = null;

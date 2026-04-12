@@ -30,7 +30,7 @@ public class BotRunner {
 		com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler = new com.hazeluff.discord.ahl.AHLGameScheduler();
 
 		if (Config.Debug.isLoadGames()) {
-			LOGGER.info("Loading the games...");
+			LOGGER.info("Starting GameSchedulers");
 			nhlGameScheduler.start();
 			ahlGameScheduler.start();
 		} else {
@@ -47,6 +47,7 @@ public class BotRunner {
 			}
 			Utils.sleep(10000);
 		}
+		LOGGER.info("GameSchedulers are initialized!");
 
 		NHLBot.create(nhlGameScheduler, ahlGameScheduler, args[0]).start();
     }

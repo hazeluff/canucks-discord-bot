@@ -68,6 +68,11 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		return DateUtils.diffMs(ZonedDateTime.now(), game.getStartTime());
 	}
 
+	@Override
+	protected boolean isGameInit() {
+		return game.isInit();
+	}
+
 	protected void initChannel() {
 		loadMetadata();
 		saveMetadata();

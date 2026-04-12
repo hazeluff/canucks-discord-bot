@@ -40,7 +40,7 @@ public class AHLGameTracker extends InterruptableThread implements GameTracker {
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
 	// Polling time for when game is started/almost-started
-	public static final long ACTIVE_POLL_RATE_MS = 5000l;
+	public static final long ACTIVE_POLL_RATE_MS = 10000l;
 	// Time before game to poll faster
 	static final long CLOSE_TO_START_THRESHOLD_MS = 300000l;
 	// Time after game is final to continue updates

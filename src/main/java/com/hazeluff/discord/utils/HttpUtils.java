@@ -27,12 +27,20 @@ public class HttpUtils {
 		int httpStatusCode = -1;
 
 		CloseableHttpClient client = HttpClientBuilder.create()
-			.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(10000).build())
+			.setDefaultSocketConfig(
+				SocketConfig.custom()
+					.setSoTimeout(10000)
+					.build()
+			)
 			.setConnectionTimeToLive(10, TimeUnit.SECONDS).build();
 
 		HttpGet request = new HttpGet(uri);
-		RequestConfig requestConfig = RequestConfig.custom().setMaxRedirects(1).setSocketTimeout(10000)
-			.setConnectTimeout(10000).setConnectionRequestTimeout(10000).build();
+		RequestConfig requestConfig = RequestConfig.custom()
+			.setMaxRedirects(1)
+			.setSocketTimeout(10000)
+			.setConnectTimeout(10000)
+			.setConnectionRequestTimeout(10000)
+			.build();
 		request.setConfig(requestConfig);
 
 		BufferedReader br = null;

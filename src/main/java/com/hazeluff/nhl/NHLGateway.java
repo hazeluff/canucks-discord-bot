@@ -80,17 +80,17 @@ public class NHLGateway {
 
 	static String fetchRawPlayByPlay(int gameId) throws HttpException {
 		URI uri = HttpUtils.buildUri(getPlayByPlayUrl(gameId));
-		return HttpUtils.get(uri);
+		return HttpUtils.get(uri, 0);
 	}
 
 	static String fetchRawBoxScore(int gameId) throws HttpException {
 		URI uri = HttpUtils.buildUri(getBoxScoreUrl(gameId));
-		return HttpUtils.get(uri);
+		return HttpUtils.get(uri, 0);
 	}
 
 	static String fetchRawRightRail(int gameId) throws HttpException {
 		URI uri = HttpUtils.buildUri(getRightRailUrl(gameId));
-		return HttpUtils.get(uri);
+		return HttpUtils.get(uri, 0);
 	}
 
 	static String fetchTeamPlayerStats(Team team, Season season) throws HttpException {

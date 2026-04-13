@@ -71,29 +71,24 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 	}
 
 	public void updateGame() {
-		try {
-			BsonDocument jsonPlayByPlay = NHLGateway.getPlayByPlay(this.game.getGameId());
-			if (jsonPlayByPlay != null) {
-				this.game.updatePlayByPlay(jsonPlayByPlay);
-			}
-		} catch (Throwable e) {
-			LOGGER.error("Error occurred while updating play-by-play.", e);
+		BsonDocument jsonPlayByPlay = NHLGateway.getPlayByPlay(this.game.getGameId());
+		if (jsonPlayByPlay != null) {
+			this.game.updatePlayByPlay(jsonPlayByPlay);
+		} else {
+			sleepFor(20000l);
 		}
-		try {
-			BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
-			if (jsonBoxScore != null) {
-				this.game.updateBoxScore(jsonBoxScore);
-			}
-		} catch (Throwable e) {
-			LOGGER.error("Error occurred while updating box-score.", e);
+		BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
+		if (jsonBoxScore != null) {
+			this.game.updateBoxScore(jsonBoxScore);
+		} else {
+			sleepFor(20000l);
 		}
-		try {
-			BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
-			if (jsonRightRail != null) {
-				this.game.updateRightRail(jsonRightRail);
-			}
-		} catch (Throwable e) {
-			LOGGER.error("Error occurred while updating right-rail.", e);
+		BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
+		if (jsonRightRail != null) {
+			this.game.updateRightRail(jsonRightRail);
+		}
+		else {
+			sleepFor(20000l);
 		}
 	}
 

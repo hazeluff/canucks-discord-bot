@@ -101,7 +101,7 @@ public class Config {
 	 *  Technical Config
 	 */
 	public static final ZoneId ZONE_ID = ZoneId.of("America/Toronto");
-	public static final int HTTP_REQUEST_RETRIES = 2;
+	public static final int HTTP_REQUEST_RETRIES = 1;
 	public static final long GUILD_ID = 238870084003561472l;
 	
 	/*

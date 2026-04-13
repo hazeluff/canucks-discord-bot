@@ -34,7 +34,7 @@ public abstract class GameDayThread extends InterruptableThread {
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 300000l;
 	// Polling time for when game is started/almost-started
-	protected static final long ACTIVE_POLL_RATE_MS = 5000l;
+	protected static final long ACTIVE_POLL_RATE_MS = 10000l;
 	// Time before game to poll faster
 	static final long CLOSE_TO_START_THRESHOLD_MS = 300000l;
 

@@ -21,9 +21,14 @@ import com.hazeluff.discord.Config;
 
 public class HttpUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpUtils.class);
-	
+
 	public static String get(URI uri) throws HttpException {
 		int retries = Config.HTTP_REQUEST_RETRIES;
+		return get(uri, retries);
+	}
+	
+	public static String get(URI uri, int maxRetries) throws HttpException {
+		int retries = maxRetries;
 		int httpStatusCode = -1;
 
 		CloseableHttpClient client = HttpClientBuilder.create()
@@ -55,13 +60,14 @@ public class HttpUtils {
 					Utils.sleep(15000);
 				}
 				if (response == null || httpStatusCode != 200 && retries > 0)
-					Utils.sleep(30000);
+					Utils.sleep(10000 * retries);
 			} while ((response == null || httpStatusCode != 200) && retries-- > 0);
 
 			if ((response == null || httpStatusCode != 200) && retries <= 0) {
-				String message = "Failed to get page after (" + Config.HTTP_REQUEST_RETRIES + ") retries.";
-				LOGGER.error(message);
-				throw new HttpException(message);
+				String message = "Failed to get page after (" + maxRetries + ") retries.";
+				HttpException exception = new HttpException(message);
+				LOGGER.error(message, exception);
+				throw exception;
 			}
 			is = response.getEntity().getContent();
 			isr = new InputStreamReader(is);

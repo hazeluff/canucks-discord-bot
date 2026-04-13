@@ -39,7 +39,7 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 	// Polling time for when game is not close to starting
 	static final long IDLE_POLL_RATE_MS = 60000l;
 	// Polling time for when game is started/almost-started
-	public static final long ACTIVE_POLL_RATE_MS = 10000l;
+	public static final long ACTIVE_POLL_RATE_MS = 15000l;
 	// Time before game to poll faster
 	static final long CLOSE_TO_START_THRESHOLD_MS = 300000l;
 	// Time after game is final to continue updates
@@ -75,20 +75,20 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 		if (jsonPlayByPlay != null) {
 			this.game.updatePlayByPlay(jsonPlayByPlay);
 		} else {
-			sleepFor(20000l);
+			sleepFor(60000l);
 		}
 		BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
 		if (jsonBoxScore != null) {
 			this.game.updateBoxScore(jsonBoxScore);
 		} else {
-			sleepFor(20000l);
+			sleepFor(60000l);
 		}
 		BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
 		if (jsonRightRail != null) {
 			this.game.updateRightRail(jsonRightRail);
 		}
 		else {
-			sleepFor(20000l);
+			sleepFor(60000l);
 		}
 	}
 

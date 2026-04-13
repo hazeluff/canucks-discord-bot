@@ -56,10 +56,10 @@ public class HttpUtils {
 					httpStatusCode = response == null ? -1 : response.getStatusLine().getStatusCode();
 				} catch (Throwable e) {
 					LOGGER.error("Failed to request page [" + uri.toString() + "]", e);
-					Utils.sleep(5000);
+					Utils.sleep(10000);
 				}
 				if (response == null || httpStatusCode != 200 && retries > 0)
-					Utils.sleep(5000);
+					Utils.sleep(10000 * retries);
 			} while ((response == null || httpStatusCode != 200) && retries-- > 0);
 
 			if ((response == null || httpStatusCode != 200) && retries <= 0) {

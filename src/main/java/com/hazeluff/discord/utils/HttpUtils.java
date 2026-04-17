@@ -65,8 +65,7 @@ public class HttpUtils {
 
 			if ((response == null || httpStatusCode != 200) && retries <= 0) {
 				String message = "Failed to get page after (" + maxRetries + ") retries.";
-				HttpException exception = new HttpException(message);
-				LOGGER.error(message, exception);
+				TimeoutException exception = new TimeoutException(message);
 				throw exception;
 			}
 			is = response.getEntity().getContent();
@@ -81,6 +80,7 @@ public class HttpUtils {
 			response.getEntity().getContent().close();
 			return result.toString();
 		} catch (Throwable e) {
+			LOGGER.error("Error occurred.", e);
 			throw new HttpException(e);
 		} finally {
 			try {

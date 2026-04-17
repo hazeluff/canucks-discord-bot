@@ -49,11 +49,10 @@ public class PlayoffWatchChannel extends Thread {
 	public static PlayoffWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
 		TextChannel channel = null;
 		try {
-			channel = guild.getChannels().filter(TextChannel.class::isInstance).cast(TextChannel.class)
-					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-					.take(1)
-					.onErrorReturn(null)
-					.blockFirst();
+			channel = DiscordManager.getTextChannels(guild).stream()
+				.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
+				.findFirst()
+				.orElse(null);
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");
 		} finally {
@@ -126,7 +125,7 @@ public class PlayoffWatchChannel extends Thread {
 			if (gameTracker != null) {
 				if (!gameDayThreads.containsKey(gamePk)) {
 					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.getOrCreate(nhlBot, channel, gameTracker,
-						guild, true);
+						guild, false);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			}

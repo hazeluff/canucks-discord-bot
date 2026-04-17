@@ -77,21 +77,21 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 				this.game.updatePlayByPlay(jsonPlayByPlay);
 			}
 			else {
-				sleepFor(30000l);
+				sleepFor(60000l);
 			}
 			BsonDocument jsonBoxScore = NHLGateway.getBoxScore(this.game.getGameId());
 			if (jsonBoxScore != null) {
 				this.game.updateBoxScore(jsonBoxScore);
 			}
 			else {
-				sleepFor(30000l);
+				sleepFor(60000l);
 			}
 			BsonDocument jsonRightRail = NHLGateway.getRightRail(this.game.getGameId());
 			if (jsonRightRail != null) {
 				this.game.updateRightRail(jsonRightRail);
 			}
 			else {
-				sleepFor(30000l);
+				sleepFor(60000l);
 			}
 		} catch (Exception e) {
 			LOGGER.warn("Error occurred while updating game.", e);

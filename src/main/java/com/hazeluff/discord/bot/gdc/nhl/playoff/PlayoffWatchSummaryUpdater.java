@@ -68,6 +68,7 @@ public class PlayoffWatchSummaryUpdater extends Thread {
 	}
 
 	private void updateSummaryMessage() {
+		LOGGER.info("Updating Playoff Summary Message.");
 		if (summaryMessage != null) {
 			EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
 			if (!newSummaryMessageEmbed.equals(summaryMessageEmbed)) {

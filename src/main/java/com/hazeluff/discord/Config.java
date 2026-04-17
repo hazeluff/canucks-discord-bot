@@ -120,7 +120,7 @@ public class Config {
 	}
 
 	public static boolean isPlayoffWatchChannelEnabled() {
-		return loadBool("channels.playoffs", false);
+		return loadBool("channels.playoffs", true);
 	}
 
 	/*

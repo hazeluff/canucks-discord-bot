@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.utils.Utils;
@@ -20,8 +21,8 @@ import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
 
-public class PlayoffWatchChannel extends Thread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchChannel.class);
+public class NHLPlayoffWatchChannel extends Thread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NHLPlayoffWatchChannel.class);
 
 	public static final String CHANNEL_NAME = "playoffs";
 
@@ -35,24 +36,39 @@ public class PlayoffWatchChannel extends Thread {
 	private final TextChannel channel;
 
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
-	private final Map<Integer, PlayoffWatchGameDayThread> gameDayThreads;
-	private PlayoffWatchSummaryUpdater summaryUpdater;
+	private final Map<Integer, NHLPlayoffWatchGameDayThread> gameDayThreads;
+	private NHLPlayoffWatchSummaryUpdater summaryUpdater;
 
-	PlayoffWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
+	private final static Map<Long, NHLPlayoffWatchChannel> channels = new ConcurrentHashMap<>();
+
+	NHLPlayoffWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
 		this.channel = channel;
 		this.gameDayThreads = new ConcurrentHashMap<>();
-		this.summaryUpdater = new PlayoffWatchSummaryUpdater(nhlBot, channel, meta);
+		this.summaryUpdater = new NHLPlayoffWatchSummaryUpdater(nhlBot, channel, meta);
 	}
 
-	public static PlayoffWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
+	public static NHLPlayoffWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
+		long guildId = guild.getId().asLong();
+		if (channels.containsKey(guildId)) {
+			return channels.get(guildId);
+		}
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
 		TextChannel channel = null;
 		try {
-			channel = DiscordManager.getTextChannels(guild).stream()
-				.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-				.findFirst()
-				.orElse(null);
+			// Attempt to fetch channel by the saved preferences
+			Long prefChannelId = pref.getPlayoffChannelId();
+			if (prefChannelId != null) {
+				nhlBot.getDiscordManager();
+				channel = DiscordManager.getTextChannel(guild, prefChannelId);
+			}
+			if (channel == null) {
+				channel = DiscordManager.getTextChannels(guild).stream()
+					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
+					.findFirst()
+					.orElse(null);
+			}
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");
 		} finally {
@@ -66,6 +82,10 @@ public class PlayoffWatchChannel extends Thread {
 					channelSpecBuilder.parentId(category.getId());
 				}
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
+				if (channel != null) {
+					pref.setPlayoffChannelId(channel.getId().asLong());
+					nhlBot.getPersistentData().getPreferencesData().savePreferences(guildId, pref);
+				}
 			}
 		}
 		
@@ -77,7 +97,7 @@ public class PlayoffWatchChannel extends Thread {
 			}
 		}
 		
-		PlayoffWatchChannel fnChannel = new PlayoffWatchChannel(nhlBot, guild, channel, meta);
+		NHLPlayoffWatchChannel fnChannel = new NHLPlayoffWatchChannel(nhlBot, guild, channel, meta);
 		fnChannel.summaryUpdater.saveMetadata();
 
 		if (channel != null) {
@@ -87,6 +107,7 @@ public class PlayoffWatchChannel extends Thread {
 			LOGGER.warn("Channel could not be found in Discord.");
 		}
 
+		channels.put(guildId, fnChannel);
 		return fnChannel;
 	}
 
@@ -124,7 +145,7 @@ public class PlayoffWatchChannel extends Thread {
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				if (!gameDayThreads.containsKey(gamePk)) {
-					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.getOrCreate(nhlBot, channel, gameTracker,
+					NHLPlayoffWatchGameDayThread gdt = NHLPlayoffWatchGameDayThread.getOrCreate(nhlBot, channel, gameTracker,
 						guild, false);
 					gameDayThreads.put(gamePk, gdt);
 				}

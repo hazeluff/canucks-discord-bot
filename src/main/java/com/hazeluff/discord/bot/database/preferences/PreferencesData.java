@@ -81,7 +81,7 @@ public class PreferencesData extends DatabaseManager {
 
 		guildPreferences.get(guildId).addTeam(team);
 
-		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId).getTeams());
+		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId));
 	}
 
 	/**
@@ -103,17 +103,32 @@ public class PreferencesData extends DatabaseManager {
 			guildPreferences.get(guildId).removeTeam(team);
 		}
 
-		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId).getTeams());
+		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId));
 	}
 	
-	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, List<Team> teams) {
-		List<Integer> teamIds = teams.stream()
+	public void savePreferences(long guildId, GuildPreferences pref) {
+		saveToCollection(getCollection(), guildId, pref);
+	}
+
+	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, GuildPreferences pref) {
+		List<Integer> teamIds = pref.getTeams().stream()
 				.map(preferedTeam -> preferedTeam.getId())
 				.collect(Collectors.toList());
+		Long gdcChannelId = pref.getGameDayChannelId();
+		Long playoffChannelId = pref.getPlayoffChannelId();
+		boolean useChannelThreads = pref.isUseChannelThreads();
+		
+		Document prefDoc = new Document()
+			.append("teams", teamIds)
+			.append("gdcChannelId", gdcChannelId)
+			.append("playoffChannelId", playoffChannelId)
+			.append("useChannelThreads", useChannelThreads);
+
 		guildCollection.updateOne(
-				new Document("id", guildId),
-				new Document("$set", new Document("teams", teamIds)), 
-				new UpdateOptions().upsert(true));
+			new Document("id", guildId),
+			new Document("$set", prefDoc), 
+			new UpdateOptions().upsert(true)
+		);
 	}
 
 	Map<Long, GuildPreferences> getGuildPreferences() {

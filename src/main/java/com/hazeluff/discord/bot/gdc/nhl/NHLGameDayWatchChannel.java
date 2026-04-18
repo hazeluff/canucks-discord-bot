@@ -54,12 +54,22 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 		if (channels.containsKey(guildId)) {
 			return channels.get(guildId);
 		}
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
 		TextChannel channel = null;
 		try {
-			channel = DiscordManager.getTextChannels(guild).stream()
-					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-					.findFirst()
-					.orElse(null);
+			// Attempt to fetch channel by the saved preferences
+			Long prefChannelId = pref.getGameDayChannelId();
+			if (prefChannelId != null) {
+				nhlBot.getDiscordManager();
+				channel = DiscordManager.getTextChannel(guild, prefChannelId);
+			}
+
+			if (channel == null) {
+				channel = DiscordManager.getTextChannels(guild).stream()
+						.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
+						.findFirst()
+						.orElse(null);
+			}
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");
 		} finally {
@@ -73,6 +83,10 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 					channelSpecBuilder.parentId(category.getId());
 				}
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
+				if (channel != null) {
+					pref.setGameDayChannelId(channel.getId().asLong());
+					nhlBot.getPersistentData().getPreferencesData().savePreferences(guildId, pref);
+				}
 			}
 		}
 		NHLGameDayWatchChannel fnChannel = new NHLGameDayWatchChannel(nhlBot, guild, channel);

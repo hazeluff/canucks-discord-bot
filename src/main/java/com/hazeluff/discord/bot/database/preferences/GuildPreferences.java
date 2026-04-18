@@ -14,18 +14,21 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 public class GuildPreferences {
 	private Set<Team> teams;
 	private Long gdcChannelId;
+	private Long playoffChannelId;
 	private boolean useChannelThreads; // gdcChannelId must be set;
 	// false - post updates in GDC Channel; true - send updates in GDC thread
 
 	public GuildPreferences() {
 		this.teams = new HashSet<>();
 		gdcChannelId = null;
+		playoffChannelId = null;
 		useChannelThreads = false;
 	}
 
-	private GuildPreferences(Set<Team> teams, Long gdcChannelId, boolean useThreads) {
+	private GuildPreferences(Set<Team> teams, Long gdcChannelId, Long playoffChannelId, boolean useThreads) {
 		this.teams = teams;
 		this.gdcChannelId = gdcChannelId;
+		this.playoffChannelId = playoffChannelId;
 		this.useChannelThreads = useThreads;
 	}
 
@@ -39,10 +42,10 @@ public class GuildPreferences {
 		}
 
 		Long gdcChannelId = doc.getLong("gdcChannelId");
-
+		Long playoffChannelId = doc.getLong("playoffChannelId");
 		boolean useThreads = doc.getBoolean("useChannelThreads", false);
 
-		return new GuildPreferences(teams, gdcChannelId, useThreads);
+		return new GuildPreferences(teams, gdcChannelId, playoffChannelId, useThreads);
 	}
 
 	public List<Team> getTeams() {
@@ -78,8 +81,16 @@ public class GuildPreferences {
 		this.gdcChannelId = channelId;
 	}
 
+	public void setPlayoffChannelId(Long channelId) {
+		this.playoffChannelId = channelId;
+	}
+
 	public Long getGameDayChannelId() {
 		return gdcChannelId;
+	}
+
+	public Long getPlayoffChannelId() {
+		return playoffChannelId;
 	}
 
 	public boolean isUseChannelThreads() {

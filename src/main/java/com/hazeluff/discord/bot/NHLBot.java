@@ -22,7 +22,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
-import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.playoff.NHLPlayoffWatchChannel;
 import com.hazeluff.discord.bot.listener.MessageListener;
 import com.hazeluff.discord.bot.listener.ReactionListener;
 import com.hazeluff.discord.utils.Utils;
@@ -116,7 +116,6 @@ public class NHLBot extends Thread {
 		 * Setup Categories and Channels
 		 */
 		initCategoriesAndChannels();
-
 		LOGGER.info("NHLBot completed initialization.");
 	}
 
@@ -156,7 +155,7 @@ public class NHLBot extends Thread {
 		if (Config.isPlayoffWatchChannelEnabled()) {
 			LOGGER.info("Updating 'NHL Playoff Watch' channels.");
 			getDiscordManager().getClient().getGuilds()
-				.subscribe(guild -> PlayoffWatchChannel.getOrCreate(this, guild));
+				.subscribe(guild -> NHLPlayoffWatchChannel.getOrCreate(this, guild));
 		}
 	}
 

@@ -21,7 +21,7 @@ import com.hazeluff.discord.bot.database.PersistentData;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
-import com.hazeluff.discord.bot.gdc.nhl.playoff.PlayoffWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.playoff.NHLPlayoffWatchChannel;
 import com.hazeluff.discord.utils.Utils;
 
 import discord4j.core.DiscordClient;
@@ -225,7 +225,7 @@ public class NHLBot extends Thread {
 			.subscribe(guild -> {
 				// NHLGdcGuildManager.getAndStart(this, guild); // CanucksBot style channels
 				NHLGameDayWatchChannel.getOrCreate(this, guild);
-				PlayoffWatchChannel.getOrCreate(this, guild);
+				NHLPlayoffWatchChannel.getOrCreate(this, guild);
 				AHLWatchChannel.getOrCreate(this, guild);
 				// FourNationsWatchChannel.getOrCreateChannel(this, guild);
 			});

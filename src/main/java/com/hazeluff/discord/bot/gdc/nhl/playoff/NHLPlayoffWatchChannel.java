@@ -10,9 +10,10 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
-import com.hazeluff.discord.utils.InterruptableThread;
+import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.entity.Guild;
@@ -20,10 +21,10 @@ import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
 
-public class PlayoffWatchChannel extends InterruptableThread {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PlayoffWatchChannel.class);
+public class NHLPlayoffWatchChannel extends Thread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(NHLPlayoffWatchChannel.class);
 
-	public static final String CHANNEL_NAME = "playoffs-watch";
+	public static final String CHANNEL_NAME = "playoffs";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
@@ -35,24 +36,36 @@ public class PlayoffWatchChannel extends InterruptableThread {
 	private final TextChannel channel;
 
 	// Map<GuildId, Map<GamePk, GameDayChannel>>
-	private final Map<Integer, PlayoffWatchGameDayThread> gameDayThreads;
-	private PlayoffWatchSummaryUpdater summaryUpdater;
+	private final Map<Integer, NHLPlayoffWatchGameDayThread> gameDayThreads;
+	private NHLPlayoffWatchSummaryUpdater summaryUpdater;
 
-	PlayoffWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
+	private final static Map<Long, NHLPlayoffWatchChannel> channels = new ConcurrentHashMap<>();
+
+	NHLPlayoffWatchChannel(NHLBot nhlBot, Guild guild, TextChannel channel, PlayoffWatchMeta meta) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
 		this.channel = channel;
 		this.gameDayThreads = new ConcurrentHashMap<>();
-		this.summaryUpdater = new PlayoffWatchSummaryUpdater(nhlBot, channel, meta);
+		this.summaryUpdater = new NHLPlayoffWatchSummaryUpdater(nhlBot, channel, meta);
 	}
 
-	public static PlayoffWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
+	public static NHLPlayoffWatchChannel getOrCreate(NHLBot nhlBot, Guild guild) {
+		long guildId = guild.getId().asLong();
+		if (channels.containsKey(guildId)) {
+			return channels.get(guildId);
+		}
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
 		TextChannel channel = null;
 		try {
+			// Attempt to fetch channel by the saved preferences
+			Long prefChannelId = pref.getPlayoffChannelId();
+			if (prefChannelId != null) {
+				nhlBot.getDiscordManager();
+				channel = DiscordManager.getTextChannel(guild, prefChannelId);
+			}
+
 			channel = DiscordManager.getTextChannels(guild).stream()
-					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-					.findFirst()
-					.orElse(null);
+				.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME)).findFirst().orElse(null);
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");
 		} finally {
@@ -66,6 +79,10 @@ public class PlayoffWatchChannel extends InterruptableThread {
 					channelSpecBuilder.parentId(category.getId());
 				}
 				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
+				if (channel != null) {
+					pref.setPlayoffChannelId(channel.getId().asLong());
+					nhlBot.getPersistentData().getPreferencesData().savePreferences(guildId, pref);
+				}
 			}
 		}
 		
@@ -77,7 +94,8 @@ public class PlayoffWatchChannel extends InterruptableThread {
 			}
 		}
 		
-		PlayoffWatchChannel fnChannel = new PlayoffWatchChannel(nhlBot, guild, channel, meta);
+		NHLPlayoffWatchChannel fnChannel = new NHLPlayoffWatchChannel(nhlBot, guild, channel, meta);
+		fnChannel.summaryUpdater.saveMetadata();
 
 		if (channel != null) {
 			fnChannel.start();
@@ -86,6 +104,7 @@ public class PlayoffWatchChannel extends InterruptableThread {
 			LOGGER.warn("Channel could not be found in Discord.");
 		}
 
+		channels.put(guildId, fnChannel);
 		return fnChannel;
 	}
 
@@ -97,7 +116,7 @@ public class PlayoffWatchChannel extends InterruptableThread {
 				LocalDate schedulerUpdate = nhlBot.getNHLGameScheduler().getLastUpdate();
 				if (schedulerUpdate == null) {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
-					sleepFor(INIT_UPDATE_RATE);
+					Utils.sleep(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
 					LOGGER.info("Updating Channels...");
 					try {
@@ -108,7 +127,7 @@ public class PlayoffWatchChannel extends InterruptableThread {
 					lastUpdate = schedulerUpdate;
 				} else {
 					LOGGER.debug("Waiting for GameScheduler to update...");
-					sleepFor(UPDATE_RATE);
+					Utils.sleep(UPDATE_RATE);
 				}
 			} catch (Exception e) {
 				LOGGER.error("Error occured when updating channels.", e);
@@ -123,8 +142,8 @@ public class PlayoffWatchChannel extends InterruptableThread {
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				if (!gameDayThreads.containsKey(gamePk)) {
-					PlayoffWatchGameDayThread gdt = PlayoffWatchGameDayThread.getOrCreate(nhlBot, channel, gameTracker, guild,
-						true);
+					NHLPlayoffWatchGameDayThread gdt = NHLPlayoffWatchGameDayThread.getOrCreate(nhlBot, channel, gameTracker,
+						guild, false);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			}
@@ -156,5 +175,14 @@ public class PlayoffWatchChannel extends InterruptableThread {
 			}
 		}
 		*/
+	}
+
+	/**
+	 * Used for stubbing the loop of {@link #run()} for tests.
+	 * 
+	 * @return
+	 */
+	boolean isStop() {
+		return false;
 	}
 }

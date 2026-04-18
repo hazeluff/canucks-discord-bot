@@ -8,19 +8,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
+import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.game.Game;
 
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
 
-public class PresenceManager extends Thread {
+public class PresenceManager extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PresenceManager.class);
 
 	private static final ClientPresence STARTING_UP_PRESENCE = ClientPresence
 			.doNotDisturb(ClientActivity.watching("itself starting up..."));
-	private static final ClientPresence FETCH_SCHEDULE_PRESENCE = ClientPresence
-			.doNotDisturb(ClientActivity.watching("itself fetch the game schedule..."));
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;
@@ -36,10 +35,6 @@ public class PresenceManager extends Thread {
 
 	public void changePresenceToStartup() {
 		changePresence(STARTING_UP_PRESENCE);
-	}
-
-	private void changePresenceToFetchSchedule() {
-		changePresence(FETCH_SCHEDULE_PRESENCE);
 	}
 
 	@SuppressWarnings("unused")
@@ -87,27 +82,21 @@ public class PresenceManager extends Thread {
 
 	@Override
 	public void run() {
-		changePresenceToFetchSchedule();
-
-		LocalDateTime lastUpdate = null;
-		while (!isStop()) {
-			LocalDateTime now = LocalDateTime.now();
-			if (lastUpdate == null || lastUpdate.getHour() != now.getHour()) {
-				LOGGER.info("Updating Status.");
-				lastUpdate = now;
-				changePresence(getOnlineStatus());
-			} else {
-				Utils.sleep(UPDATE_RATE);
+		int lastUpdateHour = -1;
+		while (!isStop() && !isInterrupted()) {
+			try {
+				LocalDateTime now = LocalDateTime.now();
+				if (lastUpdateHour == -1 || now.getHour() != lastUpdateHour) {
+					LOGGER.info("Updating Status.");
+					changePresence(getOnlineStatus());
+					lastUpdateHour = now.getHour();
+				} else {
+					sleepFor(UPDATE_RATE);
+				}
+			} catch (Throwable t) {
+				LOGGER.error("Error occurred when updating Presence.", t);
+				sleepFor(UPDATE_RATE);
 			}
 		}
-	}
-
-	/**
-	 * Used for stubbing the loop of {@link #run()} for tests.
-	 * 
-	 * @return
-	 */
-	boolean isStop() {
-		return false;
 	}
 }

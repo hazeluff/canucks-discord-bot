@@ -151,7 +151,7 @@ public abstract class Command extends ReactiveEventAdapter {
 	 * Gets the message that specifies the inputted Team code was incorrect. Command
 	 * using this should implement the help function.
 	 * 
-	 * @param channel
+	 * @param threadChannel
 	 *            channel to send the message to
 	 * @param incorrectCode
 	 *            the incorrect code the user inputed

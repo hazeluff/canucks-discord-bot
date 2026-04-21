@@ -36,9 +36,9 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		return LOGGER;
 	}
 
-	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, textChannel, meta, false);
+	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
+		MessageChannel parentChannel, GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, channel, parentChannel, meta, false);
 	}
 
 	public static NHLGameDayChannelThread getOrCreate(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
@@ -56,9 +56,9 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 			}
 		}
 		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel,
-			meta);
+			textChannel, meta);
 
-		if (gameDayChannel.channel != null) {
+		if (gameDayChannel.threadChannel != null) {
 			gameDayChannel.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}",
@@ -141,10 +141,10 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected void sendStatsMessage() {
 		try {
 			Message statsGameMessage = null;
-			if (channel != null) {
+			if (threadChannel != null) {
 				EmbedCreateSpec embedSpec = GDCStatsCommand.buildEmbed(game);
 				MessageCreateSpec msgSpec = MessageCreateSpec.builder().addEmbed(embedSpec).build();
-				statsGameMessage = DiscordManager.sendAndGetMessage(channel, msgSpec);
+				statsGameMessage = DiscordManager.sendAndGetMessage(threadChannel, msgSpec);
 			}
 			if (statsGameMessage != null) {
 				LOGGER().debug("Sent stats for the game. Pinning it...");
@@ -162,14 +162,9 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	 * Sends the end of game message.
 	 */
 	protected void sendEndOfGameMessage() {
-		Message endOfGameMessage = null;
 		try {
-			if (channel != null) {
-				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-			if (endOfGameMessage != null) {
-				LOGGER().debug("Sent end of game message for game. Pinning it...");
-				DiscordManager.pinMessage(endOfGameMessage);
+			if (parentChannel != null) {
+				DiscordManager.sendMessage(parentChannel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
 			LOGGER().error("Could not send end of game Message.");
@@ -208,7 +203,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected void sendCustomEndMessage() {
 		try {
 			String message = CustomGameMessages.getMessage(game);
-			if (channel != null && message != null) {
+			if (threadChannel != null && message != null) {
 				sendMessage(message);
 			}
 		} catch (Exception e) {
@@ -217,7 +212,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	}
 
 	public void stopAndRemoveGuildChannel() {
-		DiscordManager.deleteChannel(channel);
+		DiscordManager.deleteChannel(threadChannel);
 		interrupt();
 	}
 }

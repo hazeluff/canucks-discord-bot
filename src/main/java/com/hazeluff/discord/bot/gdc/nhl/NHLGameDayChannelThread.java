@@ -38,7 +38,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 
 	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
 		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, textChannel, meta);
+		super(nhlBot, gameTracker, guild, textChannel, meta, false);
 	}
 
 	public static NHLGameDayChannelThread getOrCreate(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {

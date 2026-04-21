@@ -115,13 +115,20 @@ public class Game {
 		);
 		return niceName.toLowerCase();
 	}
-
-	public Team getAwayTeam() {
-		return scheduleData.getAwayTeam();
+	
+	public String getMatchup() {
+		return String.format(
+			"**%s** vs **%s**", 
+			getHomeTeam().getLocationName(), getAwayTeam().getLocationName()
+		);
 	}
 
 	public Team getHomeTeam() {
 		return scheduleData.getHomeTeam();
+	}
+
+	public Team getAwayTeam() {
+		return scheduleData.getAwayTeam();
 	}
 
 	public Team getOppossingTeam(Team team) {

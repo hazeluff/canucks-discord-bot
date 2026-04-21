@@ -65,6 +65,13 @@ public class Game {
 	public String getNiceShortDate() {
 		return date.format(DateTimeFormatter.ofPattern("yy-MM-dd"));
 	}
+	
+	public String getMatchup() {
+		return String.format(
+			"**%s** vs **%s**", 
+			getHomeTeam().getLocationName(), getAwayTeam().getLocationName()
+		);
+	}
 
 	public Team getHomeTeam() {
 		return homeTeam;

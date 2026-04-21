@@ -32,7 +32,7 @@ public class NHLGameDayWatchThread extends NHLGameDayThread {
 
 	private NHLGameDayWatchThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
 		GDCMeta meta, boolean isThread) {
-		super(nhlBot, gameTracker, guild, channel, meta);
+		super(nhlBot, gameTracker, guild, channel, meta, false);
 		this.isChannelThread = isThread;
 	}
 

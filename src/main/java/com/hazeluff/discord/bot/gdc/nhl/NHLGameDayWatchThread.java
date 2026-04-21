@@ -11,7 +11,7 @@ import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -66,7 +66,7 @@ public class NHLGameDayWatchThread extends NHLGameDayThread {
 			// Create new Thread (Channel) if none found/exist.
 			if (messageChannel == null) {
 				meta = null; // Generate new meta
-				Game game = gameTracker.getGame();
+				NHLGame game = gameTracker.getGame();
 				String threadMsg = "Game Day Thread: " + GameDayThread.buildDetailsMessage(game);
 				Message message = DiscordManager.sendAndGetMessage(parentChannel, threadMsg);
 				if (message != null) {

@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 public class CustomGameMessages {
 	private static final Map<Team, List<CustomGameMessage>> startGameMessagesMap = 
@@ -20,15 +20,15 @@ public class CustomGameMessages {
 			put(Team.VANCOUVER_CANUCKS, new CanucksEndGameCollection());
 		}};
 
-	public static String getStartGameMessage(Game game, Team team) {
+	public static String getStartGameMessage(NHLGame game, Team team) {
 		return getCustomMessage(game, startGameMessagesMap.get(team));
 	}
 
-	public static String getEndGameMessage(Game game, Team team) {
+	public static String getEndGameMessage(NHLGame game, Team team) {
 		return getCustomMessage(game, endGameMessagesMap.get(team));
 	}
 
-	public static String getCustomMessage(Game game, List<CustomGameMessage> messages) {
+	public static String getCustomMessage(NHLGame game, List<CustomGameMessage> messages) {
 		if(messages == null) {
 			return null;
 		}

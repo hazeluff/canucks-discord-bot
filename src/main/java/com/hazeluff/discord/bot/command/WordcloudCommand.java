@@ -16,7 +16,7 @@ import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.utils.Colors;
 import com.hazeluff.discord.utils.wordcloud.Filters;
 import com.hazeluff.discord.utils.wordcloud.Normalizers;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 import com.kennycason.kumo.CollisionMode;
 import com.kennycason.kumo.WordCloud;
 import com.kennycason.kumo.WordFrequency;
@@ -86,7 +86,7 @@ public class WordcloudCommand extends Command {
 			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE).withEphemeral(true);
 		}
 
-		Game game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
+		NHLGame game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			return Mono.empty();
 		}
@@ -108,7 +108,7 @@ public class WordcloudCommand extends Command {
 	static final String ACKNOWLEDGED = 
 			"Generating Wordcloud... Please wait. This could take a minute.";
 
-	public void sendWordcloud(MessageChannel channel, Guild guild, Game game) {
+	public void sendWordcloud(MessageChannel channel, Guild guild, NHLGame game) {
 		sendWordcloud(channel, guild, game, new LinearFontScalar(20, 140));
 	}
 
@@ -121,7 +121,7 @@ public class WordcloudCommand extends Command {
 	 * @param title
 	 * @param fontScaler
 	 */
-	public void sendWordcloud(MessageChannel channel, Guild guild, Game game, FontScalar fontScaler) {
+	public void sendWordcloud(MessageChannel channel, Guild guild, NHLGame game, FontScalar fontScaler) {
 		String title = NHLGameDayChannelThread.buildDetailsMessage(game);
 		new Thread(() -> {
 			Message generatingMessage = DiscordManager.sendAndGetMessage(channel, "Generating Wordcloud for: " + title);

@@ -17,7 +17,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -86,7 +86,7 @@ public class GDCCommand extends Command {
 			return event.reply(spec);
 		}
 
-		Game game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
+		NHLGame game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
 			// Not in game day channel
 			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()

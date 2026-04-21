@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 
 import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
@@ -19,7 +19,7 @@ import discord4j.core.spec.InteractionReplyEditSpec;
 import reactor.core.publisher.Mono;
 
 public class InteractionUtils {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Game.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AHLGame.class);
 
 	public static String getOptionAsString(DeferrableInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)

@@ -12,7 +12,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.TextChannel;
@@ -119,7 +119,7 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 		return buildFourNationsMatchupName(game);
 	}
 
-	public static String buildFourNationsMatchupName(Game game) {
+	public static String buildFourNationsMatchupName(NHLGame game) {
 		return String.format(
 				"**%s** vs **%s**", 
 				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
@@ -137,7 +137,7 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public static String buildDetailsMessage(Game game) {
+	public static String buildDetailsMessage(NHLGame game) {
 		String time = game.isStartTimeTBD()
 				? "`TBD`"
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());

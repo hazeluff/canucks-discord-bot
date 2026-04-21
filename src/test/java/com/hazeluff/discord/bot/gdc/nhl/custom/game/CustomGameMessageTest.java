@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 public class CustomGameMessageTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CustomGameMessageTest.class);
@@ -26,7 +26,7 @@ public class CustomGameMessageTest {
 	public void winReturnsExpectedValues() {
 		LOGGER.info("winReturnsExpectedValues");
 
-		Predicate<Game> testConditions = CustomGameMessage.Collection.buildWinConditions(TEAM_W);
+		Predicate<NHLGame> testConditions = CustomGameMessage.Collection.buildWinConditions(TEAM_W);
 		assertTrue(testConditions.test(mockGame(TEAM_W, TEAM_L)));
 		assertFalse(testConditions.test(mockGame(TEAM_L, TEAM_W)));
 	}
@@ -35,7 +35,7 @@ public class CustomGameMessageTest {
 	public void shutoutReturnsExpectedValues() {
 		LOGGER.info("shutoutReturnsExpectedValues");
 
-		Predicate<Game> testConditions = CustomGameMessage.Collection.buildShutoutConditions(TEAM_W);
+		Predicate<NHLGame> testConditions = CustomGameMessage.Collection.buildShutoutConditions(TEAM_W);
 		assertTrue(testConditions.test(mockGame(TEAM_W, TEAM_L, 1, 0, TEAM_W)));
 		assertFalse(testConditions.test(mockGame(TEAM_W, TEAM_L, 0, 1, TEAM_W)));
 		assertFalse(testConditions.test(mockGame(TEAM_W, TEAM_L, 2, 1, TEAM_W)));
@@ -49,7 +49,7 @@ public class CustomGameMessageTest {
 	public void mostGoalsOrPointsReturnsExpectedValues() {
 		LOGGER.info("mostGoalsOrPointsReturnsExpectedValues");
 
-		Predicate<Game> testConditions = CustomGameMessage.Collection.buildMostGoalsOrPointsCondition(TEAM_W, 1);
+		Predicate<NHLGame> testConditions = CustomGameMessage.Collection.buildMostGoalsOrPointsCondition(TEAM_W, 1);
 		assertTrue(testConditions.test(mockGame(TEAM_W, Arrays.asList(1), Arrays.asList(1))));
 		assertTrue(testConditions.test(mockGame(TEAM_W, Arrays.asList(1), Arrays.asList(2))));
 		assertTrue(testConditions.test(mockGame(TEAM_W, Arrays.asList(2), Arrays.asList(1))));
@@ -69,14 +69,14 @@ public class CustomGameMessageTest {
 		assertFalse(testConditions.test(mockGame(TEAM_L, Arrays.asList(2), Arrays.asList(1, 2))));
 	}
 
-	private Game mockGame(Team winningTeam, Team losingTeam) {
-		Game game = mock(Game.class);
+	private NHLGame mockGame(Team winningTeam, Team losingTeam) {
+		NHLGame game = mock(NHLGame.class);
 		when(game.getWinningTeam()).thenReturn(winningTeam);
 		return game;
 	}
 
-	private Game mockGame(Team homeTeam, Team awayTeam, int homeScore, int awayScore, Team winningTeam) {
-		Game game = mock(Game.class);
+	private NHLGame mockGame(Team homeTeam, Team awayTeam, int homeScore, int awayScore, Team winningTeam) {
+		NHLGame game = mock(NHLGame.class);
 		when(game.getHomeTeam()).thenReturn(homeTeam);
 		when(game.getAwayTeam()).thenReturn(awayTeam);
 		when(game.getHomeScore()).thenReturn(homeScore);
@@ -85,8 +85,8 @@ public class CustomGameMessageTest {
 		return game;
 	}
 
-	private Game mockGame(Team winningTeam, List<Integer> topGoalScorer, List<Integer> topPointsScorer) {
-		Game game = mock(Game.class);
+	private NHLGame mockGame(Team winningTeam, List<Integer> topGoalScorer, List<Integer> topPointsScorer) {
+		NHLGame game = mock(NHLGame.class);
 		when(game.getWinningTeam()).thenReturn(winningTeam);
 		when(game.getTopGoalScorers()).thenReturn(topGoalScorer);
 		when(game.getTopPointScorers()).thenReturn(topPointsScorer);

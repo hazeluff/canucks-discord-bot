@@ -22,7 +22,7 @@ import com.hazeluff.discord.bot.command.WordcloudCommand;
 import com.hazeluff.discord.nhl.NHLSeasons;
 import com.hazeluff.discord.nhl.NHLSeasons.Season;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 public class Config {
 	public static class Debug {
@@ -91,7 +91,7 @@ public class Config {
 		"As for me, I like the team."
 	);
 
-	public static String GetCustomGDCStartMessage(Game game) {
+	public static String GetCustomGDCStartMessage(NHLGame game) {
 		switch (game.getGameId()) {
 		case 2025021188:
 			return "# NYAAAAA~";

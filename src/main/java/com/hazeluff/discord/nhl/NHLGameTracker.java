@@ -13,7 +13,7 @@ import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.nhl.NHLGateway;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 /**
  * <p>
@@ -45,14 +45,14 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 	// Time after game is final to continue updates
 	static final long POST_GAME_UPDATE_DURATION = 60000l;
 
-	private static Map<Game, NHLGameTracker> gameTrackers = new ConcurrentHashMap<>();
+	private static Map<NHLGame, NHLGameTracker> gameTrackers = new ConcurrentHashMap<>();
 
-	private final Game game;
+	private final NHLGame game;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 	private AtomicBoolean finished = new AtomicBoolean(false);
 
-	NHLGameTracker(Game game) {
+	NHLGameTracker(NHLGame game) {
 		this.game = game;
 	}
 
@@ -64,7 +64,7 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 	 *            game to get {@link NHLGameTracker} for
 	 * @return {@link NHLGameTracker} for the game
 	 */
-	public static NHLGameTracker get(Game game) {
+	public static NHLGameTracker get(NHLGame game) {
 		NHLGameTracker gameTracker = new NHLGameTracker(game);
 		gameTracker.start();
 		return gameTracker;
@@ -234,7 +234,7 @@ public class NHLGameTracker extends InterruptableThread implements GameTracker {
 	 * 
 	 * @return NHLGame being tracked
 	 */
-	public Game getGame() {
+	public NHLGame getGame() {
 		return game;
 	}
 }

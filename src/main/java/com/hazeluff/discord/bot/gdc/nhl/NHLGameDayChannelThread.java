@@ -16,7 +16,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.nhl.custom.game.CustomGameMessages;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -65,7 +65,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		return gameDayChannel;
 	}
 
-	protected static TextChannel getTextChannel(Guild guild, Game game, NHLBot nhlBot, GuildPreferences preferences) {
+	protected static TextChannel getTextChannel(Guild guild, NHLGame game, NHLBot nhlBot, GuildPreferences preferences) {
 		TextChannel channel = null;
 		try {
 			String channelName = game.getNiceName();
@@ -205,7 +205,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected String buildEndOfGameMessage() {
 		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
 
-		Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(Team.VANCOUVER_CANUCKS);
+		NHLGame nextGame = nhlBot.getNHLGameScheduler().getNextGame(Team.VANCOUVER_CANUCKS);
 		if (nextGame != null) {
 			message += "\nThe next game is: " + buildDetailsMessage(nextGame);
 		}

@@ -12,7 +12,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.utils.InterruptableThread;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.Category;
@@ -108,8 +108,8 @@ public class FourNationsWatchChannel extends InterruptableThread {
 	}
 
 	void updateChannel() {
-		List<Game> games = nhlBot.getNHLGameScheduler().getFourNationsGames();
-		for (Game game : games) {
+		List<NHLGame> games = nhlBot.getNHLGameScheduler().getFourNationsGames();
+		for (NHLGame game : games) {
 			int gamePk = game.getGameId();
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getFourNationsGameTracker(game);
 			if (!game.getGameState().isFinished()) {

@@ -1,5 +1,8 @@
 package com.hazeluff.discord.bot.command;
 
+import static com.hazeluff.discord.bot.gdc.nhl.NHLFormatter.getNiceDate;
+import static com.hazeluff.discord.bot.gdc.nhl.NHLFormatter.getStartTime;
+
 import java.time.ZoneId;
 import java.util.List;
 import java.util.function.Function;
@@ -9,7 +12,7 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.nhl.NHLGameScheduler;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -76,11 +79,11 @@ public class ScheduleCommand extends Command {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		embedBuilder.color(team.getColor());
 
-		for (Game game : gameScheduler.getPastGames(team, 1)) {
+		for (NHLGame game : gameScheduler.getPastGames(team, 1)) {
 			appendGameToEmbed(embedBuilder, game, team, GameState.PAST);
 		}
 		
-		Game currentGame = gameScheduler.getCurrentLiveGame(team);
+		NHLGame currentGame = gameScheduler.getCurrentLiveGame(team);
 
 		if (currentGame != null) {
 			appendGameToEmbed(embedBuilder, currentGame, team, GameState.RECENT);
@@ -88,7 +91,7 @@ public class ScheduleCommand extends Command {
 		
 		int numFutureGames = currentGame == null ? 4 : 3;
 		boolean isNext = true;
-		for (Game game : gameScheduler.getFutureGames(team, numFutureGames)) {
+		for (NHLGame game : gameScheduler.getFutureGames(team, numFutureGames)) {
 			if (currentGame == null && isNext) {
 				appendGameToEmbed(embedBuilder, game, team, GameState.NEXT);
 				isNext = false;
@@ -110,11 +113,11 @@ public class ScheduleCommand extends Command {
 			embedBuilder.color(teams.get(0).getColor());
 		}
 		for (Team team : teams) {
-			for (Game game : gameScheduler.getPastGames(team, 1)) {
+			for (NHLGame game : gameScheduler.getPastGames(team, 1)) {
 				appendGameToEmbed(embedBuilder, game, team, GameState.PAST);
 			}
 
-			Game currentGame = gameScheduler.getCurrentLiveGame(team);
+			NHLGame currentGame = gameScheduler.getCurrentLiveGame(team);
 
 			if (currentGame != null) {
 				appendGameToEmbed(embedBuilder, currentGame, team, GameState.RECENT);
@@ -122,7 +125,7 @@ public class ScheduleCommand extends Command {
 
 			int numFutureGames = currentGame == null ? 2 : 1;
 			boolean isNext = true;
-			for (Game game : gameScheduler.getFutureGames(team, numFutureGames)) {
+			for (NHLGame game : gameScheduler.getFutureGames(team, numFutureGames)) {
 				if (currentGame == null && isNext) {
 					appendGameToEmbed(embedBuilder, game, team, GameState.NEXT);
 					isNext = false;
@@ -143,19 +146,19 @@ public class ScheduleCommand extends Command {
 		PAST, RECENT, NEXT, FUTURE;
 	}
 
-	EmbedCreateSpec.Builder appendGameToEmbed(EmbedCreateSpec.Builder builder, Game game, Team preferedTeam,
+	EmbedCreateSpec.Builder appendGameToEmbed(EmbedCreateSpec.Builder builder, NHLGame game, Team preferedTeam,
 			GameState state) {
 		ZoneId timeZone = preferedTeam.getTimeZone();
-		StringBuilder date = new StringBuilder(game.getNiceDate(timeZone));
+		StringBuilder date = new StringBuilder(getNiceDate(game, timeZone));
 		String message;
-		Function<Game, String> getAgainstTeamMessage = g -> {
+		Function<NHLGame, String> getAgainstTeamMessage = g -> {
 			return g.getHomeTeam() == preferedTeam
 					? String.format("vs %s", g.getAwayTeam().getFullName())
 					: String.format("@ %s", g.getHomeTeam().getFullName());
 		};
 
 		// Add Time
-		date.append("  at  ").append(game.getStartTime(preferedTeam.getTimeZone()));
+		date.append("  at  ").append(getStartTime(game, preferedTeam.getTimeZone()));
 
 		switch(state) {
 		case PAST:
@@ -184,7 +187,7 @@ public class ScheduleCommand extends Command {
 		return builder.addField(date.toString(), message, false);
 	}
 
-	private static String buildGameScore(Game game) {
+	private static String buildGameScore(NHLGame game) {
 		return String.format("%s **%s** - **%s** %s", 
 				game.getHomeTeam().getName(), game.getHomeScore(),
 				game.getAwayScore(), game.getAwayTeam().getName());

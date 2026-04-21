@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.ahl.AHLGateway;
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.InterruptableThread;
@@ -46,14 +46,14 @@ public class AHLGameTracker extends InterruptableThread implements GameTracker {
 	// Time after game is final to continue updates
 	static final long POST_GAME_UPDATE_DURATION = 60000l;
 
-	private static Map<Game, AHLGameTracker> gameTrackers = new ConcurrentHashMap<>();
+	private static Map<AHLGame, AHLGameTracker> gameTrackers = new ConcurrentHashMap<>();
 
-	private final Game game;
+	private final AHLGame game;
 
 	private AtomicBoolean started = new AtomicBoolean(false);
 	private AtomicBoolean finished = new AtomicBoolean(false);
 
-	AHLGameTracker(Game game) {
+	AHLGameTracker(AHLGame game) {
 		this.game = game;
 	}
 
@@ -65,7 +65,7 @@ public class AHLGameTracker extends InterruptableThread implements GameTracker {
 	 *            game to get {@link AHLGameTracker} for
 	 * @return {@link AHLGameTracker} for the game
 	 */
-	public static AHLGameTracker get(Game game) {
+	public static AHLGameTracker get(AHLGame game) {
 		AHLGameTracker gameTracker = new AHLGameTracker(game);
 		gameTracker.start();
 		return gameTracker;
@@ -220,7 +220,7 @@ public class AHLGameTracker extends InterruptableThread implements GameTracker {
 	 * 
 	 * @return NHLGame being tracked
 	 */
-	public Game getGame() {
+	public AHLGame getGame() {
 		return game;
 	}
 }

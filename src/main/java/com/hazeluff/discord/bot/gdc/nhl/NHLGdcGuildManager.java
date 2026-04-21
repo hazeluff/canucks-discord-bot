@@ -18,7 +18,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.InterruptableThread;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.Category;
@@ -124,7 +124,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	 * @param game
 	 * @param guild
 	 */
-	public NHLGameDayChannelThread createChannel(Game game, Guild guild) {
+	public NHLGameDayChannelThread createChannel(NHLGame game, Guild guild) {
 		LOGGER.info("Initializing for channel. channelName={}, guild={}",
 				game.getNiceName(), guild.getName());
 		int gamePk = game.getGameId();
@@ -178,7 +178,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 			LOGGER.info("Updating Channels for [{}]: activeGames={}",
 					guild.getId().asLong(),
 					nhlBot.getNHLGameScheduler().getActiveGames(teams).stream()
-							.map(Game::getNiceName)
+							.map(NHLGame::getNiceName)
 							.collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
@@ -194,7 +194,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 			}
 
 			// Create game channels of latest game for current subscribed team
-			for (Game game : nhlBot.getNHLGameScheduler().getActiveGames(teams)) {
+			for (NHLGame game : nhlBot.getNHLGameScheduler().getActiveGames(teams)) {
 				createChannel(game, guild);
 			}
 		} catch (Exception e) {
@@ -213,7 +213,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	 */
 	void deleteChannel(TextChannel channel) {
 		LOGGER.info("Remove channel: " + channel.getName());
-		Game game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
+		NHLGame game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
 		if (game != null) {
 			removeGameDayChannel(game.getGameId());
 		}

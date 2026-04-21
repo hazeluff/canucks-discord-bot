@@ -14,7 +14,7 @@ import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.Category;
@@ -139,8 +139,8 @@ public class NHLPlayoffWatchChannel extends Thread {
 	}
 
 	void updateChannel() {
-		List<Game> activeGames = nhlBot.getNHLGameScheduler().getActivePlayoffGames();
-		for (Game game : activeGames) {
+		List<NHLGame> activeGames = nhlBot.getNHLGameScheduler().getActivePlayoffGames();
+		for (NHLGame game : activeGames) {
 			int gamePk = game.getGameId();
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {

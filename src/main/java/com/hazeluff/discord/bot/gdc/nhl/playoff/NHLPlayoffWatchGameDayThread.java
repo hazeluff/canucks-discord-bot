@@ -1,5 +1,7 @@
 package com.hazeluff.discord.bot.gdc.nhl.playoff;
 
+import static com.hazeluff.discord.bot.gdc.nhl.NHLFormatter.getMatchup;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,7 +15,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -65,7 +67,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 			// Create new Thread (Channel) if none found/exist.
 			if (messageChannel == null) {
 				meta = null; // Generate new meta
-				Game game = gameTracker.getGame();
+				NHLGame game = gameTracker.getGame();
 				String threadMsg = "Game Day Thread: " + GameDayThread.buildDetailsMessage(game);
 				Message message = DiscordManager.sendAndGetMessage(parentChannel, threadMsg);
 				if (message != null) {
@@ -161,7 +163,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public static String buildDetailsMessage(Game game) {
+	public static String buildDetailsMessage(NHLGame game) {
 		String time = game.isStartTimeTBD()
 				? "`TBD`"
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
@@ -184,19 +186,8 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 	 */
 	@Override
 	protected String buildEndOfGameMessage() {
-		String message = getFourNationsMatchupName();
+		String message = getMatchup(game);
 		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
 		return message;
-	}
-
-	String getFourNationsMatchupName() {
-		return buildFourNationsMatchupName(game);
-	}
-
-	public static String buildFourNationsMatchupName(Game game) {
-		return String.format(
-				"**%s** vs **%s**", 
-				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
-			);
 	}
 }

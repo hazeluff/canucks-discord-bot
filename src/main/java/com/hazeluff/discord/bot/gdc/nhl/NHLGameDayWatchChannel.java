@@ -16,7 +16,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.InterruptableThread;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.Category;
@@ -132,8 +132,8 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
 		List<Team> teams = preferences.getTeams();
-		List<Game> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
-		for (Game game : games) {
+		List<NHLGame> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
+		for (NHLGame game : games) {
 			int gamePk = game.getGameId();
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (!game.getGameState().isFinished()) {

@@ -12,7 +12,7 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.ReactiveEventAdapter;
@@ -113,7 +113,7 @@ public abstract class Command extends ReactiveEventAdapter {
 	 * @return channel of the latest game
 	 */
 	String getLatestGameChannelMention(Guild guild, Team team) {
-		Game game = getLatestGame(team);
+		NHLGame game = getLatestGame(team);
 		if (game == null) {
 			return null;
 		}
@@ -133,8 +133,8 @@ public abstract class Command extends ReactiveEventAdapter {
 		return "#" + channelName;
 	}
 
-	Game getLatestGame(Team team) {
-		Game game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
+	NHLGame getLatestGame(Team team) {
+		NHLGame game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
 		if (game == null) {
 			game = nhlBot.getNHLGameScheduler().getLastGame(team);
 		}

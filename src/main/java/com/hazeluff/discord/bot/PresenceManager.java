@@ -13,7 +13,7 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
@@ -55,9 +55,9 @@ public class PresenceManager extends InterruptableThread {
 
 		// Check if there is a game today/currently - Prepend to status if there is.
 		Team team = Config.DEFAULT_TEAM;
-		Game currentGame = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
+		NHLGame currentGame = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
 		if (currentGame == null) {
-			Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(team);
+			NHLGame nextGame = nhlBot.getNHLGameScheduler().getNextGame(team);
 			if (nextGame != null) {
 				ZonedDateTime startTime = nextGame.getStartTime();
 				ZonedDateTime now = ZonedDateTime.now();
@@ -88,7 +88,7 @@ public class PresenceManager extends InterruptableThread {
 	 *            time zone to convert the time to
 	 * @return the date in the format "d/MM"
 	 */
-	public static String buildPresenceDate(Game game, ZoneId zone) {
+	public static String buildPresenceDate(NHLGame game, ZoneId zone) {
 		return game.getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("d/MM"));
 	}
 

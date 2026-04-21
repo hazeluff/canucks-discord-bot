@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.discord.ahl.AHLGameTracker;
 import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.NHLBot;
@@ -127,12 +127,12 @@ public class AHLWatchChannel extends InterruptableThread {
 	}
 
 	private void updateRegularGameThreads() {
-		List<Game> activeGames = nhlBot.getAHLGameScheduler().getActiveGames(TEAM);
+		List<AHLGame> activeGames = nhlBot.getAHLGameScheduler().getActiveGames(TEAM);
 		if (!nhlBot.getAHLGameScheduler().getActivePlayoffGames(TEAM).isEmpty() && activeGames.size() == 1) {
 			// No current/future game. (only past game)
 			activeGames.clear(); // Treat the past game as non-active, so it is removed as inactive
 		}
-		for (Game game : activeGames) {
+		for (AHLGame game : activeGames) {
 			int gamePk = game.getId();
 			AHLGameTracker gameTracker = nhlBot.getAHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
@@ -142,10 +142,10 @@ public class AHLWatchChannel extends InterruptableThread {
 				}
 			}
 		}
-		List<Game> inactiveGames = nhlBot.getAHLGameScheduler().getRegularGames(TEAM).stream()
+		List<AHLGame> inactiveGames = nhlBot.getAHLGameScheduler().getRegularGames(TEAM).stream()
 				.filter(game -> !activeGames.contains(game))
 				.collect(Collectors.toList());
-		for (Game inactiveGame : inactiveGames) {
+		for (AHLGame inactiveGame : inactiveGames) {
 			int gameId = inactiveGame.getId();
 			if (regularGameDayThreads.containsKey(gameId)) {
 				AHLGameDayThread gdt = regularGameDayThreads.remove(gameId);
@@ -169,8 +169,8 @@ public class AHLWatchChannel extends InterruptableThread {
 	}
 
 	private void updatePlayoffGameThreads() {
-		List<Game> activeGames = nhlBot.getAHLGameScheduler().getActivePlayoffGames(TEAM);
-		for (Game game : activeGames) {
+		List<AHLGame> activeGames = nhlBot.getAHLGameScheduler().getActivePlayoffGames(TEAM);
+		for (AHLGame game : activeGames) {
 			int gamePk = game.getId();
 			AHLGameTracker gameTracker = nhlBot.getAHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
@@ -180,9 +180,9 @@ public class AHLWatchChannel extends InterruptableThread {
 				}
 			}
 		}
-		List<Game> inactiveGames = nhlBot.getAHLGameScheduler().getPlayoffGames(TEAM).stream()
+		List<AHLGame> inactiveGames = nhlBot.getAHLGameScheduler().getPlayoffGames(TEAM).stream()
 				.filter(game -> !activeGames.contains(game)).collect(Collectors.toList());
-		for (Game inactiveGame : inactiveGames) {
+		for (AHLGame inactiveGame : inactiveGames) {
 			int gameId = inactiveGame.getId();
 			if (playoffGameDayThreads.containsKey(gameId)) {
 				AHLGameDayThread gdt = playoffGameDayThreads.remove(gameId);

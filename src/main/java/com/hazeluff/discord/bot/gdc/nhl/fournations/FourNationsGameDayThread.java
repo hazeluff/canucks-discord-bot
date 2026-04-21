@@ -28,7 +28,7 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 
 	private FourNationsGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel channel,
 		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, meta);
+		super(nhlBot, gameTracker, guild, channel, meta, true);
 	}
 
 	public static FourNationsGameDayThread get(NHLBot nhlBot, TextChannel textChannel, NHLGameTracker gameTracker, Guild guild) {

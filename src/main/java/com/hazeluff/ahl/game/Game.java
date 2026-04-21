@@ -75,6 +75,13 @@ public class Game {
 		);
 		return niceName.toLowerCase();
 	}
+	
+	public String getMatchup() {
+		return String.format(
+			"**%s** vs **%s**", 
+			getHomeTeam().getLocationName(), getAwayTeam().getLocationName()
+		);
+	}
 
 	public Team getHomeTeam() {
 		return homeTeam;

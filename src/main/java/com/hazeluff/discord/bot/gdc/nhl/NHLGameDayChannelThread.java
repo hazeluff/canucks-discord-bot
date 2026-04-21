@@ -35,10 +35,9 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		return LOGGER;
 	}
 
-
 	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, textChannel, meta);
+		GDCMeta meta, boolean displayMatchup) {
+		super(nhlBot, gameTracker, guild, textChannel, meta, displayMatchup);
 	}
 
 	public static NHLGameDayChannelThread get(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
@@ -55,7 +54,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 			}
 		}
 		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel,
-			meta);
+			meta, false);
 
 		if (gameDayChannel.channel != null) {
 			gameDayChannel.start();

@@ -126,7 +126,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected String buildReminderMessage(String basicMessage) {
-		return getMatchupName() + ": " + basicMessage;
+		return game.getMatchup() + ": " + basicMessage;
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected String buildStartOfGameMessage() {
-		String message = String.format("%s: \n", getMatchupName());
+		String message = String.format("%s: \n", game.getMatchup());
 		message += "Game is about to start!";
 		return message;
 	}
@@ -219,7 +219,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
-		embedBuilder.addField(getMatchupName(), game.getNiceDate(), false);
+		embedBuilder.addField(game.getMatchup(), game.getNiceDate(), false);
 		appendScoreToEmbed(embedBuilder);
 		appendGoalsToEmbed(embedBuilder);
 		return embedBuilder.build();
@@ -361,20 +361,9 @@ public class AHLGameDayThread extends GameDayThread {
 	 * @return end of game message
 	 */
 	protected String buildEndOfGameMessage() {
-		String message = getMatchupName();
+		String message = game.getMatchup();
 		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
 		return message;
-	}
-
-	String getMatchupName() {
-		return buildMatchupName(game);
-	}
-
-	public static String buildMatchupName(Game game) {
-		return String.format(
-				"**%s** vs **%s**", 
-				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
-			);
 	}
 
 	/**

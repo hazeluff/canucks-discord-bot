@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsGameDayThread;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.RosterPlayer;
 import com.hazeluff.nhl.game.event.PenaltyEvent;
@@ -35,16 +34,19 @@ public class PenaltyMessagesManager {
 	private final Game game;
 	private final MessageChannel channel;
 	private final GDCMeta meta;
+	private final boolean displayMatchup;
 
 	private List<PenaltyEvent> prerunEvents = new ArrayList<>(); // Events before the start of the thread
 	private List<PenaltyEvent> cachedEvents = new ArrayList<>(); // Last known state of events
 	private final Map<Integer, Message> eventMessages = new HashMap<>();
 
-	public PenaltyMessagesManager(NHLBot nhlBot, Game game, MessageChannel channel, GDCMeta meta) {
+	public PenaltyMessagesManager(NHLBot nhlBot, Game game, MessageChannel channel, GDCMeta meta,
+		boolean displayMatchup) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;
 		this.meta = meta;
+		this.displayMatchup = displayMatchup;
 	}
 
 	public void initEvents(List<PenaltyEvent> events) {
@@ -131,8 +133,8 @@ public class PenaltyMessagesManager {
 	void sendMessage(PenaltyEvent event) {
 		LOGGER.debug("Sending message for event [" + event.getId() + "].");
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
-				.addEmbed(buildPenaltyMessageEmbed(this.game, event))
-				.build();
+			.addEmbed(buildPenaltyMessageEmbed(this.game, event, displayMatchup))
+			.build();
 		Message message = DiscordManager.sendAndGetMessage(channel, messageSpec);
 		if (message != null) {
 			eventMessages.put(event.getId(), message);
@@ -149,15 +151,15 @@ public class PenaltyMessagesManager {
 			Message message = eventMessages.get(event.getId());
 
 			MessageEditSpec messageSpec = MessageEditSpec.builder()
-					.addEmbed(buildPenaltyMessageEmbed(this.game, event))
-					.build();
+				.addEmbed(buildPenaltyMessageEmbed(this.game, event, displayMatchup))
+				.build();
 			DiscordManager.updateMessage(message, messageSpec);
 		}
 	}
 
-	public static EmbedCreateSpec buildPenaltyMessageEmbed(Game game, PenaltyEvent event) {
-		String header = String.format("%s - %s penalty", event.getTeam().getLocationName(),
-				event.getSeverity());
+	public static EmbedCreateSpec buildPenaltyMessageEmbed(Game game, PenaltyEvent event, boolean displayMatchup) {
+		String header = String.format("%s - %s penalty", event.getTeam().getLocationName(), event.getSeverity());
+
 		StringBuilder description = new StringBuilder();
 
 		RosterPlayer committedByPlayer = game.getPlayer(event.getCommittedByPlayerId());
@@ -171,8 +173,8 @@ public class PenaltyMessagesManager {
 		String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
 
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
-		if (game.getGameType().isFourNations()) {
-			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));
+		if (displayMatchup) {
+			builder.title(game.getMatchup());
 		}
 		return builder
 				.color(Color.BLACK)

@@ -43,13 +43,13 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	protected final PenaltyMessagesManager penaltyMessages;
 
 	public NHLGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-		GDCMeta meta) {
+		GDCMeta meta, boolean displayMatchup) {
 		super(nhlBot, gameTracker, guild, textChannel, meta);
 		this.gameTracker = gameTracker;
 		this.game = gameTracker.getGame();
 
-		this.goalMessages = new GoalMessagesManager(nhlBot, game, channel, meta);
-		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta);
+		this.goalMessages = new GoalMessagesManager(nhlBot, game, channel, meta, displayMatchup);
+		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta, displayMatchup);
 	}
 
 	protected String buildGameScore(Game game) {

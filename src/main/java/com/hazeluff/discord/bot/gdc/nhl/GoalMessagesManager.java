@@ -16,7 +16,6 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.nhl.custom.goal.CustomGoalMessages;
-import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsGameDayThread;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.nhl.game.Game;
 import com.hazeluff.nhl.game.PeriodType;
@@ -41,6 +40,7 @@ public class GoalMessagesManager {
 	private final Game game;
 	private final MessageChannel channel;
 	private final GDCMeta meta;
+	private final boolean displayMatchup;
 
 	private List<GoalEvent> prerunEvents = new ArrayList<>(); // Events before the start of the thread
 	private List<GoalEvent> cachedEvents = new ArrayList<>(); // Last known state of events
@@ -48,11 +48,12 @@ public class GoalMessagesManager {
 
 	private ZonedDateTime lastMessageTime;
 
-	public GoalMessagesManager(NHLBot nhlBot, Game game, MessageChannel channel, GDCMeta meta) {
+	public GoalMessagesManager(NHLBot nhlBot, Game game, MessageChannel channel, GDCMeta meta, boolean displayMatchup) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;
 		this.meta = meta;
+		this.displayMatchup = displayMatchup;
 	}
 
 	public void initEvents(List<GoalEvent> events) {
@@ -160,8 +161,8 @@ public class GoalMessagesManager {
 		}
 
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder()
-				.addEmbed(buildGoalMessageEmbed(this.game, event))
-				.build();
+			.addEmbed(buildGoalMessageEmbed(this.game, event, displayMatchup))
+			.build();
 		Message message = DiscordManager.sendAndGetMessage(channel, messageSpec);
 		if (message != null) {
 			eventMessages.put(event.getId(), Pair.with(event, message));
@@ -188,8 +189,8 @@ public class GoalMessagesManager {
 			Message message = eventMessages.get(event.getId()).getValue1();
 			if (message != null) {
 				MessageEditSpec messageSpec = MessageEditSpec.builder()
-						.addEmbed(buildGoalMessageEmbed(this.game, event))
-						.build();
+					.addEmbed(buildGoalMessageEmbed(this.game, event, displayMatchup))
+					.build();
 				DiscordManager.updateMessage(message, messageSpec);
 				eventMessages.put(event.getId(), Pair.with(event, message));
 			}
@@ -229,10 +230,10 @@ public class GoalMessagesManager {
 		return isRelink;
 	}
 
-	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
+	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event, boolean displayMatchup) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
-		if (game.getGameType().isFourNations()) {
-			builder.title(FourNationsGameDayThread.buildFourNationsMatchupName(game));
+		if (displayMatchup) {
+			builder.title(game.getMatchup());
 		}
 		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 		Color embedColor = scorer != null
@@ -249,12 +250,12 @@ public class GoalMessagesManager {
 			.footer("Shootout", null).build();
 		} else {
 			String teamName = game.getGameType().isFourNations()
-					? event.getTeam().getLocationName()
-					: event.getTeam().getFullName();
+				? event.getTeam().getLocationName()
+				: event.getTeam().getFullName();
 			String description = teamName + " goal!";
 			List<RosterPlayer> assistPlayers = event.getAssistIds().stream()
-					.map(game::getPlayer)
-					.collect(Collectors.toList());
+				.map(game::getPlayer)
+				.collect(Collectors.toList());
 
 			String assists = assistPlayers.size() > 0
 				? " Assists: " + assistPlayers.get(0).getUniqueName()
@@ -266,9 +267,9 @@ public class GoalMessagesManager {
 			String fAssists = assists;
 			String time = game.getGameType().getPeriodCode(event.getPeriod()) + " @ " + event.getPeriodTime();
 			return builder.description(description)
-					.color(embedColor)
-					.addField(scorerName, fAssists, false)
-					.footer(time, null).build();
+				.color(embedColor)
+				.addField(scorerName, fAssists, false)
+				.footer(time, null).build();
 		}
 	}
 

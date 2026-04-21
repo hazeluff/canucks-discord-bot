@@ -32,7 +32,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 
 	private NHLPlayoffWatchGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
 		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, meta);
+		super(nhlBot, gameTracker, guild, channel, meta, true);
 	}
 
 	public static NHLPlayoffWatchGameDayThread getOrCreate(NHLBot nhlBot, MessageChannel messageChannel,
@@ -171,5 +171,32 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 				time
 			);
 		return message;
+	}
+	
+	/**
+	 * Builds the message that is sent at the end of the game.
+	 * 
+	 * @param game
+	 *            the game to build the message for
+	 * @param team
+	 *            team to specialize the message for
+	 * @return end of game message
+	 */
+	@Override
+	protected String buildEndOfGameMessage() {
+		String message = getFourNationsMatchupName();
+		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
+		return message;
+	}
+
+	String getFourNationsMatchupName() {
+		return buildFourNationsMatchupName(game);
+	}
+
+	public static String buildFourNationsMatchupName(Game game) {
+		return String.format(
+				"**%s** vs **%s**", 
+				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()
+			);
 	}
 }

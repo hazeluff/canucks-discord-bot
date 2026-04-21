@@ -45,7 +45,8 @@ public abstract class GameDayThread extends InterruptableThread {
 	protected final GameTracker gameTracker;
 	
 	protected final Guild guild;
-	protected final MessageChannel channel;
+	protected final MessageChannel threadChannel;
+	protected final MessageChannel parentChannel;
 	protected final GDCMeta meta;
 
 	protected Message introMessage;
@@ -54,11 +55,13 @@ public abstract class GameDayThread extends InterruptableThread {
 
 	protected AtomicBoolean started = new AtomicBoolean(false);
 
-	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, MessageChannel channel, GDCMeta meta) {
+	protected GameDayThread(NHLBot nhlBot, GameTracker gameTracker, Guild guild, MessageChannel threadChannel,
+		MessageChannel parentChannel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.gameTracker = gameTracker;
 		this.guild = guild;
-		this.channel = channel;
+		this.threadChannel = threadChannel;
+		this.parentChannel = parentChannel;
 		this.meta = meta;
 	}
 
@@ -354,24 +357,36 @@ public abstract class GameDayThread extends InterruptableThread {
 		return baseMessage + message;
 	}
 
+	public void unpinSummaryMessage() {
+		if (summaryMessage != null) {
+			DiscordManager.unpinMessage(summaryMessage);
+		}
+	}
+
 	/*
 	 * Discord Convenience Methods
 	 */
 	protected void sendMessage(String message) {
-		if (channel != null) {
-			DiscordManager.sendMessage(channel, message);
+		if (threadChannel != null) {
+			DiscordManager.sendMessage(threadChannel, message);
 		}
 	}
 
 	protected void sendMessage(MessageCreateSpec spec) {
-		if (channel != null) {
-			DiscordManager.sendMessage(channel, spec);
+		if (threadChannel != null) {
+			DiscordManager.sendMessage(threadChannel, spec);
 		}
 	}
 
-	public void unpinSummaryMessage() {
-		if (summaryMessage != null) {
-			DiscordManager.unpinMessage(summaryMessage);
+	protected void sendMessageToParent(String message) {
+		if (parentChannel != null) {
+			DiscordManager.sendMessage(parentChannel, message);
+		}
+	}
+
+	protected void sendMessageToParent(MessageCreateSpec spec) {
+		if (parentChannel != null) {
+			DiscordManager.sendMessage(parentChannel, spec);
 		}
 	}
 

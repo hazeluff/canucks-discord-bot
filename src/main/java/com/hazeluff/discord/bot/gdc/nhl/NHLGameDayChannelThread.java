@@ -36,8 +36,8 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	}
 
 	public NHLGameDayChannelThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-		GDCMeta meta, boolean displayMatchup) {
-		super(nhlBot, gameTracker, guild, textChannel, meta, displayMatchup);
+		MessageChannel parentChannel, GDCMeta meta, boolean displayMatchup) {
+		super(nhlBot, gameTracker, guild, textChannel, parentChannel, meta, displayMatchup);
 	}
 
 	public static NHLGameDayChannelThread get(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
@@ -54,9 +54,9 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 			}
 		}
 		NHLGameDayChannelThread gameDayChannel = new NHLGameDayChannelThread(nhlBot, gameTracker, guild, textChannel,
-			meta, false);
+			textChannel, meta, false);
 
-		if (gameDayChannel.channel != null) {
+		if (gameDayChannel.threadChannel != null) {
 			gameDayChannel.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}",
@@ -137,10 +137,10 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected void sendStatsMessage() {
 		try {
 			Message statsGameMessage = null;
-			if (channel != null) {
+			if (threadChannel != null) {
 				EmbedCreateSpec embedSpec = GDCStatsCommand.buildEmbed(game);
 				MessageCreateSpec msgSpec = MessageCreateSpec.builder().addEmbed(embedSpec).build();
-				statsGameMessage = DiscordManager.sendAndGetMessage(channel, msgSpec);
+				statsGameMessage = DiscordManager.sendAndGetMessage(threadChannel, msgSpec);
 			}
 			if (statsGameMessage != null) {
 				LOGGER().debug("Sent stats for the game. Pinning it...");
@@ -162,7 +162,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected void sendCustomStartMessage() {
 		try {
 			String message = CustomGameMessages.getStartGameMessage(game, Team.VANCOUVER_CANUCKS);
-			if (channel != null && message != null) {
+			if (threadChannel != null && message != null) {
 				sendMessage(message);
 			}
 		} catch (Exception e) {
@@ -178,14 +178,9 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	 */
 	@Override
 	protected void sendEndOfGameMessage() {
-		Message endOfGameMessage = null;
 		try {
-			if (channel != null) {
-				endOfGameMessage = DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
-			}
-			if (endOfGameMessage != null) {
-				LOGGER().debug("Sent end of game message for game. Pinning it...");
-				DiscordManager.pinMessage(endOfGameMessage);
+			if (threadChannel != null) {
+				DiscordManager.sendMessage(threadChannel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
 			LOGGER().error("Could not send end of game Message.");
@@ -215,7 +210,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	protected void sendCustomEndMessage() {
 		try {
 			String message = CustomGameMessages.getEndGameMessage(game, Team.VANCOUVER_CANUCKS);
-			if (channel != null && message != null) {
+			if (threadChannel != null && message != null) {
 				sendMessage(message);
 			}
 		} catch (Exception e) {
@@ -225,7 +220,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 
 	protected void sendWordcloud() {
 		try {
-			new WordcloudCommand(nhlBot).sendWordcloud(channel, guild, game);
+			new WordcloudCommand(nhlBot).sendWordcloud(threadChannel, guild, game);
 		} catch (Exception e) {
 			LOGGER().error("Could not send Wordcloud.");
 		}

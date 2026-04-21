@@ -43,13 +43,13 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	protected final PenaltyMessagesManager penaltyMessages;
 
 	public NHLGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel textChannel,
-		GDCMeta meta, boolean displayMatchup) {
-		super(nhlBot, gameTracker, guild, textChannel, meta);
+		MessageChannel parentChannel, GDCMeta meta, boolean displayMatchup) {
+		super(nhlBot, gameTracker, guild, textChannel, parentChannel, meta);
 		this.gameTracker = gameTracker;
 		this.game = gameTracker.getGame();
 
-		this.goalMessages = new GoalMessagesManager(nhlBot, game, channel, meta, displayMatchup);
-		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta, displayMatchup);
+		this.goalMessages = new GoalMessagesManager(nhlBot, game, threadChannel, meta, displayMatchup);
+		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, threadChannel, meta, displayMatchup);
 	}
 
 	protected String buildGameScore(NHLGame game) {
@@ -137,7 +137,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 				// No message saved
 				message = sendIntroMessage();
 			} else {
-				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+				message = nhlBot.getDiscordManager().getMessage(threadChannel.getId().asLong(), messageId);
 				if (message == null) {
 					// Could not find existing message. Send new message
 					message = sendIntroMessage();
@@ -158,7 +158,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	private Message sendIntroMessage() {
 		String strMessage = buildIntroMessage();
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder().content(strMessage).build();
-		return DiscordManager.sendAndGetMessage(channel, messageSpec);
+		return DiscordManager.sendAndGetMessage(threadChannel, messageSpec);
 	}
 
 	public void initIntroMessage() {
@@ -218,7 +218,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 				// No message saved
 				message = sendSummaryMessage();
 			} else {
-				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+				message = nhlBot.getDiscordManager().getMessage(threadChannel.getId().asLong(), messageId);
 				if (message == null) {
 					// Could not find existing message. Send new message
 					message = sendSummaryMessage();
@@ -239,7 +239,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	protected Message sendSummaryMessage() {
 		this.summaryMessageEmbed = getSummaryEmbedSpec();
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(summaryMessageEmbed).build();
-		return DiscordManager.sendAndGetMessage(channel, messageSpec);
+		return DiscordManager.sendAndGetMessage(threadChannel, messageSpec);
 	}
 
 	protected void updateSummaryMessage() {
@@ -267,8 +267,8 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	 */
 	protected void sendEndOfGameMessage() {
 		try {
-			if (channel != null) {
-				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
+			if (threadChannel != null) {
+				DiscordManager.sendAndGetMessage(threadChannel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
 			LOGGER().error("Could not send end of game Message.");

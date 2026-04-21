@@ -24,6 +24,7 @@ import com.hazeluff.discord.utils.DateUtils;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.MessageCreateSpec;
@@ -46,8 +47,8 @@ public class AHLGameDayThread extends GameDayThread {
 	protected final ShootoutMessagesManager shootoutMessages;
 
 	private AHLGameDayThread(NHLBot nhlBot, AHLGameTracker gameTracker, Guild guild, TextChannel channel,
-		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, meta);
+		MessageChannel parentChannel, GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, channel, parentChannel, meta);
 		this.gameTracker = gameTracker;
 		this.game = gameTracker.getGame();
 
@@ -71,11 +72,11 @@ public class AHLGameDayThread extends GameDayThread {
 				meta = GDCMeta.forChannel(channelId, gameId);
 			}
 		}
-		AHLGameDayThread gdt = new AHLGameDayThread(nhlBot, gameTracker, guild, textChannel, meta);
+		AHLGameDayThread gdt = new AHLGameDayThread(nhlBot, gameTracker, guild, textChannel, textChannel, meta);
 
 		// gdt.updateMessages(); // Uncomment to force messages to be sent (for testing)
 
-		if (gdt.channel != null) {
+		if (gdt.threadChannel != null) {
 			gdt.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}", guild.getId().asLong());
@@ -184,7 +185,7 @@ public class AHLGameDayThread extends GameDayThread {
 				// No message saved
 				message = sendSummaryMessage();
 			} else {
-				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+				message = nhlBot.getDiscordManager().getMessage(threadChannel.getId().asLong(), messageId);
 				if (message == null) {
 					// Could not find existing message. Send new message
 					message = sendSummaryMessage();
@@ -206,7 +207,7 @@ public class AHLGameDayThread extends GameDayThread {
 	private Message sendSummaryMessage() {
 		this.summaryMessageEmbed = getSummaryEmbedSpec();
 		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(summaryMessageEmbed).build();
-		return DiscordManager.sendAndGetMessage(channel, messageSpec);
+		return DiscordManager.sendAndGetMessage(threadChannel, messageSpec);
 	}
 
 	protected void updateSummaryMessage() {
@@ -344,8 +345,8 @@ public class AHLGameDayThread extends GameDayThread {
 	 */
 	protected void sendEndOfGameMessage() {
 		try {
-			if (channel != null) {
-				DiscordManager.sendAndGetMessage(channel, buildEndOfGameMessage());
+			if (threadChannel != null) {
+				DiscordManager.sendAndGetMessage(threadChannel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
 			LOGGER.error("Could not send end of game Message.");

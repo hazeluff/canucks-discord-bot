@@ -33,8 +33,8 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 	}
 
 	private NHLPlayoffWatchGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
-		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, meta, true);
+		MessageChannel parentChannel, GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, channel, parentChannel, meta, true);
 	}
 
 	public static NHLPlayoffWatchGameDayThread getOrCreate(NHLBot nhlBot, MessageChannel messageChannel,
@@ -48,7 +48,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 			LOGGER.warn(
 				"messageChannel is null (no parent for Thread/no Channel). GameDayChannel not started. guild={}",
 				guildId);
-			return new NHLPlayoffWatchGameDayThread(nhlBot, gameTracker, guild, messageChannel, meta);
+			return new NHLPlayoffWatchGameDayThread(nhlBot, gameTracker, guild, messageChannel, messageChannel, meta);
 		}
 
 		MessageChannel parentChannel = messageChannel;
@@ -95,8 +95,9 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 		}
 
 		// Make and return WatchThread
-		NHLPlayoffWatchGameDayThread gdt = new NHLPlayoffWatchGameDayThread(nhlBot, gameTracker, guild, messageChannel, meta);
-		if (gdt.channel != null) {
+		NHLPlayoffWatchGameDayThread gdt = new NHLPlayoffWatchGameDayThread(nhlBot, gameTracker, guild, messageChannel,
+			parentChannel, meta);
+		if (gdt.threadChannel != null) {
 			gdt.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. `messageChannel` was null. guild={}", guildId);

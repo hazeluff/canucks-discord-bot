@@ -145,8 +145,8 @@ public class NHLPlayoffWatchChannel extends Thread {
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
 				if (!gameDayThreads.containsKey(gamePk)) {
-					NHLPlayoffWatchGameDayThread gdt = NHLPlayoffWatchGameDayThread.getOrCreate(nhlBot, channel, gameTracker,
-						guild, false);
+					NHLPlayoffWatchGameDayThread gdt = NHLPlayoffWatchGameDayThread.getOrCreate(
+						nhlBot, channel, gameTracker, guild, false);
 					gameDayThreads.put(gamePk, gdt);
 				}
 			}

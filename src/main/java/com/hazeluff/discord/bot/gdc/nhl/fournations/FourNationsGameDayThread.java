@@ -15,6 +15,7 @@ import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
+import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 
@@ -27,8 +28,8 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 	}
 
 	private FourNationsGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, TextChannel channel,
-		GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, meta, true);
+		MessageChannel parentChannel, GDCMeta meta) {
+		super(nhlBot, gameTracker, guild, channel, parentChannel, meta, true);
 	}
 
 	public static FourNationsGameDayThread get(NHLBot nhlBot, TextChannel textChannel, NHLGameTracker gameTracker, Guild guild) {
@@ -42,9 +43,9 @@ public class FourNationsGameDayThread extends NHLGameDayThread {
 			}
 		}
 		FourNationsGameDayThread gameDayChannel = new FourNationsGameDayThread(nhlBot, gameTracker, guild, textChannel,
-			meta);
+			textChannel, meta);
 
-		if (gameDayChannel.channel != null) {
+		if (gameDayChannel.threadChannel != null) {
 			gameDayChannel.start();
 		} else {
 			LOGGER.warn("GameDayChannel not started. TextChannel could not be found. guild={}", guild.getId().asLong());

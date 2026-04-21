@@ -17,7 +17,7 @@ import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.nhl.custom.goal.CustomGoalMessages;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 import com.hazeluff.nhl.game.PeriodType;
 import com.hazeluff.nhl.game.RosterPlayer;
 import com.hazeluff.nhl.game.event.GoalEvent;
@@ -37,7 +37,7 @@ public class GoalMessagesManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GoalMessagesManager.class);
 	private static final long COOLDOWN = 30000l;
 	private final NHLBot nhlBot;
-	private final Game game;
+	private final NHLGame game;
 	private final MessageChannel channel;
 	private final GDCMeta meta;
 	private final boolean displayMatchup;
@@ -48,7 +48,8 @@ public class GoalMessagesManager {
 
 	private ZonedDateTime lastMessageTime;
 
-	public GoalMessagesManager(NHLBot nhlBot, Game game, MessageChannel channel, GDCMeta meta, boolean displayMatchup) {
+	public GoalMessagesManager(NHLBot nhlBot, NHLGame game, MessageChannel channel, GDCMeta meta,
+		boolean displayMatchup) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;
@@ -227,10 +228,10 @@ public class GoalMessagesManager {
 		return isRelink;
 	}
 
-	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event, boolean displayMatchup) {
+	public static EmbedCreateSpec buildGoalMessageEmbed(NHLGame game, GoalEvent event, boolean displayMatchup) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		if (displayMatchup) {
-			builder.title(game.getMatchup());
+			builder.title(NHLFormatter.getMatchup(game));
 		}
 		RosterPlayer scorer = game.getPlayer(event.getScorerId());
 		Color embedColor = scorer != null
@@ -269,6 +270,7 @@ public class GoalMessagesManager {
 				.footer(time, null).build();
 		}
 	}
+
 
 	public void updateLastMessageTime() {
 		this.lastMessageTime = ZonedDateTime.now();

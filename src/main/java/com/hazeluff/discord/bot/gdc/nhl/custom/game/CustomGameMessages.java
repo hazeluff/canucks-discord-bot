@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 public class CustomGameMessages {
 
@@ -17,7 +17,7 @@ public class CustomGameMessages {
         .flatMap(Collection::stream)
         .collect(Collectors.toList());
 
-	public static String getMessage(Game game) {
+	public static String getMessage(NHLGame game) {
 		// Get all applicable custom messages
 		List<CustomGameMessage> applicableMessages = customMessages.stream()
 				.filter(customMsg -> customMsg.applies(game))

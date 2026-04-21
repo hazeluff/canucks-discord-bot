@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.presence.ClientActivity;
 import discord4j.core.object.presence.ClientPresence;
@@ -59,7 +59,7 @@ public class PresenceManager extends InterruptableThread {
 	 *            time zone to convert the time to
 	 * @return the date in the format "d/MM"
 	 */
-	public static String buildPresenceDate(Game game, ZoneId zone) {
+	public static String buildPresenceDate(NHLGame game, ZoneId zone) {
 		return game.getStartTime().withZoneSameInstant(zone).format(DateTimeFormatter.ofPattern("d/MM"));
 	}
 

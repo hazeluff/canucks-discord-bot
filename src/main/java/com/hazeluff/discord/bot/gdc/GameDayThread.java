@@ -13,9 +13,10 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.bot.gdc.nhl.NHLFormatter;
 import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -314,7 +315,7 @@ public abstract class GameDayThread extends InterruptableThread {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public static String buildDetailsMessage(Game game) {
+	public static String buildDetailsMessage(NHLGame game) {
 		String time = game.isStartTimeTBD()
 				? "`TBD`"
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
@@ -337,12 +338,12 @@ public abstract class GameDayThread extends InterruptableThread {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public static String buildThreadTitle(Game game) {
+	public static String buildThreadTitle(NHLGame game) {
 		String message = String.format(
 			"%s vs %s [%s]",
 			game.getHomeTeam().getCode(), 
 			game.getAwayTeam().getCode(),
-			game.getThreadDate()
+			NHLFormatter.getThreadDate(game)
 		);
 		return message;
 	}

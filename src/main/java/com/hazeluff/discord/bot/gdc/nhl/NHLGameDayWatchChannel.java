@@ -17,7 +17,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.InterruptableThread;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.Category;
@@ -164,8 +164,8 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 	public void update(GuildPreferences preferences) {
 		List<Team> teams = preferences.getTeams();
 		boolean useThreads = preferences.isUseChannelThreads();
-		List<Game> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
-		for (Game game : games) {
+		List<NHLGame> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
+		for (NHLGame game : games) {
 			int gamePk = game.getGameId();
 			if (!game.getGameState().isFinished()) {
 				// Start/Maintain gdc if they have not finished.

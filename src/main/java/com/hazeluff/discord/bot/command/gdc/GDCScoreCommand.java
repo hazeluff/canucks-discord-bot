@@ -4,7 +4,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -23,7 +23,7 @@ public class GDCScoreCommand extends GDCSubCommand {
 	}
 
 	@Override
-	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
+	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, NHLGame game) {
 		if (!game.getGameState().isStarted()) {
 			return Command.reply(event, BuildGameNotStartedMessage(game));
 		}
@@ -31,13 +31,13 @@ public class GDCScoreCommand extends GDCSubCommand {
 		return Command.reply(event, getEmbed(game));
 	}
 
-	public static EmbedCreateSpec getEmbed(Game game) {
+	public static EmbedCreateSpec getEmbed(NHLGame game) {
 		Builder embedBuilder = EmbedCreateSpec.builder();
 		buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
 	}
 	
-	public static EmbedCreateSpec.Builder buildEmbed(EmbedCreateSpec.Builder embedBuilder, Game game) {
+	public static EmbedCreateSpec.Builder buildEmbed(EmbedCreateSpec.Builder embedBuilder, NHLGame game) {
 		String homeTeam = game.getHomeTeam().getFullName();
 		String awayTeam = game.getAwayTeam().getFullName();
 		return embedBuilder

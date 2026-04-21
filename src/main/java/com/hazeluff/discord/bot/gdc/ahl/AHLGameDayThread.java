@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.ahl.game.event.GoalEvent;
 import com.hazeluff.ahl.game.event.Player;
 import com.hazeluff.discord.ahl.AHLGameTracker;
@@ -37,7 +37,7 @@ public class AHLGameDayThread extends GameDayThread {
 	}
 
 	protected final AHLGameTracker gameTracker;
-	protected final Game game;
+	protected final AHLGame game;
 
 	// Message Managers
 	protected final GoalMessagesManager goalMessages;
@@ -55,7 +55,7 @@ public class AHLGameDayThread extends GameDayThread {
 		this.shootoutMessages = new ShootoutMessagesManager(nhlBot, game, channel);
 	}
 
-	protected String buildGameScore(Game game) {
+	protected String buildGameScore(AHLGame game) {
 		return String.format("%s **%s** - **%s** %s",
 				game.getHomeTeam().getLocationName(), game.getHomeScore(),
 				game.getAwayScore(), game.getAwayTeam().getLocationName());
@@ -127,7 +127,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected String buildReminderMessage(String basicMessage) {
-		return game.getMatchup() + ": " + basicMessage;
+		return AHLFormatter.getMatchup(game) + ": " + basicMessage;
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected String buildStartOfGameMessage() {
-		String message = String.format("%s: \n", game.getMatchup());
+		String message = String.format("%s: \n", AHLFormatter.getMatchup(game));
 		message += "Game is about to start!";
 		return message;
 	}
@@ -220,7 +220,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
-		embedBuilder.addField(game.getMatchup(), game.getNiceDate(), false);
+		embedBuilder.addField(AHLFormatter.getMatchup(game), game.getNiceDate(), false);
 		appendScoreToEmbed(embedBuilder);
 		appendGoalsToEmbed(embedBuilder);
 		return embedBuilder.build();
@@ -362,7 +362,7 @@ public class AHLGameDayThread extends GameDayThread {
 	 * @return end of game message
 	 */
 	protected String buildEndOfGameMessage() {
-		String message = game.getMatchup();
+		String message = AHLFormatter.getMatchup(game);
 		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
 		return message;
 	}
@@ -378,7 +378,7 @@ public class AHLGameDayThread extends GameDayThread {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public static String buildDetailsMessage(Game game) {
+	public static String buildDetailsMessage(AHLGame game) {
 		String time = String.format("<t:%s>", game.getStartTime().toEpochSecond());
 		String message = String.format(
 				"**%s** vs **%s** at %s", 

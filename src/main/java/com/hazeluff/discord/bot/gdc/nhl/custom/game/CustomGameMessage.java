@@ -4,15 +4,15 @@ import java.util.ArrayList;
 import java.util.function.Predicate;
 
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 public class CustomGameMessage {
 
 	private final String message;
-	private final Predicate<Game> gameApplicable;
+	private final Predicate<NHLGame> gameApplicable;
 	private final int priority;
 
-	public CustomGameMessage(String message, Predicate<Game> gameApplicable, int priority) {
+	public CustomGameMessage(String message, Predicate<NHLGame> gameApplicable, int priority) {
 		this.message = message;
 		this.gameApplicable = gameApplicable;
 		this.priority = priority;
@@ -26,7 +26,7 @@ public class CustomGameMessage {
 		return priority;
 	}
 
-	public boolean applies(Game game) {
+	public boolean applies(NHLGame game) {
 		return gameApplicable.test(game);
 	}
 
@@ -72,7 +72,7 @@ public class CustomGameMessage {
 		/*
 		 * Predicates
 		 */
-		static Predicate<Game> buildWinConditions(Team team) {
+		static Predicate<NHLGame> buildWinConditions(Team team) {
 			return game -> {
 				Team winningTeam = game.getWinningTeam();
 				return winningTeam == null 
@@ -81,7 +81,7 @@ public class CustomGameMessage {
 			};
 		}
 
-		static Predicate<Game> buildLoseConditions(Team team) {
+		static Predicate<NHLGame> buildLoseConditions(Team team) {
 			return game -> {
 				Team losingTeam = game.getLosingTeam();
 				return losingTeam == null
@@ -90,7 +90,7 @@ public class CustomGameMessage {
 			};
 		}
 
-		static Predicate<Game> buildShutoutConditions(Team team) {
+		static Predicate<NHLGame> buildShutoutConditions(Team team) {
 			return game -> {
 				Team winningTeam = game.getWinningTeam();
 				if (winningTeam == null) {
@@ -109,7 +109,7 @@ public class CustomGameMessage {
 			};
 		}
 
-		static Predicate<Game> buildMostGoalsOrPointsCondition(Team team, int playerId) {
+		static Predicate<NHLGame> buildMostGoalsOrPointsCondition(Team team, int playerId) {
 			return game -> {
 				Team winningTeam = game.getWinningTeam();
 				boolean isWin = winningTeam != null && winningTeam.equals(team);

@@ -3,7 +3,7 @@ package com.hazeluff.discord.bot.command.gdc;
 import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 
@@ -15,9 +15,9 @@ public abstract class GDCSubCommand {
 
 	public abstract String getDescription();
 
-	public abstract Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game);
+	public abstract Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, NHLGame game);
 
-	public static String BuildGameNotStartedMessage(Game game) {
+	public static String BuildGameNotStartedMessage(NHLGame game) {
 		String time = game.isStartTimeTBD() ? "`TBD`" : String.format("<t:%s>", game.getStartTime().toEpochSecond());
 		return "The game hasn't started yet. It starts at " + time + ".";
 	}

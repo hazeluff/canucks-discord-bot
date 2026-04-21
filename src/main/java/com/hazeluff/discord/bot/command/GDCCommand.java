@@ -18,7 +18,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -114,7 +114,7 @@ public class GDCCommand extends Command {
 		if (publicCommand != null) {
 			Team team = teams.get(0);
 			// Get current or next game
-			Game game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
+			NHLGame game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
 			if (game == null) {
 				game = nhlBot.getNHLGameScheduler().getNextGame(team);
 			}

@@ -12,7 +12,7 @@ import org.javatuples.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.ahl.game.event.GoalEvent;
 import com.hazeluff.ahl.game.event.Player;
 import com.hazeluff.discord.bot.NHLBot;
@@ -35,7 +35,7 @@ public class GoalMessagesManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GoalMessagesManager.class);
 	private static final long COOLDOWN = 30000l;
 	private final NHLBot nhlBot;
-	private final Game game;
+	private final AHLGame game;
 	private final TextChannel channel;
 	private final GDCMeta meta;
 
@@ -45,7 +45,7 @@ public class GoalMessagesManager {
 
 	private ZonedDateTime lastMessageTime;
 
-	public GoalMessagesManager(NHLBot nhlBot, Game game, TextChannel channel, GDCMeta meta) {
+	public GoalMessagesManager(NHLBot nhlBot, AHLGame game, TextChannel channel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;
@@ -210,7 +210,7 @@ public class GoalMessagesManager {
 		return true;
 	}
 
-	public static EmbedCreateSpec buildGoalMessageEmbed(Game game, GoalEvent event) {
+	public static EmbedCreateSpec buildGoalMessageEmbed(AHLGame game, GoalEvent event) {
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		Player scorer = event.getGoalDetails().getScorer();
 		Color embedColor = scorer != null

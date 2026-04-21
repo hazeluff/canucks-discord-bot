@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 import com.hazeluff.nhl.game.RosterPlayer;
 import com.hazeluff.nhl.game.event.PenaltyEvent;
 
@@ -31,7 +31,7 @@ import discord4j.rest.util.Color;
 public class PenaltyMessagesManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PenaltyMessagesManager.class);
 	private final NHLBot nhlBot;
-	private final Game game;
+	private final NHLGame game;
 	private final MessageChannel channel;
 	private final GDCMeta meta;
 	private final boolean displayMatchup;
@@ -40,7 +40,7 @@ public class PenaltyMessagesManager {
 	private List<PenaltyEvent> cachedEvents = new ArrayList<>(); // Last known state of events
 	private final Map<Integer, Message> eventMessages = new HashMap<>();
 
-	public PenaltyMessagesManager(NHLBot nhlBot, Game game, MessageChannel channel, GDCMeta meta,
+	public PenaltyMessagesManager(NHLBot nhlBot, NHLGame game, MessageChannel channel, GDCMeta meta,
 		boolean displayMatchup) {
 		this.nhlBot = nhlBot;
 		this.game = game;
@@ -157,7 +157,7 @@ public class PenaltyMessagesManager {
 		}
 	}
 
-	public static EmbedCreateSpec buildPenaltyMessageEmbed(Game game, PenaltyEvent event, boolean displayMatchup) {
+	public static EmbedCreateSpec buildPenaltyMessageEmbed(NHLGame game, PenaltyEvent event, boolean displayMatchup) {
 		String header = String.format("%s - %s penalty", event.getTeam().getLocationName(), event.getSeverity());
 
 		StringBuilder description = new StringBuilder();
@@ -174,7 +174,7 @@ public class PenaltyMessagesManager {
 
 		EmbedCreateSpec.Builder builder = EmbedCreateSpec.builder();
 		if (displayMatchup) {
-			builder.title(game.getMatchup());
+			builder.title(NHLFormatter.getMatchup(game));
 		}
 		return builder
 			.color(Color.BLACK)

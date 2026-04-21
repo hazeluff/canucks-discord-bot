@@ -13,7 +13,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -65,7 +65,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 			// Create new Thread (Channel) if none found/exist.
 			if (messageChannel == null) {
 				meta = null; // Generate new meta
-				Game game = gameTracker.getGame();
+				NHLGame game = gameTracker.getGame();
 				String threadMsg = "Game Day Thread: " + GameDayThread.buildDetailsMessage(game);
 				Message message = DiscordManager.sendAndGetMessage(parentChannel, threadMsg);
 				if (message != null) {
@@ -162,7 +162,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 	 * @return message in the format: "The next game is:\n<br>
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
-	public static String buildDetailsMessage(Game game) {
+	public static String buildDetailsMessage(NHLGame game) {
 		String time = game.isStartTimeTBD()
 				? "`TBD`"
 				: String.format("<t:%s>", game.getStartTime().toEpochSecond());
@@ -171,6 +171,22 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName(), 
 				time
 			);
+		return message;
+	}
+
+	/**
+	 * Builds the message that is sent at the end of the game.
+	 * 
+	 * @param game
+	 *            the game to build the message for
+	 * @param team
+	 *            team to specialize the message for
+	 * @return end of game message
+	 */
+	@Override
+	protected String buildEndOfGameMessage() {
+		String message = getMatchupName();
+		message += "\nGame has ended.\n" + "Final Score: " + buildGameScore(game);
 		return message;
 	}
 }

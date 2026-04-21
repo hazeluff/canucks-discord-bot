@@ -5,7 +5,7 @@ import org.reactivestreams.Publisher;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.spec.EmbedCreateSpec;
@@ -23,7 +23,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 	}
 
 	@Override
-	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
+	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, NHLGame game) {
 		if (!game.getGameState().isStarted()) {
 			return event.reply(BuildGameNotStartedMessage(game));
 		}
@@ -31,7 +31,7 @@ public class GDCStatusCommand extends GDCSubCommand {
 		return Command.reply(event, buildEmbed(game));
 	}
 
-	public static EmbedCreateSpec buildEmbed(Game game) {
+	public static EmbedCreateSpec buildEmbed(NHLGame game) {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		embedBuilder.title("Status Report");
 		embedBuilder.description(

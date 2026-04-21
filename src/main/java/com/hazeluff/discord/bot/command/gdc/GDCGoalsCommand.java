@@ -8,7 +8,7 @@ import org.reactivestreams.Publisher;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.Command;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 import com.hazeluff.nhl.game.RosterPlayer;
 import com.hazeluff.nhl.game.event.GameEvent;
 import com.hazeluff.nhl.game.event.GoalEvent;
@@ -30,7 +30,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 	}
 
 	@Override
-	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, Game game) {
+	public Publisher<?> reply(ChatInputInteractionEvent event, NHLBot nhlBot, NHLGame game) {
 		if (!game.getGameState().isStarted()) {
 			return Command.reply(event, BuildGameNotStartedMessage(game), true);
 		}
@@ -43,13 +43,13 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 		return Command.reply(event, embedBuilder.build());
 	}
 
-	public static EmbedCreateSpec getEmbed(Game game) {
+	public static EmbedCreateSpec getEmbed(NHLGame game) {
 		Builder embedBuilder = EmbedCreateSpec.builder();
 		buildEmbed(embedBuilder, game);
 		return embedBuilder.build();
 	}
 
-	public static EmbedCreateSpec.Builder buildEmbed(EmbedCreateSpec.Builder embedBuilder, Game game) {
+	public static EmbedCreateSpec.Builder buildEmbed(EmbedCreateSpec.Builder embedBuilder, NHLGame game) {
 		List<GoalEvent> goals = game.getScoringEvents();
 		// Regulation Periods
 		for (int period = 1; period <= 3; period++) {
@@ -94,7 +94,7 @@ public class GDCGoalsCommand extends GDCScoreCommand {
 		return embedBuilder;
 	}
 
-	private static String buildGoalLine(Game game, GoalEvent goalEvent) {
+	private static String buildGoalLine(NHLGame game, GoalEvent goalEvent) {
 		StringBuilder details = new StringBuilder();
 		RosterPlayer scorer = game.getPlayer(goalEvent.getScorerId());
 		if(scorer != null) {

@@ -14,7 +14,7 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.discord.utils.DateUtils;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 import com.hazeluff.nhl.game.event.GoalEvent;
 import com.hazeluff.nhl.game.event.PenaltyEvent;
 
@@ -35,7 +35,9 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	}
 
 	protected final NHLGameTracker gameTracker;
-	protected final Game game;
+	protected final NHLGame game;
+
+	protected final boolean displayMatchup;
 
 	// Message Managers
 	protected final GoalMessagesManager goalMessages;
@@ -47,11 +49,13 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		this.gameTracker = gameTracker;
 		this.game = gameTracker.getGame();
 
+		this.displayMatchup = displayMatchup;
+
 		this.goalMessages = new GoalMessagesManager(nhlBot, game, channel, meta, displayMatchup);
 		this.penaltyMessages = new PenaltyMessagesManager(nhlBot, game, channel, meta, displayMatchup);
 	}
 
-	protected String buildGameScore(Game game) {
+	protected String buildGameScore(NHLGame game) {
 		return String.format("%s **%s** - **%s** %s", game.getHomeTeam().getName(), game.getHomeScore(),
 				game.getAwayScore(), game.getAwayTeam().getName());
 	}
@@ -117,7 +121,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		return buildMatchupName(game);
 	}
 
-	public static String buildMatchupName(Game game) {
+	public static String buildMatchupName(NHLGame game) {
 		return String.format(
 				"**%s** vs **%s**", 
 				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName()

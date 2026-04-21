@@ -11,7 +11,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -50,14 +50,14 @@ public class NextGameCommand extends Command {
 		}
 
 		if (preferredTeams.size() == 1) {
-			Game nextGame = nhlBot.getNHLGameScheduler().getNextGame(preferredTeams.get(0));
+			NHLGame nextGame = nhlBot.getNHLGameScheduler().getNextGame(preferredTeams.get(0));
 			if (nextGame == null) {
 				return event.reply(NO_NEXT_GAME_MESSAGE).withEphemeral(true);
 			}
 			return event.reply(getNextGameDetailsMessage(nextGame, preferences)).withEphemeral(true);
 		}
 
-		Set<Game> games = preferredTeams.stream().map(team -> nhlBot.getNHLGameScheduler().getNextGame(team))
+		Set<NHLGame> games = preferredTeams.stream().map(team -> nhlBot.getNHLGameScheduler().getNextGame(team))
 				.filter(Objects::nonNull).collect(Collectors.toSet());
 		if (games.isEmpty()) {
 			return event.reply(NO_NEXT_GAMES_MESSAGE).withEphemeral(true);
@@ -69,13 +69,13 @@ public class NextGameCommand extends Command {
 	static final String NO_NEXT_GAME_MESSAGE = "There may not be a next game.";
 	static final String NO_NEXT_GAMES_MESSAGE = "There may not be any games for any of your subscribed teams.";
 
-	String getNextGameDetailsMessage(Game game, GuildPreferences preferences) {
+	String getNextGameDetailsMessage(NHLGame game, GuildPreferences preferences) {
 		return "The next game is:\n" + NHLGameDayChannelThread.buildDetailsMessage(game);
 	}
 
-	String getNextGameDetailsMessage(Set<Game> games, GuildPreferences preferences) {
+	String getNextGameDetailsMessage(Set<NHLGame> games, GuildPreferences preferences) {
 		StringBuilder replyMessage = new StringBuilder("The following game(s) are upcomming:");
-		for (Game game : games) {
+		for (NHLGame game : games) {
 			replyMessage.append("\n" + NHLGameDayChannelThread.buildDetailsMessage(game));
 		}
 		return replyMessage.toString();

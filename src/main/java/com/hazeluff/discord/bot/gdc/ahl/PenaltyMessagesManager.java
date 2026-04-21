@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.ahl.game.event.PenaltyEvent;
 import com.hazeluff.ahl.game.event.Player;
 import com.hazeluff.discord.bot.NHLBot;
@@ -31,7 +31,7 @@ import discord4j.rest.util.Color;
 public class PenaltyMessagesManager {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PenaltyMessagesManager.class);
 	private final NHLBot nhlBot;
-	private final Game game;
+	private final AHLGame game;
 	private final TextChannel channel;
 	private final GDCMeta meta;
 
@@ -39,7 +39,7 @@ public class PenaltyMessagesManager {
 	private List<PenaltyEvent> cachedEvents = new ArrayList<>(); // Last known state of events
 	private final Map<Integer, Message> eventMessages = new HashMap<>();
 
-	public PenaltyMessagesManager(NHLBot nhlBot, Game game, TextChannel channel, GDCMeta meta) {
+	public PenaltyMessagesManager(NHLBot nhlBot, AHLGame game, TextChannel channel, GDCMeta meta) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;
@@ -154,7 +154,7 @@ public class PenaltyMessagesManager {
 		}
 	}
 
-	public static EmbedCreateSpec buildPenaltyMessageEmbed(Game game, PenaltyEvent event) {
+	public static EmbedCreateSpec buildPenaltyMessageEmbed(AHLGame game, PenaltyEvent event) {
 		String header = event.getTeam().getLocationName() + " -";
 		if(event.isBenchPenalty()) {
 			header += " bench";

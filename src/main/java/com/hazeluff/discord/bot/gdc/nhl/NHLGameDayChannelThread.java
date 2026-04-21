@@ -17,7 +17,7 @@ import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.nhl.custom.game.CustomGameMessages;
 import com.hazeluff.discord.nhl.NHLGameTracker;
-import com.hazeluff.nhl.game.Game;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
@@ -67,7 +67,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		return gameDayChannel;
 	}
 
-	static TextChannel getTextChannel(Guild guild, Game game, NHLBot nhlBot, GuildPreferences preferences) {
+	static TextChannel getTextChannel(Guild guild, NHLGame game, NHLBot nhlBot, GuildPreferences preferences) {
 		TextChannel channel = null;
 		try {
 			String channelName = game.getNiceName();
@@ -191,7 +191,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 
 		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
 			.getGuildPreferences(guild.getId().asLong());
-		List<Game> nextGames = preferences.getTeams().stream()
+		List<NHLGame> nextGames = preferences.getTeams().stream()
 				.map(team -> nhlBot.getNHLGameScheduler().getNextGame(team)).filter(Objects::nonNull)
 				.collect(Collectors.toList());
 

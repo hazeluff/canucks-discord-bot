@@ -21,12 +21,12 @@ public class GameTest {
 	public void getTopGoalScorersReturnsExpectedValues() {
 		LOGGER.info("getTopGoalScorersReturnsExpectedValues");
 
-		assertEquals(Arrays.asList(1), Game.getTopGoalScorers(Arrays.asList(
+		assertEquals(Arrays.asList(1), NHLGame.getTopGoalScorers(Arrays.asList(
 				mockGoalEvent(1, new Integer[] { 2, 3 }),
 				mockGoalEvent(1, new Integer[] { 2 })
 		)));
 
-		assertEquals(Arrays.asList(1, 2), Game.getTopGoalScorers(Arrays.asList(
+		assertEquals(Arrays.asList(1, 2), NHLGame.getTopGoalScorers(Arrays.asList(
 				mockGoalEvent(1, new Integer[] { 2, 3 }),
 				mockGoalEvent(2, new Integer[] { 1 }),
 				mockGoalEvent(2, new Integer[] { 3 }),
@@ -38,18 +38,18 @@ public class GameTest {
 	public void getTopPointScorersReturnsExpectedValues() {
 		LOGGER.info("getTopPointScorersReturnsExpectedValues");
 
-		assertEquals(Arrays.asList(1), Game.getTopPointScorers(Arrays.asList(
+		assertEquals(Arrays.asList(1), NHLGame.getTopPointScorers(Arrays.asList(
 				mockGoalEvent(1, new Integer[] { 2 }),
 				mockGoalEvent(1, new Integer[] { 3 }),
 				mockGoalEvent(1, new Integer[] { })
 		)));
 
-		assertEquals(Arrays.asList(1, 2), Game.getTopPointScorers(Arrays.asList(
+		assertEquals(Arrays.asList(1, 2), NHLGame.getTopPointScorers(Arrays.asList(
 				mockGoalEvent(1, new Integer[] { 2, 3 }),
 				mockGoalEvent(1, new Integer[] { 2 })
 		)));
 
-		assertEquals(Arrays.asList(1, 2, 3), Game.getTopPointScorers(Arrays.asList(
+		assertEquals(Arrays.asList(1, 2, 3), NHLGame.getTopPointScorers(Arrays.asList(
 				mockGoalEvent(1, new Integer[] { 2, 3 }),
 				mockGoalEvent(1, new Integer[] { }),
 				mockGoalEvent(2, new Integer[] { 3 })

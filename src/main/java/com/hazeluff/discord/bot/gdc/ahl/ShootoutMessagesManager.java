@@ -6,7 +6,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.ahl.game.event.Player;
 import com.hazeluff.ahl.game.event.ShootoutEvent;
 import com.hazeluff.discord.bot.NHLBot;
@@ -28,14 +28,14 @@ public class ShootoutMessagesManager {
 	@SuppressWarnings("unused")
 	private final NHLBot nhlBot;
 	@SuppressWarnings("unused")
-	private final Game game;
+	private final AHLGame game;
 	private final TextChannel channel;
 
 	private List<ShootoutEvent> prerunEvents = new ArrayList<>(); // Events before the start of the thread
 	private List<ShootoutEvent> cachedEvents = new ArrayList<>(); // Last known state of events
 	private final List<Message> eventMessages = new ArrayList<>();
 
-	public ShootoutMessagesManager(NHLBot nhlBot, Game game, TextChannel channel) {
+	public ShootoutMessagesManager(NHLBot nhlBot, AHLGame game, TextChannel channel) {
 		this.nhlBot = nhlBot;
 		this.game = game;
 		this.channel = channel;

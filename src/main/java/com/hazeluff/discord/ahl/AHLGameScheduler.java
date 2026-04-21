@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.ahl.AHLGateway;
-import com.hazeluff.ahl.game.Game;
+import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.SchedulerException;
@@ -45,17 +45,17 @@ public class AHLGameScheduler extends Thread {
 	static final long UPDATE_RATE = 1800000L;
 	static final long RETRY_RATE = 300000L;
 
-	private Map<Integer, Game> regularGames = new ConcurrentHashMap<>();
-	private Map<Integer, Game> playoffGames = new ConcurrentHashMap<>();
+	private Map<Integer, AHLGame> regularGames = new ConcurrentHashMap<>();
+	private Map<Integer, AHLGame> playoffGames = new ConcurrentHashMap<>();
 	private AtomicBoolean init = new AtomicBoolean(false);
 
 	/**
 	 * To be applied to the overall games list, so that it removes duplicates and sorts all games in order. Duplicates
 	 * are determined by the gamePk being identicle. Games are sorted by game date.
 	 */
-	static final Comparator<Game> GAME_COMPARATOR = new Comparator<Game>() {
+	static final Comparator<AHLGame> GAME_COMPARATOR = new Comparator<AHLGame>() {
 		@Override
-		public int compare(Game g1, Game g2) {
+		public int compare(AHLGame g1, AHLGame g2) {
 			if (g1.getId() == g2.getId()) {
 				return 0;
 			}
@@ -64,7 +64,7 @@ public class AHLGameScheduler extends Thread {
 		}
 	};
 
-	private final Map<Game, AHLGameTracker> activeGameTrackers;
+	private final Map<AHLGame, AHLGameTracker> activeGameTrackers;
 
 	AtomicReference<LocalDate> lastUpdate = new AtomicReference<>();
 
@@ -77,8 +77,8 @@ public class AHLGameScheduler extends Thread {
 	 * @param teamSubscriptions
 	 * @param teamLatestGames
 	 */
-	AHLGameScheduler(Map<Integer, Game> regularGames, Map<Integer, Game> games, 
-			Map<Game, AHLGameTracker> activeGameTrackers) {
+	AHLGameScheduler(Map<Integer, AHLGame> regularGames, Map<Integer, AHLGame> games, 
+			Map<AHLGame, AHLGameTracker> activeGameTrackers) {
 		this.regularGames = regularGames;
 		this.activeGameTrackers = activeGameTrackers;
 	}
@@ -153,7 +153,7 @@ public class AHLGameScheduler extends Thread {
 		LOGGER.info("Finished Initialization.");
 	}
 
-	static Map<Integer, Game> initAllRegularGames() {
+	static Map<Integer, AHLGame> initAllRegularGames() {
 		LOGGER.info("Initializing All Regular Games...");
 		BsonArray jsonRegularScheduleGames = getRegularSeasonSchedule();
 		if (jsonRegularScheduleGames == null)
@@ -161,7 +161,7 @@ public class AHLGameScheduler extends Thread {
 		return buildGames(jsonRegularScheduleGames);
 	}
 
-	static Map<Integer, Game> initAllPlayoffGames() {
+	static Map<Integer, AHLGame> initAllPlayoffGames() {
 		LOGGER.info("Initializing All Playoff Games...");
 		BsonArray jsonPlayoffScheduleGames = getPlayoffSeasonSchedule();
 		if (jsonPlayoffScheduleGames == null)
@@ -169,17 +169,17 @@ public class AHLGameScheduler extends Thread {
 		return buildGames(jsonPlayoffScheduleGames);
 	}
 
-	static Map<Integer, Game> buildGames(BsonArray rawArray) {
+	static Map<Integer, AHLGame> buildGames(BsonArray rawArray) {
 		LOGGER.info("Build Games...");
 		return rawArray.stream()
 	        .map(BsonValue::asDocument)
-	        .map(Game::parse)
+	        .map(AHLGame::parse)
 	        .filter(Objects::nonNull)
 				.collect(Collectors.toConcurrentMap(game -> game.getId(), game -> game));
 	}
 
-	static Game buildGame(BsonDocument jsonGame) {
-		Game game = Game.parse(jsonGame);
+	static AHLGame buildGame(BsonDocument jsonGame) {
+		AHLGame game = AHLGame.parse(jsonGame);
 		return game;
 	}
 
@@ -192,7 +192,7 @@ public class AHLGameScheduler extends Thread {
 	void initTrackers() {
 		LOGGER.info("Creating trackers.");
 		// Regular games
-		Set<Game> games = new TreeSet<>(GAME_COMPARATOR);
+		Set<AHLGame> games = new TreeSet<>(GAME_COMPARATOR);
 		for (Team team : Team.values()) {
 			games.addAll(getActiveGames(team));
 		}
@@ -226,17 +226,17 @@ public class AHLGameScheduler extends Thread {
 		updateGamesMap(this.playoffGames, getPlayoffSeasonSchedule());
 	}
 
-	void updateGamesMap(Map<Integer, Game> games, BsonArray newGamesArray) {
+	void updateGamesMap(Map<Integer, AHLGame> games, BsonArray newGamesArray) {
 		if (newGamesArray == null)
 			throw new SchedulerException("`newGamesArray` was null");
 
 		newGamesArray.stream()
 			.map(BsonValue::asDocument)
 			.forEach(jsonScheduleGame -> {
-				int gameId = Game.parseId(jsonScheduleGame);
+				int gameId = AHLGame.parseId(jsonScheduleGame);
 				if (!games.containsKey(gameId)) {
 					// Create a new game object and put it in our map
-					Game newGame = Game.parse(jsonScheduleGame);
+					AHLGame newGame = AHLGame.parse(jsonScheduleGame);
 					if (newGame != null) {
 						// Games can be null if they fail to parse.
 						// Only put non-null values (map throws error otherwise).
@@ -252,7 +252,7 @@ public class AHLGameScheduler extends Thread {
 				.removeIf(
 						entry -> !newGamesArray.stream()
 						.map(BsonValue::asDocument)
-						.map(jsonGame -> Game.parseId(jsonGame))
+						.map(jsonGame -> AHLGame.parseId(jsonGame))
 						.anyMatch(id -> entry.getKey().equals(id))
 				);
 	}
@@ -306,14 +306,14 @@ public class AHLGameScheduler extends Thread {
 	/*
 	 * Game Schedule Utils
 	 */
-	static Game getNextGame(List<Game> games) {
+	static AHLGame getNextGame(List<AHLGame> games) {
 		if (games.isEmpty()) {
 			return null;
 		}
 		return games.get(0);
 	}
 
-	static List<Game> getFutureGames(Stream<Game> gameStream, Team team) {
+	static List<AHLGame> getFutureGames(Stream<AHLGame> gameStream, Team team) {
 		return gameStream
 				.sorted(GAME_COMPARATOR)
 				.filter(game -> team == null || game.containsTeam(team))
@@ -321,21 +321,21 @@ public class AHLGameScheduler extends Thread {
 				.collect(Collectors.toList());
 	}
 
-	static List<Game> getPastGames(Stream<Game> gameStream, Team team) {
+	static List<AHLGame> getPastGames(Stream<AHLGame> gameStream, Team team) {
 		return gameStream.sorted(GAME_COMPARATOR.reversed())
 				.filter(game -> team == null || game.containsTeam(team))
 				.filter(game -> game.getDate().isBefore(LocalDate.now()))
 				.collect(Collectors.toList());
 	}
 
-	static Game getLastGame(List<Game> games) {
+	static AHLGame getLastGame(List<AHLGame> games) {
 		if (games.isEmpty()) {
 			return null;
 		}
 		return games.get(0);
 	}
 
-	static List<Game> getNearestGames(List<Game> games, int numGames) {
+	static List<AHLGame> getNearestGames(List<AHLGame> games, int numGames) {
 		if (games.isEmpty()) {
 			return games;
 		}
@@ -345,7 +345,7 @@ public class AHLGameScheduler extends Thread {
 		return games.subList(0, numGames);
 	}
 
-	public static Game getCurrentLiveGame(Stream<Game> gameStream, Team team) {
+	public static AHLGame getCurrentLiveGame(Stream<AHLGame> gameStream, Team team) {
 		return gameStream
 				.filter(game -> team == null ? true : game.containsTeam(team))
 				.filter(game -> game.getDate().isEqual(LocalDate.now()))
@@ -369,10 +369,10 @@ public class AHLGameScheduler extends Thread {
 	 *            team to get games of
 	 * @return list of active/active games
 	 */
-	public List<Game> getActiveGames(Team team) {
-		List<Game> games = new ArrayList<>();
+	public List<AHLGame> getActiveGames(Team team) {
+		List<AHLGame> games = new ArrayList<>();
 		games.addAll(getPastGames(team, 1));
-		Game currentGame = getCurrentLiveGame(team);
+		AHLGame currentGame = getCurrentLiveGame(team);
 		if (currentGame != null) {
 			games.add(currentGame);
 		} else {
@@ -387,7 +387,7 @@ public class AHLGameScheduler extends Thread {
 	 * @param teams
 	 * @return
 	 */
-	public List<Game> getActiveGames(List<Team> teams) {
+	public List<AHLGame> getActiveGames(List<Team> teams) {
 		return new ArrayList<>(new HashSet<>(teams.stream()
 				.map(team -> getActiveGames(team))
 				.flatMap(Collection::stream)
@@ -401,36 +401,36 @@ public class AHLGameScheduler extends Thread {
 	 *            team to get current game for
 	 * @return
 	 */
-	public Game getCurrentLiveGame(Team team) {
+	public AHLGame getCurrentLiveGame(Team team) {
 		return getCurrentLiveGame(this.regularGames.entrySet().stream().map(Entry::getValue), team);
 	}
 
-	public List<Game> getFutureGames(Team team) {
+	public List<AHLGame> getFutureGames(Team team) {
 		return getFutureGames(this.regularGames.entrySet().stream().map(Entry::getValue), team);
 	}
 	
-	public List<Game> getFutureGames(Team team, int numGames) {
+	public List<AHLGame> getFutureGames(Team team, int numGames) {
 		return getNearestGames(getFutureGames(team), numGames);
 
 	}
 
-	public Game getNextGame(Team team) {
+	public AHLGame getNextGame(Team team) {
 		return getNextGame(getFutureGames(team));
 	}
 
-	public List<Game> getPastGames(Team team) {
+	public List<AHLGame> getPastGames(Team team) {
 		return getPastGames(this.regularGames.entrySet().stream().map(Entry::getValue), team);
 	}
 
-	public List<Game> getPastGames(Team team, int numGames) {
+	public List<AHLGame> getPastGames(Team team, int numGames) {
 		return getNearestGames(getPastGames(team), numGames);
 	}
 
-	public Set<Game> getRegularGames() {
+	public Set<AHLGame> getRegularGames() {
 		return new HashSet<>(regularGames.values());
 	}
 	
-	public List<Game> getRegularGames(Team team) {
+	public List<AHLGame> getRegularGames(Team team) {
 		return getRegularGames().stream()
 				.filter(game -> game.getTeams().contains(team))
 				.collect(Collectors.toList());
@@ -448,7 +448,7 @@ public class AHLGameScheduler extends Thread {
 	 *            team to get last game for
 	 * @return NHLGame of last game for the provided team
 	 */
-	public Game getLastGame(Team team) {
+	public AHLGame getLastGame(Team team) {
 		return getLastGame(getPastGames(team));
 
 	}
@@ -463,7 +463,7 @@ public class AHLGameScheduler extends Thread {
 	 *         null, if it does not exists
 	 * 
 	 */
-	public AHLGameTracker getGameTracker(Game game) {
+	public AHLGameTracker getGameTracker(AHLGame game) {
 		return activeGameTrackers.get(game);
 	}
 
@@ -476,7 +476,7 @@ public class AHLGameScheduler extends Thread {
 	 *         null, if it does not exists
 	 * 
 	 */
-	private void createGameTracker(Game game) {
+	private void createGameTracker(AHLGame game) {
 		if (!activeGameTrackers.containsKey(game)) {
 			LOGGER.info("Creating GameTracker: " + game.getId());
 			AHLGameTracker newGameTracker = AHLGameTracker.get(game);
@@ -489,10 +489,10 @@ public class AHLGameScheduler extends Thread {
 	/*
 	 * Playoff
 	 */
-	public List<Game> getActivePlayoffGames(Team team) {
-		List<Game> games = new ArrayList<>();
+	public List<AHLGame> getActivePlayoffGames(Team team) {
+		List<AHLGame> games = new ArrayList<>();
 		games.addAll(getPastPlayoffGames(team, 1));
-		Game currentGame = getCurrentLivePlayoffGame(team);
+		AHLGame currentGame = getCurrentLivePlayoffGame(team);
 		if (currentGame != null) {
 			games.add(currentGame);
 		} else {
@@ -508,36 +508,36 @@ public class AHLGameScheduler extends Thread {
 	 *            team to get current game for
 	 * @return
 	 */
-	public Game getCurrentLivePlayoffGame(Team team) {
+	public AHLGame getCurrentLivePlayoffGame(Team team) {
 		return getCurrentLiveGame(this.playoffGames.entrySet().stream().map(Entry::getValue), team);
 	}
 
-	public List<Game> getFuturePlayoffGames(Team team) {
+	public List<AHLGame> getFuturePlayoffGames(Team team) {
 		return getFutureGames(this.playoffGames.entrySet().stream().map(Entry::getValue), team);
 	}
 
-	public List<Game> getFuturePlayoffGames(Team team, int numGames) {
+	public List<AHLGame> getFuturePlayoffGames(Team team, int numGames) {
 		return getNearestGames(getFuturePlayoffGames(team), numGames);
 
 	}
 
-	public Game getNextPlayoffGame(Team team) {
+	public AHLGame getNextPlayoffGame(Team team) {
 		return getNextGame(getFuturePlayoffGames(team));
 	}
 
-	public List<Game> getPastPlayoffGames(Team team) {
+	public List<AHLGame> getPastPlayoffGames(Team team) {
 		return getPastGames(this.playoffGames.entrySet().stream().map(Entry::getValue), team);
 	}
 
-	public List<Game> getPastPlayoffGames(Team team, int numGames) {
+	public List<AHLGame> getPastPlayoffGames(Team team, int numGames) {
 		return getNearestGames(getPastPlayoffGames(team), numGames);
 	}
 
-	public Set<Game> getPlayoffGames() {
+	public Set<AHLGame> getPlayoffGames() {
 		return new HashSet<>(playoffGames.values());
 	}
 	
-	public List<Game> getPlayoffGames(Team team) {
+	public List<AHLGame> getPlayoffGames(Team team) {
 		return getPlayoffGames().stream()
 				.filter(game -> game.getTeams().contains(team))
 				.collect(Collectors.toList());
@@ -550,7 +550,7 @@ public class AHLGameScheduler extends Thread {
 	 *            team to get inactive games of
 	 * @return list of inactive games
 	 */
-	List<Game> getInactiveGames(Team team) {
+	List<AHLGame> getInactiveGames(Team team) {
 		return regularGames.entrySet().stream().map(
 				Entry::getValue)
 				.filter(game -> game.containsTeam(team))
@@ -559,7 +559,7 @@ public class AHLGameScheduler extends Thread {
 				.collect(Collectors.toList());
 	}
 
-	Map<Game, AHLGameTracker> getActiveGameTrackers() {
+	Map<AHLGame, AHLGameTracker> getActiveGameTrackers() {
 		return new HashMap<>(activeGameTrackers);
 	}
 
@@ -584,7 +584,7 @@ public class AHLGameScheduler extends Thread {
 		return lastUpdate.get();
 	}
 
-	public AHLGameTracker toGameTracker(Game game) {
+	public AHLGameTracker toGameTracker(AHLGame game) {
 		return AHLGameTracker.get(game);
 	}
 }

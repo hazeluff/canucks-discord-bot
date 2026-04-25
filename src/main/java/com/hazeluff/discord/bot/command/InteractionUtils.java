@@ -32,7 +32,8 @@ public class InteractionUtils {
 	public static Long getOptionAsLong(DeferrableInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
 				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asLong).orElse(null);
+				.map(ApplicationCommandInteractionOptionValue::asLong)
+				.orElse(null);
 	}
 
 	public static Mono<Channel> getOptionAsChannel(DeferrableInteractionEvent event, String option) {

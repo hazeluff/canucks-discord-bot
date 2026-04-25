@@ -49,7 +49,7 @@ public class SayCommand extends Command {
                 .build())
             .addOption(ApplicationCommandOptionData.builder()
 				.name("ref-msg")
-				.description("Message to reference.")
+				.description("Id of message to reference.")
 				.type(ApplicationCommandOption.Type.STRING.getValue())
 				.required(false)
                 .build())
@@ -59,7 +59,7 @@ public class SayCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		String message = getOptionAsString(event, "message");
-		Long channelId = getOptionAsLong(event, "channel");
+		MessageChannel channel = getOptionAsChannel(event, "channel", MessageChannel.class);
 		String refMessageId = getOptionAsString(event, "ref-msg");
 		return replyAndDeferEdit(
 			event,
@@ -67,15 +67,15 @@ public class SayCommand extends Command {
 			() -> {
 				// Log usage in #bot-admin
 				MessageChannel logChannel = DiscordManager
-					.getTextChannel(DiscordManager.block(event.getInteraction().getGuild()), "bot-admin");
+					.getTextChannel(DiscordManager.block(event.getInteraction().getGuild()), "server-log");
 				if (logChannel == null) {
 					LOGGER.warn("Could not find #bot-admin channel.");
 					return;
 				}
 
-				MessageChannel msgChannel = channelId == null
+				MessageChannel msgChannel = channel == null
 					? DiscordManager.block(event.getInteraction().getChannel().cast(MessageChannel.class))
-					: DiscordManager.block(event.getOptionAsChannel("channel").cast(MessageChannel.class));
+					: channel;
 
 				DiscordManager.sendMessage(logChannel,
 					buildLogMessage(event.getUser().getUsername(), msgChannel.getId().asLong(), message, refMessageId));

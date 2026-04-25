@@ -249,6 +249,13 @@ public abstract class Command extends ReactiveEventAdapter {
 		return InteractionUtils.getOptionAsChannel(event, option);
 	}
 
+	protected static <T> T getOptionAsChannel(ChatInputInteractionEvent event, String option, Class<T> cast) {
+		Mono<Channel> mono = InteractionUtils.getOptionAsChannel(event, option);
+		if (mono == null)
+			return null;
+		return DiscordManager.block(mono.cast(cast));
+	}
+
 	public static Mono<Void> reply(ChatInputInteractionEvent event, String message) {
 		return reply(event, message, null, false);
 	}

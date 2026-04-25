@@ -163,9 +163,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	 */
 	protected void sendEndOfGameMessage() {
 		try {
-			if (parentChannel != null) {
-				DiscordManager.sendMessage(parentChannel, buildEndOfGameMessage());
-			}
+			DiscordManager.sendMessage(threadChannel, buildEndOfGameMessage());
 		} catch (Exception e) {
 			LOGGER().error("Could not send end of game Message.");
 		}

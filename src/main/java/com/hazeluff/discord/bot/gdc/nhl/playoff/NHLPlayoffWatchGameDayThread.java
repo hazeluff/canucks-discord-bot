@@ -11,7 +11,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.NHLGame;
 
@@ -22,7 +22,7 @@ import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.discordjson.json.StartThreadFromMessageRequest;
 
-public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
+public class NHLPlayoffWatchGameDayThread extends NHLGameDayThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLPlayoffWatchGameDayThread.class);
 
 	@Override
@@ -32,7 +32,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 
 	private NHLPlayoffWatchGameDayThread(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild, MessageChannel channel,
 		MessageChannel parentChannel, GDCMeta meta) {
-		super(nhlBot, gameTracker, guild, channel, parentChannel, meta);
+		super(nhlBot, gameTracker, guild, channel, parentChannel, meta, true);
 	}
 
 	public static NHLPlayoffWatchGameDayThread getOrCreate(NHLBot nhlBot, MessageChannel messageChannel,

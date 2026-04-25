@@ -4,6 +4,7 @@ package com.hazeluff.discord.bot.chat;
 import java.util.regex.Pattern;
 
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.command.InteractionUtils;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
@@ -46,9 +47,7 @@ public abstract class Topic {
 	protected void sendMessage(MessageCreateEvent event, String message) {
 		TextChannel channel = (TextChannel) DiscordManager.block(event.getMessage().getChannel());
 		// Message Reference
-		MessageReferenceData messageRef = MessageReferenceData.builder()
-				.messageId(event.getMessage().getId().asLong())
-				.build();
+		MessageReferenceData messageRef = InteractionUtils.toMessageReferenceData(event.getMessage());
 		Builder msgBuilder = MessageCreateSpec.builder()
 				.content(message)
 				.messageReference(messageRef);

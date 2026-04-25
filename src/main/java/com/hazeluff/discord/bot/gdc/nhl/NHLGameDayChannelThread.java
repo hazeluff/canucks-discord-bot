@@ -179,7 +179,10 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	@Override
 	protected void sendEndOfGameMessage() {
 		try {
-			if (threadChannel != null) {
+			if (threadChannel != parentChannel) {
+				DiscordManager.sendMessage(parentChannel, getMatchupName() + "\n" + buildEndOfGameMessage());
+				DiscordManager.sendMessage(threadChannel, buildEndOfGameMessage());
+			} else if (threadChannel != null) {
 				DiscordManager.sendMessage(threadChannel, buildEndOfGameMessage());
 			}
 		} catch (Exception e) {
@@ -198,7 +201,9 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 	 */
 	@Override
 	protected String buildEndOfGameMessage() {
-		String message = "Game has ended. Thanks for joining!\n" + "Final Score: " + buildGameScore(game);
+		String message = getMatchupName()
+			+ "\nGame has ended. Thanks for joining!\n"
+			+ "Final Score: " + buildGameScore(game);
 
 		NHLGame nextGame = nhlBot.getNHLGameScheduler().getNextGame(Team.VANCOUVER_CANUCKS);
 		if (nextGame != null) {

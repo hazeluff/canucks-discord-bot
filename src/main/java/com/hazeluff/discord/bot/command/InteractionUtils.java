@@ -16,6 +16,7 @@ import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.core.spec.InteractionReplyEditSpec;
+import discord4j.discordjson.json.MessageReferenceData;
 import reactor.core.publisher.Mono;
 
 public class InteractionUtils {
@@ -121,5 +122,13 @@ public class InteractionUtils {
 		return InteractionReplyEditSpec.builder()
 				.contentOrNull(message)
 				.build();
+	}
+
+	public static MessageReferenceData toMessageReferenceData(Message msg) {
+		return toMessageReferenceData(msg.getId().asLong());
+	}
+
+	public static MessageReferenceData toMessageReferenceData(long messageId) {
+		return MessageReferenceData.builder().messageId(messageId).build();
 	}
 }

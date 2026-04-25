@@ -13,7 +13,7 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayChannelThread;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayThread;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.NHLGame;
 
@@ -24,7 +24,7 @@ import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.discordjson.json.StartThreadFromMessageRequest;
 
-public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
+public class NHLPlayoffWatchGameDayThread extends NHLGameDayThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLPlayoffWatchGameDayThread.class);
 
 	@Override
@@ -150,6 +150,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayChannelThread {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		embedBuilder.addField("NHL Playoffs", buildDetailsMessage(game), false);
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
+		embedBuilder.footer("Status: " + game.getGameState(), null);
 		return embedBuilder.build();
 	}
 

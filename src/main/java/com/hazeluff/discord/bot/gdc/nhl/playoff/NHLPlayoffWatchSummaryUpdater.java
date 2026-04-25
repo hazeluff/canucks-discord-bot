@@ -155,7 +155,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 				appendSeriesToStr(r2Str, series);
 			}
 		} else {
-			r2Str = new StringBuilder("Currently, no team has clenched.");
+			r2Str = new StringBuilder("Currently, no team has clinched.");
 		}
 		embedBuilder.addField("2nd Round", r2Str.toString(), false);
 
@@ -171,7 +171,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 				appendSeriesToStr(cfStr, series);
 			}
 		} else {
-			cfStr = new StringBuilder("Currently, no team has clenched.");
+			cfStr = new StringBuilder("Currently, no team has clinched.");
 		}
 		embedBuilder.addField("Conference Final", cfStr.toString(), false);
 
@@ -183,7 +183,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		if (scfSeries.hasParticipant()) {
 			appendSeriesToStr(scfStr, scfSeries);
 		} else {
-			scfStr = new StringBuilder("Currently, no team has clenched.");
+			scfStr = new StringBuilder("Currently, no team has clinched.");
 		}
 		embedBuilder.addField("Stanley Cup Finals", scfStr.toString(), false);
 		return embedBuilder.build();

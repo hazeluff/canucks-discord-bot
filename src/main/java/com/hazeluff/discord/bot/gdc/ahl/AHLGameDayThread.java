@@ -380,7 +380,7 @@ public class AHLGameDayThread extends GameDayThread {
 	 *         **Home Team** vs **Away Team** at HH:mm aaa on EEEE dd MMM yyyy"
 	 */
 	public static String buildDetailsMessage(AHLGame game) {
-		String time = String.format("<t:%s>", game.getStartTime().toEpochSecond());
+		String time = DateUtils.toDiscordTS(game.getStartTime());
 		String message = String.format(
 				"**%s** vs **%s** at %s", 
 				game.getHomeTeam().getLocationName(), game.getAwayTeam().getLocationName(), 

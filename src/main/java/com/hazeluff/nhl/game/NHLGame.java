@@ -202,6 +202,10 @@ public class NHLGame {
 		return this.pbpData.getCurrentPeriodType();
 	}
 
+	public int getMaxRegularPeriods() {
+		return this.pbpData.getMaxRegularPeriods();
+	}
+
 	public boolean isInIntermission() {
 		return this.pbpData.isInIntermission();
 	}

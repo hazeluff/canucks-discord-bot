@@ -14,6 +14,7 @@ import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.GameDayThread;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayThread;
+import com.hazeluff.discord.bot.gdc.nhl.NHLUtils;
 import com.hazeluff.discord.nhl.NHLGameTracker;
 import com.hazeluff.nhl.game.NHLGame;
 
@@ -150,7 +151,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayThread {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		embedBuilder.addField("NHL Playoffs", buildDetailsMessage(game), false);
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
-		embedBuilder.footer("Status: " + game.getGameState(), null);
+		embedBuilder.footer(NHLUtils.toNiceStatus(game), null);
 		return embedBuilder.build();
 	}
 

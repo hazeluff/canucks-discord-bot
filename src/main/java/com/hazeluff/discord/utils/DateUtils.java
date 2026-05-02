@@ -59,8 +59,7 @@ public class DateUtils {
 		return ZonedDateTime.now();
 	}
 	
-	public static String toDiscordTS(ZonedDateTime zdt)
-	{
+	public static String toDiscordTS(ZonedDateTime zdt) {
 		return String.format("<t:%s>", zdt.toEpochSecond());
 	}
 }

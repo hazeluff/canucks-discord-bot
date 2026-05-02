@@ -152,7 +152,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		List<PlayoffSeries> activeSeries = new ArrayList<PlayoffSeries>();
 		for (PlayoffSeries series : playoffBracket.values())
 		{
-			if (series.hasParticipant() && !series.hasWinningTeam())
+			if (series.isParticipantsSet() && !series.hasWinningTeam())
 				activeSeries.add(series);
 		}
 		
@@ -272,7 +272,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		 */
 		StringBuilder r1Str = new StringBuilder();
 		for (PlayoffSeries series : playoffBracket.values()) {
-			if (series.getSeriesAbbrev().equals("R1"))
+			if (series.getSeriesAbbrev().equals("R1") && series.hasParticipant())
 				appendSeriesToStr(r1Str, series);
 		}
 		embedBuilder.addField("Round 1", r1Str.toString(), false);
@@ -282,7 +282,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		 */
 		StringBuilder r2Str = new StringBuilder();
 		for (PlayoffSeries series : playoffBracket.values()) {
-			if (series.getSeriesAbbrev().equals("R2"))
+			if (series.getSeriesAbbrev().equals("R2") && series.hasParticipant())
 				appendSeriesToStr(r2Str, series);
 		}
 		if (r2Str.length() == 0) {
@@ -295,7 +295,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		 */
 		StringBuilder cfStr = new StringBuilder();
 		for (PlayoffSeries series : playoffBracket.values()) {
-			if (series.getSeriesAbbrev().equals("CF"))
+			if (series.getSeriesAbbrev().equals("CF") && series.hasParticipant())
 				appendSeriesToStr(cfStr, series);
 		}
 		if (cfStr.length() == 0) {

@@ -116,7 +116,8 @@ public abstract class GameDayThread extends InterruptableThread {
 			initChannel(); // ## Overridable ##
 
 			// Wait until close to start of game
-			waitAndSendReminders();
+			if (!gameTracker.isGameStarted())
+				waitAndSendReminders();
 
 			// Game is close to starting. Poll at higher rate than previously
 			LOGGER().info("Game is about to start. Polling more actively.");

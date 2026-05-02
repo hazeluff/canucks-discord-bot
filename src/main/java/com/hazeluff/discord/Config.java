@@ -148,7 +148,7 @@ public class Config {
 					"AHL API Config returned null value(s):" + AHL_API_KEY + "," + AHL_API_CLIENT_CODE);
 		}
 	}
-	public static final String AHL_API_URL = "https://lscluster.hockeytech.com/";
+	public static final String AHL_API_URL = "https://lscluster.hockeytech.com";
 	
 	/*
 	 *  Technical Config

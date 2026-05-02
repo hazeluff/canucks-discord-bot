@@ -14,25 +14,29 @@ public enum GameState {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameState.class);
 
-	private final String value;
+	private final String code;
 
-	private static Map<String, GameState> VALUE_MAP = new HashMap<>();
+	private static Map<String, GameState> CODE_MAP = new HashMap<>();
 
 	static {
 		for (GameState state : values()) {
-			VALUE_MAP.put(state.value, state);
+			CODE_MAP.put(state.code, state);
 		}
 	}
 
-	private GameState(String value) {
-		this.value = value;
+	private GameState(String code) {
+		this.code = code;
+	}
+
+	public String getCode() {
+		return code;
 	}
 
 	public static GameState parse(String value) {
-		if (!VALUE_MAP.containsKey(value)) {
+		if (!CODE_MAP.containsKey(value)) {
 			LOGGER.warn("Unknown value: " + value);
 		}
-		return VALUE_MAP.get(value);
+		return CODE_MAP.get(value);
 	}
 
 	public boolean isStarted() {

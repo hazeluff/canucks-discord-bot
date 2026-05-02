@@ -32,6 +32,10 @@ public class PlayoffSeries {
 		return jsonDoc.getInt32("playoffRound").getValue();
 	}
 
+	public boolean isParticipantsSet() {
+		return isTopSeedDetermined() && isBottomSeedDetermined();
+	}
+
 	public boolean hasParticipant() {
 		return isTopSeedDetermined() || isBottomSeedDetermined();
 	}

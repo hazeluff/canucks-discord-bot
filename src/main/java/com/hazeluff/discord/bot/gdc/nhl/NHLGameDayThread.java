@@ -255,7 +255,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		GDCScoreCommand.buildEmbed(embedBuilder, game);
 		GDCGoalsCommand.buildEmbed(embedBuilder, game);
-		embedBuilder.footer("Status: " + game.getGameState().toString(), null);
+		embedBuilder.footer(NHLUtils.toNiceStatus(game), null);
 		return embedBuilder.build();
 	}
 

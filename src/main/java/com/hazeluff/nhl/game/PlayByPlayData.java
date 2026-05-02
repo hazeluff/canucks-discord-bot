@@ -96,6 +96,10 @@ public class PlayByPlayData {
 		);
 	}
 
+	public int getMaxRegularPeriods() {
+		return getCurrentPeriodDescriptor().getInt32("maxRegulationPeriods", new BsonInt32(3)).getValue();
+	}
+
 	public BsonDocument getClock() {
 		return getJson().getDocument("clock");
 	}

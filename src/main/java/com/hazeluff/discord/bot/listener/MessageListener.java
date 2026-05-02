@@ -11,7 +11,6 @@ import com.hazeluff.discord.bot.chat.RudeTopic;
 import com.hazeluff.discord.bot.chat.Topic;
 import com.hazeluff.discord.bot.chat.WhatsUpTopic;
 import com.hazeluff.discord.utils.UserThrottler;
-import com.hazeluff.discord.utils.Utils;
 
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.Event;
@@ -114,9 +113,5 @@ public class MessageListener extends EventListener {
 	 */
 	boolean isBotMentioned(MessageCreateEvent event) {
 		return event.getMessage().getUserMentionIds().contains(getNHLBot().getDiscordManager().getId());
-	}
-
-	long getCurrentTime() {
-		return Utils.getCurrentTime();
 	}
 }

@@ -24,11 +24,12 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.NHLGateway;
-import com.hazeluff.nhl.game.NHLGame;
 import com.hazeluff.nhl.game.GameType;
+import com.hazeluff.nhl.game.NHLGame;
 
 /**
  * This class is used to start GameTrackers for games and to maintain the
@@ -64,7 +65,6 @@ public class NHLGameScheduler extends Thread {
 	};
 
 	private final Map<NHLGame, NHLGameTracker> activeNHLGameTrackers;
-	private final Map<NHLGame, NHLGameTracker> fourNationsGameTrackers;
 
 	AtomicReference<LocalDate> lastUpdate = new AtomicReference<>();
 
@@ -77,16 +77,13 @@ public class NHLGameScheduler extends Thread {
 	 * @param teamSubscriptions
 	 * @param teamLatestGames
 	 */
-	NHLGameScheduler(Map<Integer, NHLGame> games, Map<NHLGame, NHLGameTracker> activeNHLGameTrackers,
-			Map<NHLGame, NHLGameTracker> fourNationsGameTrackers) {
+	NHLGameScheduler(Map<Integer, NHLGame> games, Map<NHLGame, NHLGameTracker> activeNHLGameTrackers) {
 		this.games = games;
 		this.activeNHLGameTrackers = activeNHLGameTrackers;
-		this.fourNationsGameTrackers = fourNationsGameTrackers;
 	}
 
 	public NHLGameScheduler() {
 		activeNHLGameTrackers = new ConcurrentHashMap<>();
-		fourNationsGameTrackers = new ConcurrentHashMap<>();
 	}
 
 	/**
@@ -111,10 +108,10 @@ public class NHLGameScheduler extends Thread {
 		init.set(true);
 		LOGGER.info("Finished Initializing.");
 
-		lastUpdate.set(Utils.getCurrentDate(Config.SERVER_ZONE));
+		lastUpdate.set(DateUtils.getCurrentDate(Config.SERVER_ZONE));
 		while (!isStop()) {
 			LOGGER.info("Checking for update [lastUpdate={}]", getLastUpdate().toString());
-			LocalDate today = Utils.getCurrentDate(Config.SERVER_ZONE);
+			LocalDate today = DateUtils.getCurrentDate(Config.SERVER_ZONE);
 			try {
 				if (today.compareTo(getLastUpdate()) > 0) {
 					LOGGER.info("New day detected [today={}]. Updating schedule and trackers...", today.toString());
@@ -285,64 +282,6 @@ public class NHLGameScheduler extends Thread {
 
 	public List<NHLGame> getActivePlayoffGames() {
 		return getActivePlayoffGames(NHLTeams.getSortedValues());
-	}
-
-	/*
-	 * Four Nations
-	 */
-
-	public void createFourNationsGameTrackers() {
-		LOGGER.info("Starting new trackers for Four Nations games.");
-		for (NHLGame game : getFourNationsGames()) {
-			createFourNationsGameTracker(game);
-		}
-	}
-
-	public List<NHLGame> getFourNationsGames() {
-		return games.entrySet().stream().map(Entry::getValue).filter(game -> game.getGameType().isFourNations())
-				.collect(Collectors.toList());
-	}
-
-	public NHLGameTracker getFourNationsGameTracker(NHLGame game) {
-		return fourNationsGameTrackers.get(game);
-	}
-
-	/**
-	 * Creates and caches a GameTracker for the given game.
-	 * 
-	 * @param game
-	 *            game to find NHLGameTracker for
-	 * @return NHLGameTracker for the game, if it exists <br>
-	 *         null, if it does not exists
-	 * 
-	 */
-	private void createFourNationsGameTracker(NHLGame game) {
-		if (!fourNationsGameTrackers.containsKey(game)) {
-			LOGGER.info("Creating GameTracker: " + game.getGameId());
-			NHLGameTracker newGameTracker = NHLGameTracker.get(game);
-			fourNationsGameTrackers.put(game, newGameTracker);
-		} else {
-			LOGGER.debug("GameTracker already exists: " + game.getGameId());
-		}
-	}
-
-	public void removeInactiveFourNationsGames() {
-		LOGGER.info("Removing finished Four Nations trackers.");
-		fourNationsGameTrackers.entrySet().removeIf(map -> {
-			NHLGameTracker gameTracker = map.getValue();
-			int gamePk = gameTracker.getGame().getGameId();
-			if (!games.containsKey(gamePk)) {
-				LOGGER.info("Game is has been removed: " + gamePk);
-				gameTracker.interrupt();
-				return true;
-			} else if (gameTracker.isFinished()) {
-				LOGGER.info("Game is finished: " + gameTracker.getGame());
-				gameTracker.interrupt();
-				return true;
-			} else {
-				return false;
-			}
-		});
 	}
 
 	/*

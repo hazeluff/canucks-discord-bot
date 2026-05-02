@@ -9,14 +9,12 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
 
-import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCGoalsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
-import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -77,14 +75,6 @@ public class GDCCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		TextChannel channel = getTextChannel(event);
-		if (Config.isFourWatchChannelEnabled() && channel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
-			// Not in game day channel
-			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
-					.content("GDC Commands not supported for Four Nations channel.")
-					.ephemeral(true)
-					.build();
-			return event.reply(spec);
-		}
 
 		NHLGame game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
 		if (game == null) {
@@ -98,7 +88,7 @@ public class GDCCommand extends Command {
 		}
 
 		/*
-		 * Sub commands
+		 * Sub commands list
 		 */
 		String strSubcommand = getOptionAsString(event, "subcommand");
 		if (strSubcommand == null) {

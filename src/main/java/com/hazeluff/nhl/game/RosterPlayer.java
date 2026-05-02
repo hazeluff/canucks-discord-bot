@@ -12,6 +12,7 @@ public class RosterPlayer {
 	private final int jerseyNumber;
 	private final Team team;
 
+	private boolean nameUniqueness = true;
 
 	RosterPlayer(int playerId, String firstName, String lastName, String positionCode, int jerseyNumber, Team team) {
 		this.playerId = playerId;
@@ -49,6 +50,16 @@ public class RosterPlayer {
 		return firstName + " " + lastName;
 	}
 
+	/**
+	 * Gets the Full Name of the player, but appends the player's number if their
+	 * name is not unique on the roster.
+	 * 
+	 * @return
+	 */
+	public String getUniqueName() {
+		return getFullName() + (isNameUnique() ? "" : String.format(" (%s)", getJerseyNumber()));
+	}
+
 	public String getPositionCode() {
 		return positionCode;
 	}
@@ -61,6 +72,14 @@ public class RosterPlayer {
 		return team;
 	}
 
+	public boolean isNameUnique() {
+		return nameUniqueness;
+	}
+
+	public void setNameDuplication(boolean dupe) {
+		this.nameUniqueness = !dupe;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -68,6 +87,7 @@ public class RosterPlayer {
 		result = prime * result + ((firstName == null) ? 0 : firstName.hashCode());
 		result = prime * result + jerseyNumber;
 		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
+		result = prime * result + (nameUniqueness ? 1231 : 1237);
 		result = prime * result + playerId;
 		result = prime * result + ((positionCode == null) ? 0 : positionCode.hashCode());
 		result = prime * result + ((team == null) ? 0 : team.hashCode());
@@ -94,6 +114,8 @@ public class RosterPlayer {
 			if (other.lastName != null)
 				return false;
 		} else if (!lastName.equals(other.lastName))
+			return false;
+		if (nameUniqueness != other.nameUniqueness)
 			return false;
 		if (playerId != other.playerId)
 			return false;

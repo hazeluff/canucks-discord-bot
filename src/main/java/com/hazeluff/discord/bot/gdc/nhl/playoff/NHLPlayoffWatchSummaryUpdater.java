@@ -1,10 +1,10 @@
 package com.hazeluff.discord.bot.gdc.nhl.playoff;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +13,11 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.PlayoffSeries;
+import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.channel.TextChannel;
@@ -34,6 +36,8 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 
 	private EmbedCreateSpec summaryMessageEmbed;
 	private Message summaryMessage;
+	private EmbedCreateSpec scheduleMessageEmbed;
+	private Message scheduleMessage;
 
 	NHLPlayoffWatchSummaryUpdater(NHLBot nhlBot, TextChannel channel, PlayoffWatchMeta meta) {
 		this.nhlBot = nhlBot;
@@ -45,6 +49,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 	public void run() {
 		LocalDateTime lastUpdate = null;
 		initSummaryMessage();
+		initScheduleMessage();
 		while (!isStop()) {
 			try {
 				LocalDateTime currentTime = LocalDateTime.now();
@@ -53,8 +58,9 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 					LOGGER.info("Updating Channels...");
 					try {
 						updateSummaryMessage();
+						updateScheduleMessage();
 					} catch (Exception e) {
-						LOGGER.warn("Failed to update message.", e);
+						LOGGER.warn("Failed to update messages.", e);
 					}
 					lastUpdate = currentTime;
 				} else {
@@ -67,14 +73,140 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		}
 	}
 
+	private void updateScheduleMessage() {
+		LOGGER.info("Updating Playoff Schedule Message.");
+		if (scheduleMessage != null) {
+			EmbedCreateSpec newScheduleMessageEmbed = getScheduleEmbedSpec();
+			if (!newScheduleMessageEmbed.equals(scheduleMessageEmbed)) {
+				MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(newScheduleMessageEmbed).build();
+				DiscordManager.updateMessage(scheduleMessage, messageSpec);
+			}
+		} else {
+			scheduleMessage = getSummaryMessage();
+		}
+	}
+
 	private void updateSummaryMessage() {
+		LOGGER.info("Updating Playoff Summary Message.");
 		if (summaryMessage != null) {
 			EmbedCreateSpec newSummaryMessageEmbed = getSummaryEmbedSpec();
 			if (!newSummaryMessageEmbed.equals(summaryMessageEmbed)) {
 				MessageEditSpec messageSpec = MessageEditSpec.builder().addEmbed(newSummaryMessageEmbed).build();
 				DiscordManager.updateMessage(summaryMessage, messageSpec);
 			}
+		} else {
+			summaryMessage = getSummaryMessage();
 		}
+	}
+
+	/*
+	 * Schedule Message
+	 */
+	public void initScheduleMessage() {
+		if (scheduleMessage == null) {
+			LOGGER.info("Init Schedule Message.");
+			scheduleMessage = getScheduleMessage();
+		}
+	}
+
+	private Message getScheduleMessage() {
+		Message message = null;
+		if (meta != null) {
+			Long messageId = meta.getScheduleMessageId();
+			if (messageId == null) {
+				// No message saved
+				message = sendScheduleMessage();
+			} else {
+				message = nhlBot.getDiscordManager().getMessage(channel.getId().asLong(), messageId);
+				if (message == null) {
+					// Could not find existing message. Send new message
+					message = sendScheduleMessage();
+				} else {
+					// Message exists
+					return message;
+				}
+			}
+
+			if (message != null) {
+				DiscordManager.pinMessage(message);
+				meta.setScheduleMessageId(message.getId().asLong());
+				saveMetadata();
+			}
+		}
+		return message;
+	}
+
+	private Message sendScheduleMessage() {
+		LOGGER.info("Sending Schedule Message.");
+		scheduleMessageEmbed = getScheduleEmbedSpec();
+		MessageCreateSpec messageSpec = MessageCreateSpec.builder().addEmbed(scheduleMessageEmbed).build();
+		return DiscordManager.sendAndGetMessage(channel, messageSpec);
+	}
+
+	protected EmbedCreateSpec getScheduleEmbedSpec() {
+		Map<String, PlayoffSeries> playoffBracket = NHLGateway
+			.getPlayoffBracket(String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()));
+
+		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
+
+		List<PlayoffSeries> activeSeries = new ArrayList<PlayoffSeries>();
+		for (PlayoffSeries series : playoffBracket.values()) {
+			if (series.isParticipantsSet() && !series.hasWinningTeam())
+				activeSeries.add(series);
+		}
+
+		embedBuilder.title("Upcoming Games");
+		// Should use roundNum, but NHL API is WRONG
+		// for (int roundNum = 4; roundNum > 0; roundNum--) { }
+		for (String abbrev : Arrays.asList("SCF", "CF", "R2", "R1")) {
+			StringBuilder strB = new StringBuilder();
+			for (PlayoffSeries series : activeSeries) {
+				if (strB.length() > 0)
+					strB.append("\n");
+				if (series.getSeriesAbbrev().equals(abbrev))
+					strB.append(buildNextGameLine(series));
+			}
+
+			String roundName = "Round?";
+			switch (abbrev) {
+			case "SCF":
+				roundName = "Stanley Cup Finals";
+				break;
+			case "CF":
+				roundName = "Conference Finals";
+				break;
+			case "R2":
+				roundName = "Round 2";
+				break;
+			case "R1":
+				roundName = "Round 1";
+				break;
+			}
+
+			if (strB.length() > 0)
+				embedBuilder.addField(roundName, strB.toString(), false);
+		}
+
+		return embedBuilder.build();
+	}
+
+	private String buildNextGameLine(PlayoffSeries series) {
+		NHLGame nextGame = nhlBot.getNHLGameScheduler().getNextGame(series.getTopSeedTeam());
+		String matchup;
+		if (nextGame != null) {
+			matchup = String.format("%s vs %s - %s", nextGame.getHomeTeam().getName(), nextGame.getAwayTeam().getName(),
+				DateUtils.toDiscordTS(nextGame.getStartTime()));
+
+		} else {
+			String topSeed = series.isTopSeedDetermined() ? series.getTopSeedTeam().getName() : "TBD";
+			if (series.isTopSeedDetermined() && !series.isBottomSeedDetermined())
+				topSeed = "**" + topSeed + "**";
+			String btmSeed = series.isBottomSeedDetermined() ? series.getBottomSeedTeam().getName() : "TBD";
+			if (series.isBottomSeedDetermined() && !series.isTopSeedDetermined())
+				btmSeed = "**" + btmSeed + "**";
+			matchup = String.format("%s vs %s", topSeed, btmSeed);
+		}
+		return matchup;
 	}
 
 	/*
@@ -131,46 +263,38 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		/*
 		 * Round 1
 		 */
-		List<PlayoffSeries> r1Series = Arrays.asList("A", "B", "C", "D", "E", "F", "G", "H").stream()
-				.map(seriesLetter -> playoffBracket.get(seriesLetter))
-				.collect(Collectors.toList());
 		StringBuilder r1Str = new StringBuilder();
-		for (PlayoffSeries series : r1Series) {
-			appendSeriesToStr(r1Str, series);
+		for (PlayoffSeries series : playoffBracket.values()) {
+			if (series.getSeriesAbbrev().equals("R1") && series.hasParticipant())
+				appendSeriesToStr(r1Str, series);
 		}
-		embedBuilder.addField("1st Round", r1Str.toString(), false);
+		embedBuilder.addField("Round 1", r1Str.toString(), false);
 		
 		/*
 		 * Round 2
 		 */
-		List<PlayoffSeries> r2Series = Arrays.asList("I", "J", "K", "L").stream()
-				.map(seriesLetter -> playoffBracket.get(seriesLetter))
-				.collect(Collectors.toList());
 		StringBuilder r2Str = new StringBuilder();
-		if (r2Series.stream().anyMatch(series -> series.hasParticipant())) {
-			for (PlayoffSeries series : r2Series) {
+		for (PlayoffSeries series : playoffBracket.values()) {
+			if (series.getSeriesAbbrev().equals("R2") && series.hasParticipant())
 				appendSeriesToStr(r2Str, series);
-			}
-		} else {
+		}
+		if (r2Str.length() == 0) {
 			r2Str = new StringBuilder("Currently, no team has clinched.");
 		}
-		embedBuilder.addField("2nd Round", r2Str.toString(), false);
+		embedBuilder.addField("Round 2", r2Str.toString(), false);
 
 		/*
 		 * Conference Finals
 		 */
-		List<PlayoffSeries> cfSeries = Arrays.asList("M", "N").stream()
-				.map(seriesLetter -> playoffBracket.get(seriesLetter))
-				.collect(Collectors.toList());
 		StringBuilder cfStr = new StringBuilder();
-		if (cfSeries.stream().anyMatch(series -> series.hasParticipant())) {
-			for (PlayoffSeries series : cfSeries) {
+		for (PlayoffSeries series : playoffBracket.values()) {
+			if (series.getSeriesAbbrev().equals("CF") && series.hasParticipant())
 				appendSeriesToStr(cfStr, series);
-			}
-		} else {
+		}
+		if (cfStr.length() == 0) {
 			cfStr = new StringBuilder("Currently, no team has clinched.");
 		}
-		embedBuilder.addField("Conference Final", cfStr.toString(), false);
+		embedBuilder.addField("Conference Finals", cfStr.toString(), false);
 
 		/*
 		 * Conference Finals
@@ -204,18 +328,24 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 				break;
 		}
 
-		String topTeam = series.getTopSeedTeam() == null ? "Not Decided" : series.getTopSeedTeam().getName();
+		String topTeam = series.getTopSeedTeam() == null ? "TBD" : series.getTopSeedTeam().getName();
 		String topTeamWins = String.valueOf(series.getTopSeedWins());
 		if (series.getTopSeedWins() >= 4) {
 			topTeam = "**" + topTeam + "**";
 			topTeamWins = "**(" + topTeamWins + ")**";
 		}
+		else if (series.getTopSeedTeam() != null && series.getBottomSeedTeam() == null) {
+			topTeam = "**" + topTeam + "**";
+		}
 
-		String btmTeam = series.getBottomSeedTeam() == null ? "Not Decided" : series.getBottomSeedTeam().getName();
+		String btmTeam = series.getBottomSeedTeam() == null ? "TBD" : series.getBottomSeedTeam().getName();
 		String btmTeamWins = String.valueOf(series.getBottomSeedWins());
 		if (series.getBottomSeedWins() >= 4) {
 			btmTeam = "**" + btmTeam + "**";
 			btmTeamWins = "**(" + btmTeamWins + ")**";
+		}
+		else if (series.getBottomSeedTeam() != null && series.getTopSeedTeam() == null) {
+			topTeam = "**" + btmTeam + "**";
 		}
 
 		strBuilder.append(String.format(

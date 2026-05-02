@@ -7,28 +7,38 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum PeriodType {
-	REGULAR("REG"), OVERTIME("OT"), SHOOTOUT("SO");
+	REGULAR("REG", "Regulation"), OVERTIME("OT", "Overtime"), SHOOTOUT("SO", "Shootout");
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PeriodType.class);
 
-	private final String value;
+	private final String code;
+	private final String niceName;
 
-	private static Map<String, PeriodType> VALUE_MAP = new HashMap<>();
+	private static Map<String, PeriodType> CODE_MAP = new HashMap<>();
 
 	static {
 		for (PeriodType type : values()) {
-			VALUE_MAP.put(type.value, type);
+			CODE_MAP.put(type.code, type);
 		}
 	}
 
-	private PeriodType(String value) {
-		this.value = value;
+	private PeriodType(String code, String niceName) {
+		this.code = code;
+		this.niceName = niceName;
 	}
 
 	public static PeriodType parse(String value) {
-		if (!VALUE_MAP.containsKey(value)) {
+		if (!CODE_MAP.containsKey(value)) {
 			LOGGER.warn("Unknown value: " + value);
 		}
-		return VALUE_MAP.get(value);
+		return CODE_MAP.get(value);
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public String getNiceName() {
+		return niceName;
 	}
 }

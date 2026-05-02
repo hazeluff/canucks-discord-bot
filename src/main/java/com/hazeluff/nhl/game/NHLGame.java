@@ -54,7 +54,6 @@ public class NHLGame {
 			return null;
 		}
 	}
-
 	public void updateSchedule(BsonDocument jsonScheduleGame) {
 		scheduleData.update(jsonScheduleGame);
 	}
@@ -91,6 +90,12 @@ public class NHLGame {
 			getAwayTeam().getCode(), 
 			getNiceShortDate()
 		);
+		return niceName.toLowerCase();
+	}
+
+	public String getThreadName() {
+		String niceName = String.format("%.3s-vs-%.3s %s", getHomeTeam().getCode(), getAwayTeam().getCode(),
+			getNiceShortDate());
 		return niceName.toLowerCase();
 	}
 
@@ -195,6 +200,10 @@ public class NHLGame {
 
 	public PeriodType getPeriodType() {
 		return this.pbpData.getCurrentPeriodType();
+	}
+
+	public int getMaxRegularPeriods() {
+		return this.pbpData.getMaxRegularPeriods();
 	}
 
 	public boolean isInIntermission() {

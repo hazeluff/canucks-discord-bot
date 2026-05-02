@@ -28,8 +28,22 @@ public class PlayoffSeries {
 		return seriesAbbrev;
 	}
 
+	public boolean isParticipantsSet() {
+		return isTopSeedDetermined() && isBottomSeedDetermined();
+	}
+
 	public boolean hasParticipant() {
-		return jsonDoc.containsKey("topSeedTeam") || jsonDoc.containsKey("bottomSeedTeam");
+		return isTopSeedDetermined() || isBottomSeedDetermined();
+	}
+
+	public boolean isTopSeedDetermined() {
+		return jsonDoc.containsKey("topSeedTeam")
+			&& jsonDoc.getDocument("topSeedTeam").getInt32("id", new BsonInt32(-1)).getValue() > 0;
+	}
+
+	public boolean isBottomSeedDetermined() {
+		return jsonDoc.containsKey("bottomSeedTeam")
+			&& jsonDoc.getDocument("bottomSeedTeam").getInt32("id", new BsonInt32(-1)).getValue() > 0;
 	}
 
 	public Team getTopSeedTeam() {
@@ -54,5 +68,15 @@ public class PlayoffSeries {
 
 	public int getBottomSeedWins() {
 		return jsonDoc.getInt32("bottomSeedWins").getValue();
+	}
+
+	public boolean hasWinningTeam() {
+		return jsonDoc.containsKey("winningTeamId");
+	}
+
+	public Team getWinningTeam() {
+		if (!jsonDoc.containsKey("winningTeamId"))
+			return null;
+		return Team.parse(jsonDoc.getInt32("winningTeamId").getValue());
 	}
 }

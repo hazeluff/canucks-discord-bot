@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
+import com.hazeluff.discord.ahl.AHLGameScheduler;
 import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.channel.NHLBotCategoryManager;
 import com.hazeluff.discord.bot.command.Command;
@@ -22,6 +23,8 @@ import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.playoff.NHLPlayoffWatchChannel;
+import com.hazeluff.discord.nhl.NHLGameScheduler;
+import com.hazeluff.discord.nhl.NHLPlayoffBracketFetcher;
 import com.hazeluff.discord.utils.Utils;
 
 import discord4j.core.DiscordClient;
@@ -44,15 +47,18 @@ public class NHLBot extends Thread {
 	private PersistentData persistantData;
 	private com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler;
 	private com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler;
-	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
-	private final NHLBotCategoryManager nhlBotCategoryManager = new NHLBotCategoryManager(this);
+	private NHLPlayoffBracketFetcher nhlPlayoffBracketFetcher;
 
 	private final ManageConfigListener manageConfigListener = new ManageConfigListener(this);
+
+	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
+	private final NHLBotCategoryManager nhlBotCategoryManager = new NHLBotCategoryManager(this);
 
 	private NHLBot() {
 		presenceManager = new PresenceManager(this);
 		persistantData = null;
 		nhlGameScheduler = null;
+		nhlPlayoffBracketFetcher = null;
 	}
 
 	/**
@@ -62,16 +68,15 @@ public class NHLBot extends Thread {
 	 * @param botToken
 	 * @return
 	 */
-	public static NHLBot create(com.hazeluff.discord.nhl.NHLGameScheduler nhlGameScheduler,
-			com.hazeluff.discord.ahl.AHLGameScheduler ahlGameScheduler,
-
-			String botToken) {
+	public static NHLBot create(String botToken, NHLGameScheduler nhlGameScheduler, AHLGameScheduler ahlGameScheduler,
+		NHLPlayoffBracketFetcher playoffBracketFetcher) {
 		LOGGER.info("Creating " + Config.APPLICATION_NAME + " v" + Config.VERSION);
 		Thread.currentThread().setName(Config.APPLICATION_NAME);
 
 		NHLBot nhlBot = new NHLBot();
 		nhlBot.nhlGameScheduler = nhlGameScheduler;
 		nhlBot.ahlGameScheduler = ahlGameScheduler;
+		nhlBot.nhlPlayoffBracketFetcher = playoffBracketFetcher;
 
 		// Init Discord Client
 		nhlBot.initDiscord(botToken);
@@ -249,12 +254,16 @@ public class NHLBot extends Thread {
 		return discordManager.get();
 	}
 
-	public com.hazeluff.discord.nhl.NHLGameScheduler getNHLGameScheduler() {
+	public NHLGameScheduler getNHLGameScheduler() {
 		return nhlGameScheduler;
 	}
 
-	public com.hazeluff.discord.ahl.AHLGameScheduler getAHLGameScheduler() {
+	public AHLGameScheduler getAHLGameScheduler() {
 		return ahlGameScheduler;
+	}
+
+	public NHLPlayoffBracketFetcher getPlayoffBracketFetcher() {
+		return nhlPlayoffBracketFetcher;
 	}
 
 	public GDCCategoryManager getGdcCategoryManager() {

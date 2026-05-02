@@ -24,11 +24,12 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
 import com.hazeluff.nhl.NHLGateway;
-import com.hazeluff.nhl.game.NHLGame;
 import com.hazeluff.nhl.game.GameType;
+import com.hazeluff.nhl.game.NHLGame;
 
 /**
  * This class is used to start GameTrackers for games and to maintain the
@@ -110,11 +111,11 @@ public class NHLGameScheduler extends Thread {
 		init.set(true);
 		LOGGER.info("Finished Initializing.");
 
-		lastUpdate.set(Utils.getCurrentDate(Config.SERVER_ZONE));
+		lastUpdate.set(DateUtils.getCurrentDate(Config.SERVER_ZONE));
 
 		while (!isStop()) {
 			LOGGER.info("Checking for update [lastUpdate={}]", getLastUpdate().toString());
-			LocalDate today = Utils.getCurrentDate(Config.SERVER_ZONE);
+			LocalDate today = DateUtils.getCurrentDate(Config.SERVER_ZONE);
 			try {
 				if (today.compareTo(getLastUpdate()) > 0) {
 					LOGGER.info("New day detected [today={}]. Updating schedule and trackers...", today.toString());

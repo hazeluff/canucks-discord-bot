@@ -1,6 +1,8 @@
 package com.hazeluff.discord.utils;
 
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -32,6 +34,14 @@ public class DateUtils {
 		return Duration.between(date1, date2).getSeconds() * 1000;
 	}
 
+	public static long diffMinutes(ZonedDateTime date1, ZonedDateTime date2) {
+		return Duration.between(date1, date2).toMinutes();
+	}
+
+	public static long diffHours(ZonedDateTime date1, ZonedDateTime date2) {
+		return Duration.between(date1, date2).toHours();
+	}
+
 	/**
 	 * Determines if a date is between a date range
 	 * 
@@ -57,5 +67,23 @@ public class DateUtils {
 
 	public static String toDiscordTS(ZonedDateTime zdt) {
 		return String.format("<t:%s>", zdt.toEpochSecond());
+	}
+
+	/**
+	 * Gets the current epoch time in ms.
+	 * 
+	 * @return current epoch time in ms
+	 */
+	public static long getCurrentTime() {
+		return System.currentTimeMillis();
+	}
+
+	/**
+	 * Gets the current date (UTC)
+	 * 
+	 * @return
+	 */
+	public static LocalDate getCurrentDate(ZoneId zone) {
+		return LocalDate.now(zone);
 	}
 }

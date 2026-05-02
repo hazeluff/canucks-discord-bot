@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -228,17 +229,17 @@ public class NHLGateway {
 		}
 	}
 
-	public static Map<String, PlayoffSeries> getPlayoffBracket(String endDate) {
+	public static ConcurrentMap<String, PlayoffSeries> getPlayoffBracket(String endDate) {
 		try {
 			String strJsonBracket = fetchPlayoffBracket(endDate);
 			BsonArray jsonBracket = BsonDocument.parse(strJsonBracket).getArray("series");
 			return jsonBracket.stream()
-					.map(BsonValue::asDocument)
-					.map(PlayoffSeries::parse)
-					.collect(Collectors.toMap(
-						series -> series.getSeriesLetter(),
-						UnaryOperator.identity()
-					));
+				.map(BsonValue::asDocument)
+				.map(PlayoffSeries::parse)
+				.collect(Collectors.toConcurrentMap(
+					series -> series.getSeriesLetter(),
+					UnaryOperator.identity()
+				));
 		} catch (HttpException e) {
 			LOGGER.error("Exception occured fetching playoff bracket.", e);
 			return null;

@@ -15,7 +15,6 @@ import com.hazeluff.discord.bot.database.channel.playoff.PlayoffWatchMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.Utils;
-import com.hazeluff.nhl.NHLGateway;
 import com.hazeluff.nhl.PlayoffSeries;
 import com.hazeluff.nhl.game.NHLGame;
 
@@ -144,8 +143,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 	}
 
 	protected EmbedCreateSpec getScheduleEmbedSpec() {
-		Map<String, PlayoffSeries> playoffBracket = NHLGateway
-			.getPlayoffBracket(String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()));
+		Map<String, PlayoffSeries> playoffBracket = nhlBot.getPlayoffBracketFetcher().getPlayoffBracket();
 
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 
@@ -254,8 +252,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 	}
 
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
-		Map<String, PlayoffSeries> playoffBracket = NHLGateway
-				.getPlayoffBracket(String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()));
+		Map<String, PlayoffSeries> playoffBracket = nhlBot.getPlayoffBracketFetcher().getPlayoffBracket();
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
 		
 		embedBuilder.title("Stanley Cup Playoffs - " + Config.NHL_CURRENT_SEASON.getEndYear());
@@ -345,7 +342,7 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 			btmTeamWins = "**(" + btmTeamWins + ")**";
 		}
 		else if (series.getBottomSeedTeam() != null && series.getTopSeedTeam() == null) {
-			topTeam = "**" + btmTeam + "**";
+			btmTeam = "**" + btmTeam + "**";
 		}
 
 		strBuilder.append(String.format(

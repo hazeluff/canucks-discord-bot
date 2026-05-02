@@ -29,6 +29,7 @@ import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.SchedulerException;
+import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.HttpException;
 import com.hazeluff.discord.utils.Utils;
 
@@ -109,10 +110,10 @@ public class AHLGameScheduler extends Thread {
 		init.set(true);
 		LOGGER.info("Finished Initializing.");
 
-		lastUpdate.set(Utils.getCurrentDate(Config.SERVER_ZONE));
+		lastUpdate.set(DateUtils.getCurrentDate(Config.SERVER_ZONE));
 		while (!isStop()) {
 			LOGGER.info("Checking for update [lastUpdate={}]", getLastUpdate().toString());
-			LocalDate today = Utils.getCurrentDate(Config.SERVER_ZONE);
+			LocalDate today = DateUtils.getCurrentDate(Config.SERVER_ZONE);
 			try {
 				if (today.compareTo(getLastUpdate()) > 0) {
 					LOGGER.info("New day detected [today={}]. Updating schedule and trackers...", today.toString());

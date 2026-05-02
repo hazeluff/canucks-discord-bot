@@ -15,8 +15,6 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
-import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
-import com.hazeluff.discord.bot.gdc.nhl.fournations.FourNationsWatchChannel;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.NHLGame;
 
@@ -77,17 +75,6 @@ public class GDCCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		TextChannel textChannel = getTextChannel(event);
-		if (textChannel != null) {
-			if (textChannel.getName().equals(FourNationsWatchChannel.CHANNEL_NAME)) {
-				// Not in game day channel
-				return reply(event, "GDC Commands not supported for Four Nations channel.", true);
-			}
-
-			if (!textChannel.getName().equals(NHLGameDayWatchChannel.CHANNEL_NAME)) {
-				// Not in game day channel
-				return reply(event, "GDC Commands must be used in a Game Day Channel.", true);
-			}
-		}
 
 		List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(event.getInteraction().getGuildId().get().asLong()).getTeams();

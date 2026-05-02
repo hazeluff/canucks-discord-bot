@@ -8,7 +8,7 @@ public class NHLUtils {
 	public static String toNiceStatus(NHLGame game) {
 		if (!game.getGameState().isStarted())
 			return String.format("Not Started (%s)", game.getGameState());
-		if (game.getGameState().isStarted())
+		if (game.getGameState().isFinished())
 			return String.format("Finished (%s)", game.getGameState());
 		
 		int period = game.getPeriodNumber();
@@ -28,7 +28,7 @@ public class NHLUtils {
 			break;
 		case REGULAR:
 		default:
-			typeStr = period + Utils.getOrdinal(period);
+			typeStr = Utils.getOrdinal(period);
 			break;
 		}
 

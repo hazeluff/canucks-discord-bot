@@ -1,7 +1,5 @@
 package com.hazeluff.discord.utils;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -104,24 +102,6 @@ public class Utils {
 			randomList.add(copiedList.remove(indexToRemove));
 		}
 		return randomList;
-	}
-
-	/**
-	 * Gets the current epoch time in ms.
-	 * 
-	 * @return current epoch time in ms
-	 */
-	public static long getCurrentTime() {
-		return System.currentTimeMillis();
-	}
-
-	/**
-	 * Gets the current date (UTC)
-	 * 
-	 * @return
-	 */
-	public static LocalDate getCurrentDate(ZoneId zone) {
-		return LocalDate.now(zone);
 	}
 
 	/**

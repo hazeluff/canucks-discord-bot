@@ -1,3 +1,7 @@
+# NHLBot
+NHLBot is the generic version of CanucksBot that can be added to any Discord server.
+[NHLBot Branch](https://github.com/hazeluff/canucks-discord-bot/tree/nhlbot)
+
 # CanucksBot
 [![Twitter](https://img.shields.io/badge/Twitter-Hazeluff-00ACED.svg?style=flat-square&logo=twitter)](https://twitter.com/hazeluff)
 [![Donate](https://img.shields.io/badge/Donate-Paypal-%238d87a7.svg?style=flat-square&logo=paypal)](https://paypal.me/hazeluff)

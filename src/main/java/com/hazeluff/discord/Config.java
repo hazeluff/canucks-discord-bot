@@ -4,7 +4,6 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.discord.ahl.AHLSeasons;
@@ -161,57 +160,31 @@ public class Config {
 	private static final String MONGO_HOST_KEY = "mongo.host";
 	private static final String MONGO_HOST_DEFAULT = "localhost";
 	public static String getMongoHost() {
-		boolean hasKey = systemProperties.containsKey(MONGO_HOST_KEY);
-		if(!hasKey) {
-			return MONGO_HOST_DEFAULT;
-		}
-		return systemProperties.getProperty(MONGO_HOST_KEY);
+		return loadString(MONGO_HOST_KEY, MONGO_HOST_DEFAULT);
 	}
 
 	private static final String MONGO_PORT_KEY = "mongo.port";
 	private static final int MONGO_PORT_DEFAULT = 27017;
 
 	public static int getMongoPort() {
-		boolean hasKey = systemProperties.containsKey(MONGO_PORT_KEY);
-		if (!hasKey) {
-			return MONGO_PORT_DEFAULT;
-		}
-		return Integer.parseInt(systemProperties.getProperty(MONGO_PORT_KEY));
+		return loadInt(MONGO_PORT_KEY, MONGO_PORT_DEFAULT);
 	}
 
 	private static final String MONGO_USER_KEY = "mongo.username";
 
 	public static String getMongoUserName() {
-		boolean hasKey = systemProperties.containsKey(MONGO_USER_KEY);
-		if (!hasKey) {
-			return null;
-		}
-		return systemProperties.getProperty(MONGO_USER_KEY);
+		return loadString(MONGO_USER_KEY, null);
 	}
 
 	private static final String MONGO_PASS_KEY = "mongo.password";
 
 	public static String getMongoPassword() {
-		boolean hasKey = systemProperties.containsKey(MONGO_PASS_KEY);
-		if (!hasKey) {
-			return null;
-		}
-		return systemProperties.getProperty(MONGO_PASS_KEY);
+		return loadString(MONGO_PASS_KEY, null);
 	}
 	
 	public static final String MONGO_DATABASE_NAME = "CanucksBot";
 	public static final String MONGO_TEST_DATABASE_NAME = "CanucksBotIntegrationTest";
 	public static final ZoneId SERVER_ZONE = ZoneId.of("America/Vancouver");
-
-	public static final String NHL_CHANNEL_REGEX;
-	static {
-		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
-				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
-		teamRegex = String.format("(%s)", teamRegex);
-		String startYear = String.valueOf(Config.NHL_CURRENT_SEASON.getStartYear()).substring(2, 4);
-		String endYear = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
-		NHL_CHANNEL_REGEX = String.format("%1$s-vs-%1$s-(%2$s|%3$s)-[0-9]{2}-[0-9]{2}", teamRegex, startYear, endYear);
-	}
 
 	/*
 	 * About
@@ -231,41 +204,45 @@ public class Config {
 	public static final String VERSION = ProjectInfo.VERSION;
 
 	// Slash Commands
-	/**
-	 * <p>
-	 * Configures which Commands are used/added to discord as slash commands.
-	 * </p>
-	 * 
-	 * <p>
-	 * NEW COMMANDS NEED TO BE ADDED HERE!
-	 * </p>
-	 * 
-	 * @param nhlBot
-	 * @return
-	 */
 	@SuppressWarnings("rawtypes")
-	public static List<Class> getSlashCommands() {
-		return Arrays.asList(
-				AboutCommand.class,
-				NHLStatsCommand.class,
-				GDCCommand.class,
-				HelpCommand.class,
-				NextGameCommand.class,
-				SubscribeCommand.class,
-				ScheduleCommand.class,
-				BotStatsCommand.class,
-				UnsubscribeCommand.class,
-				WordcloudCommand.class,
-				SayCommand.class
-		);
-	}
+	public final static List<Class> SLASH_COMMANDS = Arrays.asList(
+		AboutCommand.class,
+		NHLStatsCommand.class,
+		GDCCommand.class,
+		HelpCommand.class,
+		NextGameCommand.class,
+		SubscribeCommand.class,
+		ScheduleCommand.class,
+		BotStatsCommand.class,
+		UnsubscribeCommand.class,
+		WordcloudCommand.class,
+		SayCommand.class
+	);
 
-	private static boolean loadBool(String keyName, boolean def) {
-		boolean hasKey = systemProperties.containsKey(keyName);
+	// Utils
+	private static boolean loadBool(String key, boolean def) {
+		boolean hasKey = systemProperties.containsKey(key);
 		if (!hasKey) {
 			return def;
 		}
-		String strValue = systemProperties.getProperty(keyName);
+		String strValue = systemProperties.getProperty(key);
 		return strValue.isEmpty() || Boolean.valueOf(strValue);
+	}
+
+	private static int loadInt(String key, int def) {
+		boolean hasKey = systemProperties.containsKey(key);
+		if (!hasKey) {
+			return def;
+		}
+		return Integer.parseInt(systemProperties.getProperty(key));
+	}
+
+	private static String loadString(String key, String def) {
+
+		boolean hasKey = systemProperties.containsKey(key);
+		if (!hasKey) {
+			return def;
+		}
+		return systemProperties.getProperty(key);
 	}
 }

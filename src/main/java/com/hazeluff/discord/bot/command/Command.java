@@ -12,6 +12,7 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.utils.InteractionUtils;
 import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.common.util.Snowflake;
@@ -243,6 +244,10 @@ public abstract class Command extends ReactiveEventAdapter {
 
 	protected static Long getOptionAsLong(ChatInputInteractionEvent event, String option) {
 		return InteractionUtils.getOptionAsLong(event, option);
+	}
+
+	protected static Boolean getOptionAsBoolean(ChatInputInteractionEvent event, String option) {
+		return InteractionUtils.getOptionAsBoolean(event, option);
 	}
 
 	protected static Mono<Channel> getOptionAsChannel(ChatInputInteractionEvent event, String option) {

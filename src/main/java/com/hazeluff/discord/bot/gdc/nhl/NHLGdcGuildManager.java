@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +38,16 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	static final long INIT_UPDATE_RATE = 5000L;
 	// Poll for every 5 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 300000L;
+	public static final String NHL_CHANNEL_REGEX;
+	static {
+		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
+				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
+		teamRegex = String.format("(%s)", teamRegex);
+		String startYear = String.valueOf(Config.NHL_CURRENT_SEASON.getStartYear()).substring(2, 4);
+		String endYear = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
+		NHL_CHANNEL_REGEX = String.format("%1$s-vs-%1$s-(%2$s|%3$s)-[0-9]{2}-[0-9]{2}", teamRegex, startYear, endYear);
+	}
+	
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
@@ -261,7 +272,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	 *         false, otherwise.
 	 */
 	public static boolean isChannelNameFormat(String channelName) {
-		return channelName.matches(Config.NHL_CHANNEL_REGEX);
+		return channelName.matches(NHL_CHANNEL_REGEX);
 	}
 
 	boolean isGameActive(List<Team> teams, String channelName) {

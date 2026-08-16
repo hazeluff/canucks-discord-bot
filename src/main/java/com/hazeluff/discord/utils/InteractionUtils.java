@@ -1,11 +1,13 @@
-package com.hazeluff.discord.bot.command;
+package com.hazeluff.discord.utils;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.hazeluff.ahl.game.AHLGame;
 
 import discord4j.core.event.domain.interaction.DeferrableInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
@@ -20,27 +22,34 @@ import discord4j.discordjson.json.MessageReferenceData;
 import reactor.core.publisher.Mono;
 
 public class InteractionUtils {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AHLGame.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(InteractionUtils.class);
 
 	public static String getOptionAsString(DeferrableInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asString)
-				.orElse(null);
+			.flatMap(ApplicationCommandInteractionOption::getValue)
+			.map(ApplicationCommandInteractionOptionValue::asString)
+			.orElse(null);
 	}
 
 	public static Long getOptionAsLong(DeferrableInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asLong)
-				.orElse(null);
+			.flatMap(ApplicationCommandInteractionOption::getValue)
+			.map(ApplicationCommandInteractionOptionValue::asLong)
+			.orElse(null);
+	}
+
+	public static Boolean getOptionAsBoolean(DeferrableInteractionEvent event, String option) {
+		return event.getInteraction().getCommandInteraction().get().getOption(option)
+			.flatMap(ApplicationCommandInteractionOption::getValue)
+			.map(ApplicationCommandInteractionOptionValue::asBoolean)
+			.orElse(null);
 	}
 
 	public static Mono<Channel> getOptionAsChannel(DeferrableInteractionEvent event, String option) {
 		return event.getInteraction().getCommandInteraction().get().getOption(option)
-				.flatMap(ApplicationCommandInteractionOption::getValue)
-				.map(ApplicationCommandInteractionOptionValue::asChannel)
-				.orElse(null);
+			.flatMap(ApplicationCommandInteractionOption::getValue)
+			.map(ApplicationCommandInteractionOptionValue::asChannel)
+			.orElse(null);
 	}
 
 	public static Mono<Void> reply(DeferrableInteractionEvent event, String message) {
@@ -93,8 +102,12 @@ public class InteractionUtils {
 		}));
 	}
 
-	public static Mono<Message> replyAndDeferEdit(DeferrableInteractionEvent event, String initialReply,
-		Runnable defferedAction, Supplier<InteractionReplyEditSpec> defferedReplySupplier) {
+	public static Mono<Message> replyAndDeferEdit(
+		DeferrableInteractionEvent event, 
+		String initialReply,
+		Runnable defferedAction, 
+		Supplier<InteractionReplyEditSpec> defferedReplySupplier
+	) {
 		return event.reply(buildReplySpec(initialReply, null, true)).then(Mono.defer(() -> {
 			try {
 				defferedAction.run();
@@ -104,6 +117,16 @@ public class InteractionUtils {
 				return event.editReply(buildReplyEditSpec("Error occured."));
 			}
 		}));
+	}
+	
+	public static Mono<Message> replyAndDeferEdit(
+		DeferrableInteractionEvent event,
+		String initialReply,
+		DefferableActionReplyWithMemory defferedAction
+	) {
+		return replyAndDeferEdit(event, initialReply, 
+			defferedAction.getDefferedAction(),
+			defferedAction.getDefferedReply());
 	}
 	
 	public static InteractionFollowupCreateSpec buildFollowUpSpec(String message) {
@@ -131,5 +154,26 @@ public class InteractionUtils {
 
 	public static MessageReferenceData toMessageReferenceData(long messageId) {
 		return MessageReferenceData.builder().messageId(messageId).build();
+	}
+
+	public class DefferableActionReplyWithMemory {
+		private final Consumer<Map<String, Object>> defferedAction;
+		private final Function<Map<String, Object>, InteractionReplyEditSpec> defferedReply;
+		private final Map<String, Object> memory;
+
+		public DefferableActionReplyWithMemory(Consumer<Map<String, Object>> defferedAction,
+			Function<Map<String, Object>, InteractionReplyEditSpec> defferedReply) {
+			this.defferedAction = defferedAction;
+			this.defferedReply = defferedReply;
+			this.memory = new ConcurrentHashMap<>();
+		}
+
+		public Runnable getDefferedAction() {
+			return () -> defferedAction.accept(memory);
+		}
+
+		public Supplier<InteractionReplyEditSpec> getDefferedReply() {
+			return () -> defferedReply.apply(memory);
+		}
 	}
 }

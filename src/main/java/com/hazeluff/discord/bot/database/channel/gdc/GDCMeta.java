@@ -23,7 +23,7 @@ public class GDCMeta {
 	private static final String PENALTY_MESSAGE_IDS_KEY = "penalty-messageIds";
 
 	private final long channelId;
-	private final long gameId;
+	private final int gameId;
 	private Long parentChannelId;
 	private Long introMessageId;
 	private Long summaryMessageId;
@@ -31,14 +31,21 @@ public class GDCMeta {
 	private String strGoalMessages;
 	private String strPenaltyMessages;
 
-	GDCMeta(long channelId, long gameId, Long parentChannelId) {
+	GDCMeta(long channelId, int gameId, Long parentChannelId) {
 		this.channelId = channelId;
 		this.gameId = gameId;
 		this.parentChannelId = parentChannelId;
 	}
 
-	GDCMeta(long channelId, long gameId, Long parentChannelId, Long introMessageId, Long summaryMessageId,
-		String strGoalMessages, String strPenaltyMessages) {
+	GDCMeta(
+		long channelId,
+		int gameId,
+		Long parentChannelId,
+		Long introMessageId,
+		Long summaryMessageId,
+		String strGoalMessages,
+		String strPenaltyMessages
+	) {
 		this(channelId, gameId, parentChannelId);
 		this.introMessageId = introMessageId;
 		this.summaryMessageId = summaryMessageId;
@@ -46,11 +53,11 @@ public class GDCMeta {
 		this.strPenaltyMessages = strPenaltyMessages;
 	}
 
-	public static GDCMeta forChannel(long channelId, long gameId) {
+	public static GDCMeta forChannel(long channelId, int gameId) {
 		return new GDCMeta(channelId, gameId, null);
 	}
 
-	public static GDCMeta forThread(long channelId, long gameId, Long parentChannelId) {
+	public static GDCMeta forThread(long channelId, int gameId, Long parentChannelId) {
 		return new GDCMeta(channelId, gameId, parentChannelId);
 	}
 
@@ -62,16 +69,16 @@ public class GDCMeta {
 		}
 
 		long channelId = doc.getLong(CHANNEL_ID_KEY);
-		long gameId = doc.containsKey(GAME_ID_KEY) ? doc.getLong(GAME_ID_KEY) : -1;
+		int gameId = doc.containsKey(GAME_ID_KEY) ? doc.getLong(GAME_ID_KEY).intValue() : -1;
 		Long parentChannelId = doc.getLong(PARENT_CHANNEL_ID_KEY);
-
+		
 		Long introMessageId = doc.getLong(INTRO_MESSAGE_ID_KEY);
 		Long summaryMessageId = doc.getLong(SUMMARY_MESSAGE_ID_KEY);
 		String goalMessageIds = doc.getString(GOAL_MESSAGE_IDS_KEY);
 		String penaltyMessageIds = doc.getString(PENALTY_MESSAGE_IDS_KEY);
 
-		return new GDCMeta(channelId, gameId, parentChannelId, introMessageId, summaryMessageId, goalMessageIds,
-			penaltyMessageIds);
+		return new GDCMeta(channelId, gameId, parentChannelId, introMessageId, summaryMessageId,
+				goalMessageIds, penaltyMessageIds);
 	}
 
 	static GDCMeta findByChannelId(MongoCollection<Document> collection, long channelId, long gameId) {
@@ -83,17 +90,28 @@ public class GDCMeta {
 		);
 	}
 
+	static GDCMeta findByChannelId(MongoCollection<Document> collection, long channelId) {
+		return findFromCollection(
+			collection,
+			new Document()
+				.append(CHANNEL_ID_KEY, channelId)
+		);
+	}
+
 	static GDCMeta findByParentId(MongoCollection<Document> collection, Long parentChannelId, long gameId) {
-		return findFromCollection(collection,
+		return findFromCollection(
+			collection,
 			new Document()
 				.append(PARENT_CHANNEL_ID_KEY, parentChannelId)
-				.append(GAME_ID_KEY, gameId));
+				.append(GAME_ID_KEY, gameId)
+		);
 	}
 
 	void saveToCollection(MongoCollection<Document> collection) {
 		collection.updateOne(
-			new Document(CHANNEL_ID_KEY, channelId).append(GAME_ID_KEY, gameId).append(PARENT_CHANNEL_ID_KEY,
-				parentChannelId),
+			new Document(CHANNEL_ID_KEY, channelId)
+				.append(GAME_ID_KEY, (long) gameId) // TODO: Can remove once season is over. New meta will be correctly int.
+				.append(PARENT_CHANNEL_ID_KEY, parentChannelId),
 			new Document("$set", new Document()
 				.append(INTRO_MESSAGE_ID_KEY, introMessageId)
 				.append(SUMMARY_MESSAGE_ID_KEY, summaryMessageId)
@@ -102,6 +120,10 @@ public class GDCMeta {
 			),
 			new UpdateOptions().upsert(true)		
 		);
+	}
+
+	public int getGameId() {
+		return gameId;
 	}
 
 	public Long getChannelId() {

@@ -4,8 +4,8 @@ package com.hazeluff.discord.bot.chat;
 import java.util.regex.Pattern;
 
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.command.InteractionUtils;
 import com.hazeluff.discord.bot.discord.DiscordManager;
+import com.hazeluff.discord.utils.InteractionUtils;
 
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.channel.TextChannel;

@@ -358,7 +358,7 @@ public class NHLBot extends Thread {
 	}
 
 	static List<Command> getSlashCommands(NHLBot nhlBot) {
-		return Config.getSlashCommands().stream()
+		return Config.SLASH_COMMANDS.stream()
 				.map(commandClass -> instantiateCommand(commandClass, nhlBot))
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());

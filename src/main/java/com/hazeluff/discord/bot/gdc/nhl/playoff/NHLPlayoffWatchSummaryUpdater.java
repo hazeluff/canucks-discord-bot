@@ -163,8 +163,14 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 			{
 				if (strB.length() > 0)
 					strB.append("\n");
-				if (series.getSeriesAbbrev().equals(abbrev))
+				if (!abbrev.equals("CF"))
+				{
+					if (series.getSeriesAbbrev().contains(abbrev))
+						strB.append(buildNextGameLine(series));
+				} 
+				else if (series.getSeriesLetter().equals("M") || series.getSeriesLetter().equals("N"))
 					strB.append(buildNextGameLine(series));
+
 			}
 
 			String roundName = "Round?";
@@ -292,8 +298,12 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		 */
 		StringBuilder cfStr = new StringBuilder();
 		for (PlayoffSeries series : playoffBracket.values()) {
-			if (series.getSeriesAbbrev().equals("CF") && series.hasParticipant())
-				appendSeriesToStr(cfStr, series);
+			switch (series.getSeriesLetter()) {
+			case "M":
+			case "N":
+				if (series.hasParticipant())
+					appendSeriesToStr(cfStr, series);
+			}
 		}
 		if (cfStr.length() == 0) {
 			cfStr = new StringBuilder("Currently, no team has clinched.");
@@ -318,18 +328,14 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		if (strBuilder.length() > 0) {
 			strBuilder.append("\n");
 		}
-		
-		switch(series.getSeriesAbbrev()) {
-			case "CF":
-				switch(series.getSeriesLetter()) {
-					case "M":
-						strBuilder.append("East: ");
-						break;
-					case "N":
-						strBuilder.append("West: ");
-						break;
-					}
-				break;
+
+		switch (series.getSeriesLetter()) {
+		case "M":
+			strBuilder.append("East: ");
+			break;
+		case "N":
+			strBuilder.append("West: ");
+			break;
 		}
 
 		String topTeam = series.getTopSeedTeam() == null ? "TBD" : series.getTopSeedTeam().getName();

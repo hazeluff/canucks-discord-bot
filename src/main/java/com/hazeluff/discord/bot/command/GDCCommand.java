@@ -15,13 +15,18 @@ import com.hazeluff.discord.bot.command.gdc.GDCScoreCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCStatusCommand;
 import com.hazeluff.discord.bot.command.gdc.GDCSubCommand;
+import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.core.spec.InteractionApplicationCommandCallbackSpec;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -74,48 +79,93 @@ public class GDCCommand extends Command {
 
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
-		TextChannel textChannel = getTextChannel(event);
 
-		List<Team> teams = nhlBot.getPersistentData().getPreferencesData()
-				.getGuildPreferences(event.getInteraction().getGuildId().get().asLong()).getTeams();
-		if(teams.size() > 1) {
-			return reply(event, "Your server can only be subscribed to a single team to use this feature.", true);
-		} else if (teams.size() == 0) {
-			return reply(event, "Your server must be subscribed to a single team to use this feature.", true);
-		} // else teams.size() == 1
-		
-		
 		/*
-		 * Sub commands
+		 * Sub commands list
 		 */
-		String strSubcommand = InteractionUtils.getOptionAsString(event, "subcommand");
+		String strSubcommand = getOptionAsString(event, "subcommand");
 		if (strSubcommand == null) {
 			// No option specified
-			return reply(event, HELP_MESSAGE_EMBED, true);
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+					.addEmbed(HELP_MESSAGE_EMBED)
+					.ephemeral(true)
+					.build();
+			return event.reply(spec);
 		}
+
+		GDCSubCommand publicCommand = PUBLIC_COMMANDS.get(strSubcommand.toLowerCase());
+		if(publicCommand == null) {
+			InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+				.addEmbed(HELP_MESSAGE_EMBED)
+				.ephemeral(true)
+				.build();
+			return event.reply(spec);
+		}
+
+		long guildId = event.getInteraction().getGuildId().get().asLong();
+		GuildPreferences preferences = nhlBot.getPersistentData().getPreferencesData()
+			.getGuildPreferences(guildId);
+		List<Team> teams = preferences.getTeams();
+		if(teams.size() == 0) {
+			return event.reply(MUST_BE_SUBSCRIBED_TO_TEAM_REPLY_SPEC);
+		}
+		else if (teams.size() > 1) {
+			return event.reply(NOT_AVAILABLE_TO_MULTIPLE_TEAMS_REPLY_SPEC);
+		}
+		
+		/*
+		 * Get Game
+		 */
+		NHLGame game = null;
+
+		// Individual Game Day Channel
+		TextChannel channel = getTextChannel(event);
+		if (channel != null)
+			game = nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName());
+
+		// Singular Game Day Channel
+		if (game == null) {
+			NHLGameDayWatchChannel gdwc = NHLGameDayWatchChannel.getChannel(guildId);
+			if (gdwc != null) {
+				// If Top Level Channel - match name
+				if (channel != null && gdwc.getDiscordChannelName().equals(channel.getName())) {
+					game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(teams.get(0));
+					if (game == null)
+						game = nhlBot.getNHLGameScheduler().getNextGame(teams.get(0));
+				}
+				else if (channel == null) {
+					ThreadChannel threadChannel = getThreadChannel(event);
+					// If Thread
+					if (threadChannel != null) {
+						GDCMeta meta = nhlBot.getPersistentData().getGDCMetaData()
+							.loadMetaByChannelId(threadChannel.getId().asLong());
+						if(meta != null) {
+							game = nhlBot.getNHLGameScheduler().getGameById(meta.getGameId());
+						}
+					}
+				}
+			}
+		}
+		// GDC Thread
 
 		/*
 		 * Public sub commands
 		 */
-		GDCSubCommand publicCommand = PUBLIC_COMMANDS.get(strSubcommand.toLowerCase());
-		if (publicCommand != null) {
-			Team team = teams.get(0);
-			// Get current or next game
-			NHLGame game = nhlBot.getNHLGameScheduler().getCurrentLiveGame(team);
-			if (game == null) {
-				game = nhlBot.getNHLGameScheduler().getNextGame(team);
-			}
-
-			if (game != null) {
-				// Game is found
-				return publicCommand.reply(event, nhlBot, game);
-			}
-
-			// Game is not found
-			return reply(event, "There is no current/next game.", true);
+		if (game != null) {
+			System.out.println("game=" + game.getNiceName());
+			return publicCommand.reply(event, nhlBot, game);
 		}
 
-		return reply(event, HELP_MESSAGE_EMBED, true);
+		/*
+		 * Not in GDC Not using
+		 */
+		// Not in game day channel
+		InteractionApplicationCommandCallbackSpec spec = InteractionApplicationCommandCallbackSpec.builder()
+			.content("GDC Commands must be used in a Game Day Channel.")
+				.addEmbed(HELP_MESSAGE_EMBED)
+				.ephemeral(true)
+				.build();
+		return event.reply(spec);
 	}
 
 	/*
@@ -139,4 +189,15 @@ public class GDCCommand extends Command {
 		return builder.build();
 	}
 
+	InteractionApplicationCommandCallbackSpec MUST_BE_SUBSCRIBED_TO_TEAM_REPLY_SPEC =
+		InteractionApplicationCommandCallbackSpec.builder()
+			.content(SUBSCRIBE_FIRST_MESSAGE)
+			.ephemeral(true)
+			.build();
+
+	InteractionApplicationCommandCallbackSpec NOT_AVAILABLE_TO_MULTIPLE_TEAMS_REPLY_SPEC = 
+		InteractionApplicationCommandCallbackSpec.builder()
+			.content("This feature currently does not work when subscribed to multiple teams.")
+			.ephemeral(true)
+			.build();
 }

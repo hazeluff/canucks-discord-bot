@@ -125,17 +125,19 @@ public class PreferencesData extends DatabaseManager {
 				.map(preferedTeam -> preferedTeam.getId())
 				.collect(Collectors.toList());
 		Long gdcChannelId = pref.getGameDayChannelId();
-		boolean useChannelThreads = pref.isUseChannelThreads();
+		GDCMode gdcMode = pref.getGDCMode();
+		PlayoffMode playoffMode = pref.getPlayoffMode();
 		
 		Document prefDoc = new Document()
-				.append("teams", teamIds)
-				.append("gdcChannelId", gdcChannelId)
-				.append("useChannelThreads", useChannelThreads);
+			.append("teams", teamIds)
+			.append("gdcChannelId", gdcChannelId)
+			.append("gdcMode", gdcMode.getId())
+			.append("playoffMode", playoffMode.getId());
 
 		guildCollection.updateOne(
-				new Document("id", guildId),
-				new Document("$set", prefDoc), 
-				new UpdateOptions().upsert(true));
+			new Document("id", guildId),
+			new Document("$set", prefDoc), 
+			new UpdateOptions().upsert(true));
 	}
 
 	Map<Long, GuildPreferences> getGuildPreferences() {

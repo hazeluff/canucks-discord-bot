@@ -18,7 +18,7 @@ public abstract class InterruptableThread extends Thread {
 		try {
 			sleep(duration);
 		} catch (InterruptedException e) {
-			LOGGER().warn("Sleep interupted", e);
+			LOGGER().warn("Sleep interupted");
 			interrupt();
 		}
 	}

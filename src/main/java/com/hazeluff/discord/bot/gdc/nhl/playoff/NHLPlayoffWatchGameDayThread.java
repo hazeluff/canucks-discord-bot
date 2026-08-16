@@ -83,7 +83,7 @@ public class NHLPlayoffWatchGameDayThread extends NHLGameDayThread {
 			// WatchThread will be made from messageChannel
 		}
 
-		// Channel exists; No meta exists.
+		// Channel exists/created; No meta exists.
 		if (messageChannel != null && meta == null) {
 			// Generate new metadata
 			if (useThreads)

@@ -64,7 +64,6 @@ public class NHLGameScheduler extends Thread {
 	};
 
 	private final Map<NHLGame, NHLGameTracker> activeNHLGameTrackers;
-	private final Map<NHLGame, NHLGameTracker> fourNationsGameTrackers;
 
 	AtomicReference<LocalDate> lastUpdate = new AtomicReference<>();
 
@@ -77,16 +76,13 @@ public class NHLGameScheduler extends Thread {
 	 * @param teamSubscriptions
 	 * @param teamLatestGames
 	 */
-	NHLGameScheduler(Map<Integer, NHLGame> games, Map<NHLGame, NHLGameTracker> activeNHLGameTrackers,
-			Map<NHLGame, NHLGameTracker> fourNationsGameTrackers) {
+	NHLGameScheduler(Map<Integer, NHLGame> games, Map<NHLGame, NHLGameTracker> activeNHLGameTrackers) {
 		this.games = games;
 		this.activeNHLGameTrackers = activeNHLGameTrackers;
-		this.fourNationsGameTrackers = fourNationsGameTrackers;
 	}
 
 	public NHLGameScheduler() {
 		activeNHLGameTrackers = new ConcurrentHashMap<>();
-		fourNationsGameTrackers = new ConcurrentHashMap<>();
 	}
 
 	/**
@@ -287,67 +283,8 @@ public class NHLGameScheduler extends Thread {
 		return getActivePlayoffGames(NHLTeams.getSortedValues());
 	}
 
-
 	/*
-	 * Four Nations
-	 */
-
-	public void createFourNationsGameTrackers() {
-		LOGGER.info("Starting new trackers for Four Nations games.");
-		for (NHLGame game : getFourNationsGames()) {
-			createFourNationsGameTracker(game);
-		}
-	}
-
-	public List<NHLGame> getFourNationsGames() {
-		return games.entrySet().stream().map(Entry::getValue).filter(game -> game.getGameType().isFourNations())
-				.collect(Collectors.toList());
-	}
-
-	public NHLGameTracker getFourNationsGameTracker(NHLGame game) {
-		return fourNationsGameTrackers.get(game);
-	}
-
-	/**
-	 * Creates and caches a GameTracker for the given game.
-	 * 
-	 * @param game
-	 *            game to find NHLGameTracker for
-	 * @return NHLGameTracker for the game, if it exists <br>
-	 *         null, if it does not exists
-	 * 
-	 */
-	private void createFourNationsGameTracker(NHLGame game) {
-		if (!fourNationsGameTrackers.containsKey(game)) {
-			LOGGER.info("Creating GameTracker: " + game.getGameId());
-			NHLGameTracker newGameTracker = NHLGameTracker.get(game);
-			fourNationsGameTrackers.put(game, newGameTracker);
-		} else {
-			LOGGER.debug("GameTracker already exists: " + game.getGameId());
-		}
-	}
-
-	public void removeInactiveFourNationsGames() {
-		LOGGER.info("Removing finished Four Nations trackers.");
-		fourNationsGameTrackers.entrySet().removeIf(map -> {
-			NHLGameTracker gameTracker = map.getValue();
-			int gamePk = gameTracker.getGame().getGameId();
-			if (!games.containsKey(gamePk)) {
-				LOGGER.info("Game is has been removed: " + gamePk);
-				gameTracker.interrupt();
-				return true;
-			} else if (gameTracker.isFinished()) {
-				LOGGER.info("Game is finished: " + gameTracker.getGame());
-				gameTracker.interrupt();
-				return true;
-			} else {
-				return false;
-			}
-		});
-	}
-
-	/*
-	 * All Games
+	 * All games
 	 */
 	/**
 	 * Gets the latest (up to) 2 games to be used as channels in a guild. The
@@ -579,6 +516,10 @@ public class NHLGameScheduler extends Thread {
 
 	public Set<NHLGame> getGames() {
 		return new HashSet<>(games.values());
+	}
+
+	public NHLGame getGameById(int id) {
+		return games.get(id);
 	}
 
 	public NHLGameTracker toGameTracker(NHLGame game) {

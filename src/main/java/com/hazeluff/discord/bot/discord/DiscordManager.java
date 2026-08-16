@@ -497,8 +497,18 @@ public class DiscordManager {
 
 	public static <T> T block(Mono<T> mono) {
 		return mono.onErrorResume(DiscordManager::handleError)
-				.blockOptional()
-				.orElseGet(() -> null);
+			.blockOptional()
+			.orElseGet(() -> null);
+	}
+
+	public static <T> T blockWarn(Mono<T> mono) {
+		return mono.onErrorResume(DiscordManager::handleAndWarn)
+			.blockOptional()
+			.orElseGet(() -> null);
+	}
+
+	public static <T> T blockIgnore(Mono<T> mono) {
+		return mono.onErrorResume(DiscordManager::handleAndIgnore).blockOptional().orElseGet(() -> null);
 	}
 
 	public static <T> void subscribe(Mono<T> mono) {
@@ -520,6 +530,15 @@ public class DiscordManager {
 
 	private static <T> Mono<T> handleError(Throwable t) {
 		LOGGER.error("Error occurred.", t);
+		return Mono.empty();
+	}
+
+	private static <T> Mono<T> handleAndWarn(Throwable t) {
+		LOGGER.warn("Error occurred.", t);
+		return Mono.empty();
+	}
+
+	private static <T> Mono<T> handleAndIgnore(Throwable t) {
 		return Mono.empty();
 	}
 }

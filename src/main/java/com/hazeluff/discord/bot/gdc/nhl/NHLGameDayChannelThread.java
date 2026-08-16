@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.command.gdc.GDCStatsCommand;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
@@ -74,7 +75,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 			Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
 			Category category = nhlBot.getGdcCategoryManager().get(guild);
 			if (!DiscordManager.getTextChannels(guild).stream().anyMatch(channelMatcher)) {
-				if (game.getGameState().isFinished()) {
+				if (game.getGameState().isFinished() && !Config.Debug.isAllowFinishedGames()) {
 					LOGGER.debug("Game for [" + channelName + "] already finished. Skipping channel creation.");
 					return null;
 				}

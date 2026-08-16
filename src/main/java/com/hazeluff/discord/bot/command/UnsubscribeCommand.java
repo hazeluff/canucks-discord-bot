@@ -8,6 +8,7 @@ import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.utils.InteractionUtils;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;
@@ -139,7 +140,7 @@ public class UnsubscribeCommand extends Command {
 		} else if (teams.isEmpty()) {
 			NHLGameDayWatchChannel.removeChannel(guildId);
 		} else if (channel != null) {
-			channel.update(pref);
+			channel.updateGameThreads(pref);
 		}
 		/*
 		// Dev-only (channel-per-game)

@@ -37,7 +37,8 @@ public class SubscribeCommand extends Command {
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 				.name(getName())
-				.description("Subscribe to Game Day Channels of the specified team. Must be an Admin.")
+				.description("Subscribe to games of the specified NHL team."
+					+ " Use this on your own server.")
                 .addOption(ApplicationCommandOptionData.builder()
                         .name("team")
 						.description("Team to subscribe to. 3 letter code - e.g. 'VAN'")
@@ -94,7 +95,7 @@ public class SubscribeCommand extends Command {
 		if (channel == null) {
 			channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
 		} else {
-			channel.update(pref);
+			channel.updateGameThreads(pref);
 		}
 
 		// Dev-only (channel-per-game)

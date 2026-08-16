@@ -19,9 +19,11 @@ import com.hazeluff.discord.bot.channel.NHLBotCategoryManager;
 import com.hazeluff.discord.bot.command.Command;
 import com.hazeluff.discord.bot.command.config.ManageConfigListener;
 import com.hazeluff.discord.bot.database.PersistentData;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.bot.gdc.ahl.AHLWatchChannel;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.bot.gdc.nhl.playoff.NHLPlayoffWatchChannel;
 import com.hazeluff.discord.nhl.NHLGameScheduler;
 import com.hazeluff.discord.nhl.NHLPlayoffBracketFetcher;
@@ -31,6 +33,7 @@ import discord4j.core.DiscordClient;
 import discord4j.core.DiscordClientBuilder;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
+import discord4j.core.object.entity.Guild;
 import discord4j.discordjson.json.ApplicationCommandData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.RestClient;
@@ -223,27 +226,42 @@ public class NHLBot extends Thread {
 				.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
 	}
 
-	void initDevServers() {
+	private void initDevServers() {
 		LOGGER.info("Initializing Threads and Managers for Dev Servers.");
 		getDiscordManager().getClient().getGuilds()
 			.filter(Config::isDevGuild)
-			.subscribe(guild -> {
-				// NHLGdcGuildManager.getAndStart(this, guild); // CanucksBot style channels
-				NHLGameDayWatchChannel.getOrCreate(this, guild);
-				NHLPlayoffWatchChannel.getOrCreate(this, guild);
-				AHLWatchChannel.getOrCreate(this, guild);
-				// FourNationsWatchChannel.getOrCreateChannel(this, guild);
-			});
-		// gameDayChannelsManager.start(); // OLD METHOD
+			.subscribe(this::initDevServer);
 	}
 
-	void initRegularServers() {
+	private void initDevServer(Guild guild) {
+		if (Config.Debug.isDebugAsNonDev()) {
+			initRegularServer(guild);
+		} else {
+			NHLGdcGuildManager.getAndStart(this, guild); // CanucksBot style channels
+			NHLGameDayWatchChannel.getOrCreate(this, guild);
+			NHLPlayoffWatchChannel.getOrCreate(this, guild);
+			AHLWatchChannel.getOrCreate(this, guild);
+		}
+	}
+
+	private void initRegularServers() {
 		LOGGER.info("Initializing Threads and Managers for Regular Servers.");
 		getDiscordManager().getClient().getGuilds()
 			.filter(not(Config::isDevGuild))
-			.subscribe(guild -> {
-				NHLGameDayWatchChannel.getOrCreate(this, guild);
-			});
+			.subscribe(this::initRegularServer);
+	}
+
+	private void initRegularServer(Guild guild) {
+		long guildId = guild.getId().asLong();
+		GuildPreferences prefs = getPersistentData().getPreferencesData().getGuildPreferences(guildId);
+
+		if (prefs.getGDCMode().isIndvidualChannels())
+			NHLGdcGuildManager.getAndStart(this, guild);
+		else if (prefs.getGDCMode().isSingleChannel())
+			NHLGameDayWatchChannel.getOrCreate(this, guild);
+
+		if (prefs.getPlayoffMode().isEnabled())
+			NHLPlayoffWatchChannel.getOrCreate(this, guild);
 	}
 
 	public PersistentData getPersistentData() {
@@ -327,7 +345,7 @@ public class NHLBot extends Thread {
 	}
 
 	static List<Command> getSlashCommands(NHLBot nhlBot) {
-		return Config.getSlashCommands().stream().map(commandClass -> instantiateCommand(commandClass, nhlBot))
+		return Config.SLASH_COMMANDS.stream().map(commandClass -> instantiateCommand(commandClass, nhlBot))
 				.filter(Objects::nonNull).collect(Collectors.toList());
 	}
 

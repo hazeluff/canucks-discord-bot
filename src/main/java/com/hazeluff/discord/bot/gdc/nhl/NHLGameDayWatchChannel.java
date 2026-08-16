@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,7 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
+import com.hazeluff.discord.bot.database.preferences.GDCMode;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
@@ -22,6 +25,7 @@ import com.hazeluff.nhl.game.NHLGame;
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.TextChannelCreateSpec;
 
 public class NHLGameDayWatchChannel extends InterruptableThread {
@@ -63,7 +67,7 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 			}
 
 			GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
-			boolean useThreads = pref.isUseChannelThreads();
+			boolean useThreads = pref.getGDCMode() == GDCMode.SING_CHNL_W_THRD;
 			if (pref.getTeams().isEmpty()) {
 				return null;
 			}
@@ -116,7 +120,6 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 	public static void removeChannel(Long guildId) {
 		NHLGameDayWatchChannel channel = channels.remove(guildId);
 		if(channel != null) {
-			DiscordManager.deleteChannel(channel.textChannel);
 			channel.interrupt();
 		}
 	}
@@ -158,28 +161,35 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 	public void update() {
 		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData()
 				.getGuildPreferences(guild.getId().asLong());
-		update(pref);
+		updateGameThreads(pref);
 	}
 
-	public void update(GuildPreferences preferences) {
-		List<Team> teams = preferences.getTeams();
-		boolean useThreads = preferences.isUseChannelThreads();
-		List<NHLGame> games = nhlBot.getNHLGameScheduler().getActiveGames(teams);
-		for (NHLGame game : games) {
-			int gamePk = game.getGameId();
-			if (!game.getGameState().isFinished()) {
-				// Start/Maintain gdc if they have not finished.
-				if (!gameDayThreads.containsKey(gamePk)) {
-					NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
-					NHLGameDayWatchThread gdt = NHLGameDayWatchThread.getOrCreate(nhlBot, textChannel, gameTracker,
-						guild, useThreads);
-					gameDayThreads.put(gamePk, gdt);
-				}
-			} else {
-				// Terminate finished gdc threads.
-				if (gameDayThreads.containsKey(gamePk)) {
-					NHLGameDayWatchThread gdt = gameDayThreads.remove(gamePk);
-					gdt.interrupt();
+	@SuppressWarnings("unused")
+	private void removeGDThreads() {
+		updateGameThreads(null);
+	}
+
+	public void updateGameThreads(GuildPreferences preferences) {
+		List<NHLGame> games = new ArrayList<>();
+		if (preferences != null) {
+			List<Team> teams = preferences.getTeams();
+			games.addAll(nhlBot.getNHLGameScheduler().getActiveGames(teams));
+			for (NHLGame game : games) {
+				int gamePk = game.getGameId();
+				if (!game.getGameState().isFinished() || Config.Debug.isAllowFinishedGames()) {
+					// Start/Maintain gdc if they have not finished.
+					if (!gameDayThreads.containsKey(gamePk)) {
+						NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
+						NHLGameDayWatchThread gdt = NHLGameDayWatchThread.getOrCreate(nhlBot, textChannel, gameTracker,
+							guild, useThreads);
+						gameDayThreads.put(gamePk, gdt);
+					}
+				} else {
+					// Terminate finished gdc threads.
+					if (gameDayThreads.containsKey(gamePk)) {
+						NHLGameDayWatchThread gdt = gameDayThreads.remove(gamePk);
+						gdt.interrupt();
+					}
 				}
 			}
 		}
@@ -201,12 +211,26 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 		this.useThreads = useThreads;
 
 		// Remove all existing WatchThreads
-		for (NHLGameDayWatchThread gdwThread : gameDayThreads.values()) {
-			gdwThread.interrupt();
+		if (!useThreads) {
+			for (NHLGameDayWatchThread gdwThread : gameDayThreads.values()) {
+				gdwThread.interrupt();
+			}
+			gameDayThreads.clear();
 		}
-		gameDayThreads.clear();
 
 		// Re-init the channels
 		update();
+	}
+
+	public Long getDiscordChannelId() {
+		return textChannel != null ? textChannel.getId().asLong() : null;
+	}
+
+	public String getDiscordChannelName() {
+		return textChannel != null ? textChannel.getName() : null;
+	}
+
+	public List<ThreadChannel> getDiscordThreads() {
+		return DiscordManager.block(textChannel.getAllThreads());
 	}
 }

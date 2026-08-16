@@ -4,12 +4,12 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.discord.ahl.AHLSeasons;
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.ConfigCommand;
+import com.hazeluff.discord.bot.command.ConfigPlayoffCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NHLStatsCommand;
@@ -28,12 +28,19 @@ public class Config {
 		private static final String LOAD_GAMES_KEY = "load.games";
 
 		public static boolean isLoadGames() {
-			boolean hasKey = systemProperties.containsKey(LOAD_GAMES_KEY);
-			if(!hasKey) {
-				return true;
-			}
-			String strValue = systemProperties.getProperty(LOAD_GAMES_KEY);
-			return strValue.isEmpty() || Boolean.valueOf(strValue);
+			return loadBool(LOAD_GAMES_KEY, true);
+		}
+
+		private static final String DEBUG_AS_NON_DEV = "debug.nondev";
+
+		public static boolean isDebugAsNonDev() {
+			return loadBool(DEBUG_AS_NON_DEV, false);
+		}
+
+		private static final String DEBUG_FINISHED_GAMES = "debug.finishedgames";
+
+		public static boolean isAllowFinishedGames() {
+			return loadBool(DEBUG_FINISHED_GAMES, false);
 		}
 	}
 	
@@ -41,12 +48,7 @@ public class Config {
 		private static final String SCRIPT_ONLY_KEY = "deploy.scripts";
 
 		public static boolean isScriptOnly() {
-			boolean hasKey = systemProperties.containsKey(SCRIPT_ONLY_KEY);
-			if(!hasKey) {
-				return false;
-			}
-			String strValue = systemProperties.getProperty(SCRIPT_ONLY_KEY);
-			return strValue.isEmpty() || Boolean.valueOf(strValue);
+			return loadBool(SCRIPT_ONLY_KEY, false);
 		}
 	}
 
@@ -137,16 +139,6 @@ public class Config {
 		"It was 4-1"
 	);
 
-	public static final String NHL_CHANNEL_REGEX;
-	static {
-		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
-				.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
-		teamRegex = String.format("(%s)", teamRegex);
-		String startYear = String.valueOf(Config.NHL_CURRENT_SEASON.getStartYear()).substring(2, 4);
-		String endYear = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
-		NHL_CHANNEL_REGEX = String.format("%1$s-vs-%1$s-(%2$s|%3$s)-[0-9]{2}-[0-9]{2}", teamRegex, startYear, endYear);
-	}
-
 	public static final String APPLICATION_NAME = ProjectInfo.APPLICATION_NAME;
 	public static final String GIT_URL = "https://github.com/hazeluff/canucks-discord-bot/tree/nhlbot";
 	
@@ -164,42 +156,26 @@ public class Config {
 	private static final String MONGO_HOST_KEY = "mongo.host";
 	private static final String MONGO_HOST_DEFAULT = "localhost";
 	public static String getMongoHost() {
-		boolean hasKey = systemProperties.containsKey(MONGO_HOST_KEY);
-		if(!hasKey) {
-			return MONGO_HOST_DEFAULT;
-		}
-		return systemProperties.getProperty(MONGO_HOST_KEY);
+		return loadString(MONGO_HOST_KEY, MONGO_HOST_DEFAULT);
 	}
 
 	private static final String MONGO_PORT_KEY = "mongo.port";
 	private static final int MONGO_PORT_DEFAULT = 27017;
 
 	public static int getMongoPort() {
-		boolean hasKey = systemProperties.containsKey(MONGO_PORT_KEY);
-		if (!hasKey) {
-			return MONGO_PORT_DEFAULT;
-		}
-		return Integer.parseInt(systemProperties.getProperty(MONGO_PORT_KEY));
+		return loadInt(MONGO_PORT_KEY, MONGO_PORT_DEFAULT);
 	}
 
 	private static final String MONGO_USER_KEY = "mongo.username";
 
 	public static String getMongoUserName() {
-		boolean hasKey = systemProperties.containsKey(MONGO_USER_KEY);
-		if (!hasKey) {
-			return null;
-		}
-		return systemProperties.getProperty(MONGO_USER_KEY);
+		return loadString(MONGO_USER_KEY, null);
 	}
 
 	private static final String MONGO_PASS_KEY = "mongo.password";
 
 	public static String getMongoPassword() {
-		boolean hasKey = systemProperties.containsKey(MONGO_PASS_KEY);
-		if (!hasKey) {
-			return null;
-		}
-		return systemProperties.getProperty(MONGO_PASS_KEY);
+		return loadString(MONGO_PASS_KEY, null);
 	}
 	
 	public static final String MONGO_DATABASE_NAME = "NHLBot";
@@ -207,30 +183,44 @@ public class Config {
 	public static final ZoneId SERVER_ZONE = ZoneId.of("America/Vancouver");
 
 	// Slash Commands
-	/**
-	 * <p>
-	 * Configures which Commands are used/added to discord as slash commands.
-	 * </p>
-	 * 
-	 * <p>
-	 * NEW COMMANDS NEED TO BE ADDED HERE!
-	 * </p>
-	 * 
-	 * @param nhlBot
-	 * @return
-	 */
 	@SuppressWarnings("rawtypes")
-	public static List<Class> getSlashCommands() {
-		return Arrays.asList(
-				AboutCommand.class,
-				ConfigCommand.class,
-				NHLStatsCommand.class,
-				GDCCommand.class,
-				HelpCommand.class,
-				NextGameCommand.class,
-				SubscribeCommand.class,
-				ScheduleCommand.class,
-				UnsubscribeCommand.class
-		);
+	public final static List<Class> SLASH_COMMANDS = Arrays.asList(
+		AboutCommand.class,
+		ConfigCommand.class,
+		ConfigPlayoffCommand.class,
+		NHLStatsCommand.class,
+		GDCCommand.class,
+		HelpCommand.class,
+		NextGameCommand.class,
+		SubscribeCommand.class,
+		ScheduleCommand.class,
+		UnsubscribeCommand.class
+	);
+
+	// Utils
+	private static boolean loadBool(String key, boolean def) {
+		boolean hasKey = systemProperties.containsKey(key);
+		if (!hasKey) {
+			return def;
+		}
+		String strValue = systemProperties.getProperty(key);
+		return strValue.isEmpty() || Boolean.valueOf(strValue);
+	}
+
+	private static int loadInt(String key, int def) {
+		boolean hasKey = systemProperties.containsKey(key);
+		if (!hasKey) {
+			return def;
+		}
+		return Integer.parseInt(systemProperties.getProperty(key));
+	}
+
+	private static String loadString(String key, String def) {
+
+		boolean hasKey = systemProperties.containsKey(key);
+		if (!hasKey) {
+			return def;
+		}
+		return systemProperties.getProperty(key);
 	}
 }

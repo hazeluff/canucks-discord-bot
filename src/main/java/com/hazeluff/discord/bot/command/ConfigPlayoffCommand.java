@@ -15,10 +15,10 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
 /**
  * Displays information about NHLBot and the author
  */
-public class ConfigCommand extends Command {
-	static final String NAME = "config";
+public class ConfigPlayoffCommand extends Command {
+	static final String NAME = "config-playoff";
 
-	public ConfigCommand(NHLBot nhlBot) {
+	public ConfigPlayoffCommand(NHLBot nhlBot) {
 		super(nhlBot);
 	}
 
@@ -29,8 +29,7 @@ public class ConfigCommand extends Command {
 	public ApplicationCommandRequest getACR() {
 		return ApplicationCommandRequest.builder()
 			.name(getName())
-			.description("Configure the Game Day Channels for this server."
-				+ " Use /subscribe to select teams to follow.")
+			.description("Configure the Playoff Watch Channels.")
             .build();
 	}
 
@@ -44,26 +43,24 @@ public class ConfigCommand extends Command {
 
 		return event.reply()
 			.withEphemeral(true)
-			.withContent("To turn on Game Day Channels ensure .\n"
-				+ "Select which Game Day Channel configuration you want:\n"
-				+ "**Single Channel** - All games will be created in a single channel `#game-day-watch` (default)\n"
-				+ "**Individual Threads** - Each game will be created as a separate threads within #game-day-watch.\n"
-				+ "**Individual Channels** - Each game will be created as a separate channel.\n"
-				+ "\tThe most recent, and next upcoming games are maintained as channels (max. 2 at a time).\n"
-				+ "\tOlder games/channels are deleted.\n")
+			.withContent("Turns on/off the `#playoff-watch` channel.\n"
+				+ "Select which configuration you want:\n"
+				+ "**Turn Off** - Disables the features.\n"
+				+ "**Single Channel** - All game messages will be sent to a single channel `#playoff-watch`.\n"
+				+ "**Individual Threads** - Each game will be created as a separate threads within #playoff-watch.\n")
 			.withComponents(buildNHLConfigComponent());
 		
 	}
 
-	public final static String SINGLE_BUTTON_ID = "nhl-config-gdc-single";
-	public final static String THREAD_BUTTON_ID = "nhl-config-gdc-thread";
-	public final static String CHANNELS_BUTTON_ID = "nhl-config-gdc-channels";
+	public final static String OFF_BUTTON_ID = "nhl-config-playoff-off";
+	public final static String SINGLE_BUTTON_ID = "nhl-config-playoff-single";
+	public final static String THREAD_BUTTON_ID = "nhl-config-playoff-thread";
 
 	private static TopLevelMessageComponent buildNHLConfigComponent() {
 		return ActionRow.of(
+			Button.secondary(OFF_BUTTON_ID, "Turn Off"),
 			Button.secondary(SINGLE_BUTTON_ID, "Single Channel"),
-			Button.secondary(THREAD_BUTTON_ID, "Individual Threads"),
-			Button.secondary(CHANNELS_BUTTON_ID, "Individual Channels")
+			Button.secondary(THREAD_BUTTON_ID, "Individual Threads")
 		);
 	}
 }

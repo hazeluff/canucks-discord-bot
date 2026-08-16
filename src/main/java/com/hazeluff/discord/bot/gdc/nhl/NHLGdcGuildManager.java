@@ -1,6 +1,7 @@
 package com.hazeluff.discord.bot.gdc.nhl;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,6 +38,16 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	static final long INIT_UPDATE_RATE = 5000L;
 	// Poll for every 30 minutes - if the scheduler has updated
 	static final long UPDATE_RATE = 1800000L;
+	public static final String NHL_CHANNEL_REGEX;
+	static {
+		String teamRegex = String.join("|", Arrays.asList(Team.values()).stream()
+			.map(team -> team.getCode().toLowerCase()).collect(Collectors.toList()));
+		teamRegex = String.format("(%s)", teamRegex);
+		String startYear = String.valueOf(Config.NHL_CURRENT_SEASON.getStartYear()).substring(2, 4);
+		String endYear = String.valueOf(Config.NHL_CURRENT_SEASON.getEndYear()).substring(2, 4);
+		NHL_CHANNEL_REGEX = String.format("%1$s-vs-%1$s-(%2$s|%3$s)-[0-9]{2}-[0-9]{2}", teamRegex, startYear, endYear);
+	}
+
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
@@ -74,8 +85,12 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	}
 
 	public static NHLGdcGuildManager getAndStart(NHLBot nhlBot, Guild guild) {
+		long guildId = guild.getId().asLong();
+		if (managers.containsKey(guildId))
+			return managers.get(guildId);
+
 		NHLGdcGuildManager manager = new NHLGdcGuildManager(nhlBot, guild);
-		managers.put(guild.getId().asLong(), manager);
+		managers.put(guildId, manager);
 		manager.start();
 		return manager;
 	}
@@ -87,7 +102,6 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	public static void removeManager(Long guildId) {
 		NHLGdcGuildManager manager = managers.remove(guildId);
 		if (manager != null) {
-			manager.updateChannels();
 			manager.interrupt();
 		}
 	}
@@ -174,12 +188,10 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	public void updateChannels(GuildPreferences preferences) {
 		try {
 			List<Team> teams = preferences.getTeams();
-
+			List<NHLGame> activeGames = nhlBot.getNHLGameScheduler().getActiveGames(teams);
 			LOGGER.info("Updating Channels for [{}]: activeGames={}",
 					guild.getId().asLong(),
-					nhlBot.getNHLGameScheduler().getActiveGames(teams).stream()
-							.map(NHLGame::getNiceName)
-							.collect(Collectors.toList()));
+				activeGames.stream().map(NHLGame::getNiceName).collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
 			for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
@@ -194,11 +206,19 @@ public class NHLGdcGuildManager extends InterruptableThread {
 			}
 
 			// Create game channels of latest game for current subscribed team
-			for (NHLGame game : nhlBot.getNHLGameScheduler().getActiveGames(teams)) {
+			for (NHLGame game : activeGames) {
 				createChannel(game, guild);
 			}
 		} catch (Exception e) {
 			LOGGER.warn("Issue updating guild: " + guild.getId().asLong() + "\n" + e.getMessage());
+		}
+	}
+
+	public void removeChannels() {
+		for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
+			if (isRemoveChannel(channel, null)) {
+				deleteChannel(channel);
+			}
 		}
 	}
 
@@ -239,7 +259,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 		}
 
 		// Does not remove active games
-		if (isGameActive(preferences.getTeams(), channel.getName())) {
+		if (preferences != null && isGameActive(preferences.getTeams(), channel.getName())) {
 			return false;
 		}
 
@@ -261,7 +281,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	 *         false, otherwise.
 	 */
 	public static boolean isChannelNameFormat(String channelName) {
-		return channelName.matches(Config.NHL_CHANNEL_REGEX);
+		return channelName.matches(NHL_CHANNEL_REGEX);
 	}
 
 	boolean isGameActive(List<Team> teams, String channelName) {

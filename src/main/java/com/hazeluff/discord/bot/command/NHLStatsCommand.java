@@ -16,6 +16,7 @@ import com.hazeluff.discord.bot.command.stats.NHLForwardStatsCommand;
 import com.hazeluff.discord.bot.command.stats.NHLGoalieStatsCommand;
 import com.hazeluff.discord.bot.command.stats.NHLStatsSubCommand;
 import com.hazeluff.discord.bot.command.stats.NHLWildcardStatsCommand;
+import com.hazeluff.discord.utils.InteractionUtils;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandOption;

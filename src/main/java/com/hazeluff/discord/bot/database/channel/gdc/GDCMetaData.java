@@ -35,6 +35,10 @@ public class GDCMetaData extends DatabaseManager {
 		return GDCMeta.findByChannelId(getCollection(), channelId, gameId);
 	}
 
+	public GDCMeta loadMetaByChannelId(long channelId) {
+		return GDCMeta.findByChannelId(getCollection(), channelId);
+	}
+
 	public GDCMeta loadMetaByParentId(long threadParentChannelId, long gameId) {
 		return GDCMeta.findByParentId(getCollection(), threadParentChannelId, gameId);
 	}

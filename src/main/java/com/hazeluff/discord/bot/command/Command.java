@@ -12,6 +12,7 @@ import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
+import com.hazeluff.discord.utils.InteractionUtils;
 import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.common.util.Snowflake;
@@ -25,6 +26,7 @@ import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Channel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
+import discord4j.core.object.entity.channel.ThreadChannel;
 import discord4j.core.spec.EmbedCreateSpec;
 import discord4j.core.spec.InteractionFollowupCreateSpec;
 import discord4j.core.spec.InteractionReplyEditSpec;
@@ -198,11 +200,15 @@ public abstract class Command extends ReactiveEventAdapter {
 	}
 
 	protected TextChannel getTextChannel(ChatInputInteractionEvent event) {
-		return DiscordManager.block(event.getInteraction().getChannel().cast(TextChannel.class));
+		return DiscordManager.blockIgnore(event.getInteraction().getChannel().cast(TextChannel.class));
+	}
+
+	protected ThreadChannel getThreadChannel(ChatInputInteractionEvent event) {
+		return DiscordManager.blockIgnore(event.getInteraction().getChannel().cast(ThreadChannel.class));
 	}
 
 	protected MessageChannel getChannel(ChatInputInteractionEvent event) {
-		return DiscordManager.block(event.getInteraction().getChannel().cast(MessageChannel.class));
+		return DiscordManager.blockIgnore(event.getInteraction().getChannel().cast(MessageChannel.class));
 	}
 
 	protected static String getOptionAsString(ChatInputInteractionEvent event, String option) {

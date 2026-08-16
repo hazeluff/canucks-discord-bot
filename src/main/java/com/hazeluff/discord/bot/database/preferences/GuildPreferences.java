@@ -15,21 +15,24 @@ public class GuildPreferences {
 	private Set<Team> teams;
 	private Long gdcChannelId;
 	private Long playoffChannelId;
-	private boolean useChannelThreads; // gdcChannelId must be set;
-	// false - post updates in GDC Channel; true - send updates in GDC thread
+	private GDCMode gdcMode;
+	private PlayoffMode playoffMode;
 
 	public GuildPreferences() {
 		this.teams = new HashSet<>();
-		gdcChannelId = null;
-		playoffChannelId = null;
-		useChannelThreads = false;
+		this.gdcChannelId = null;
+		this.playoffChannelId = null;
+		this.gdcMode = null;
+		this.playoffMode = null;
 	}
 
-	private GuildPreferences(Set<Team> teams, Long gdcChannelId, Long playoffChannelId, boolean useThreads) {
+	private GuildPreferences(Set<Team> teams, Long gdcChannelId, Long playoffChannelId,
+		GDCMode gdcMode, PlayoffMode playoffMode) {
 		this.teams = teams;
 		this.gdcChannelId = gdcChannelId;
 		this.playoffChannelId = playoffChannelId;
-		this.useChannelThreads = useThreads;
+		this.gdcMode = gdcMode;
+		this.playoffMode = playoffMode;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -44,8 +47,18 @@ public class GuildPreferences {
 		Long gdcChannelId = doc.getLong("gdcChannelId");
 		Long playoffChannelId = doc.getLong("playoffChannelId");
 		boolean useThreads = doc.getBoolean("useChannelThreads", false);
+		GDCMode gdcMode = GDCMode.parse(doc.getInteger("gdcMode", 0));
+		PlayoffMode playoffMode = PlayoffMode.parse(doc.getInteger("playoffMode", 0));
 
-		return new GuildPreferences(teams, gdcChannelId, playoffChannelId, useThreads);
+		if (gdcMode == null) {
+			gdcMode = useThreads ? GDCMode.SING_CHNL_W_THRD : GDCMode.SING_CHNL_NO_THRD;
+		}
+
+		if (playoffMode == null) {
+			playoffMode = PlayoffMode.OFF;
+		}
+
+		return new GuildPreferences(teams, gdcChannelId, playoffChannelId, gdcMode, playoffMode);
 	}
 
 	public List<Team> getTeams() {
@@ -77,6 +90,10 @@ public class GuildPreferences {
 		}
 	}
 
+	public Long getGameDayChannelId() {
+		return gdcChannelId;
+	}
+
 	public void setGameDayChannelId(Long channelId) {
 		this.gdcChannelId = channelId;
 	}
@@ -85,59 +102,30 @@ public class GuildPreferences {
 		this.playoffChannelId = channelId;
 	}
 
-	public Long getGameDayChannelId() {
-		return gdcChannelId;
+	public GDCMode getGDCMode() {
+		return gdcMode;
 	}
 
-	public void setUseChannelThreads(boolean useThreads) {
-		this.useChannelThreads = useThreads;
+	public void setGDCMode(GDCMode mode) {
+		this.gdcMode = mode;
+	}
+
+	public PlayoffMode getPlayoffMode() {
+		return playoffMode;
+	}
+
+	public void setPlayoffMode(PlayoffMode mode) {
+		this.playoffMode = mode;
 	}
 
 	public Long getPlayoffChannelId() {
 		return playoffChannelId;
 	}
 
-	public boolean isUseChannelThreads() {
-		return useChannelThreads;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((gdcChannelId == null) ? 0 : gdcChannelId.hashCode());
-		result = prime * result + ((teams == null) ? 0 : teams.hashCode());
-		result = prime * result + (useChannelThreads ? 1231 : 1237);
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		GuildPreferences other = (GuildPreferences) obj;
-		if (gdcChannelId == null) {
-			if (other.gdcChannelId != null)
-				return false;
-		} else if (!gdcChannelId.equals(other.gdcChannelId))
-			return false;
-		if (teams == null) {
-			if (other.teams != null)
-				return false;
-		} else if (!teams.equals(other.teams))
-			return false;
-		if (useChannelThreads != other.useChannelThreads)
-			return false;
-		return true;
-	}
-
 	@Override
 	public String toString() {
-		return "GuildPreferences [teams=" + teams + "]";
+		return "GuildPreferences [teams=" + teams + ", gdcChannelId=" + gdcChannelId + ", playoffChannelId="
+			+ playoffChannelId + ", gdcMode=" + gdcMode + ", playoffMode=" + playoffMode + "]";
 	}
 
 }

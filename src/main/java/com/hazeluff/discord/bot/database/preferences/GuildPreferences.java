@@ -15,6 +15,8 @@ public class GuildPreferences {
 	private Set<Team> teams;
 	private Long gdcChannelId;
 	private Long playoffChannelId;
+	private Long ahlChannelId;
+	private Long wordcloudChannelId;
 	private boolean useChannelThreads; // gdcChannelId must be set;
 	// false - post updates in GDC Channel; true - send updates in GDC thread
 
@@ -25,10 +27,13 @@ public class GuildPreferences {
 		useChannelThreads = false;
 	}
 
-	private GuildPreferences(Set<Team> teams, Long gdcChannelId, Long playoffChannelId, boolean useThreads) {
+	private GuildPreferences(Set<Team> teams, Long gdcChannelId, Long playoffChannelId, Long ahlChannelId,
+		Long wordcloudChannelId, boolean useThreads) {
 		this.teams = teams;
 		this.gdcChannelId = gdcChannelId;
 		this.playoffChannelId = playoffChannelId;
+		this.ahlChannelId = ahlChannelId;
+		this.wordcloudChannelId = wordcloudChannelId;
 		this.useChannelThreads = useThreads;
 	}
 
@@ -43,9 +48,12 @@ public class GuildPreferences {
 
 		Long gdcChannelId = doc.getLong("gdcChannelId");
 		Long playoffChannelId = doc.getLong("playoffChannelId");
+		Long ahlChannelId = doc.getLong("playoffChannelId");
+		Long wordcloudChannelId = doc.getLong("playoffChannelId");
 		boolean useThreads = doc.getBoolean("useChannelThreads", false);
 
-		return new GuildPreferences(teams, gdcChannelId, playoffChannelId, useThreads);
+		return new GuildPreferences(teams, gdcChannelId, playoffChannelId, ahlChannelId, wordcloudChannelId,
+			useThreads);
 	}
 
 	public List<Team> getTeams() {
@@ -93,6 +101,14 @@ public class GuildPreferences {
 		return playoffChannelId;
 	}
 
+	public Long getAHLChannelId() {
+		return ahlChannelId;
+	}
+
+	public Long getWordcloudChannelId() {
+		return wordcloudChannelId;
+	}
+
 	public boolean isUseChannelThreads() {
 		return useChannelThreads;
 	}
@@ -101,9 +117,12 @@ public class GuildPreferences {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((ahlChannelId == null) ? 0 : ahlChannelId.hashCode());
 		result = prime * result + ((gdcChannelId == null) ? 0 : gdcChannelId.hashCode());
+		result = prime * result + ((playoffChannelId == null) ? 0 : playoffChannelId.hashCode());
 		result = prime * result + ((teams == null) ? 0 : teams.hashCode());
 		result = prime * result + (useChannelThreads ? 1231 : 1237);
+		result = prime * result + ((wordcloudChannelId == null) ? 0 : wordcloudChannelId.hashCode());
 		return result;
 	}
 
@@ -116,10 +135,20 @@ public class GuildPreferences {
 		if (getClass() != obj.getClass())
 			return false;
 		GuildPreferences other = (GuildPreferences) obj;
+		if (ahlChannelId == null) {
+			if (other.ahlChannelId != null)
+				return false;
+		} else if (!ahlChannelId.equals(other.ahlChannelId))
+			return false;
 		if (gdcChannelId == null) {
 			if (other.gdcChannelId != null)
 				return false;
 		} else if (!gdcChannelId.equals(other.gdcChannelId))
+			return false;
+		if (playoffChannelId == null) {
+			if (other.playoffChannelId != null)
+				return false;
+		} else if (!playoffChannelId.equals(other.playoffChannelId))
 			return false;
 		if (teams == null) {
 			if (other.teams != null)
@@ -128,12 +157,19 @@ public class GuildPreferences {
 			return false;
 		if (useChannelThreads != other.useChannelThreads)
 			return false;
+		if (wordcloudChannelId == null) {
+			if (other.wordcloudChannelId != null)
+				return false;
+		} else if (!wordcloudChannelId.equals(other.wordcloudChannelId))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "GuildPreferences [teams=" + teams + "]";
+		return String.format(
+			"GuildPreferences [teams=%s, gdcChannelId=%s, playoffChannelId=%s, ahlChannelId=%s, wordcloudChannelId=%s, useChannelThreads=%s]",
+			teams, gdcChannelId, playoffChannelId, ahlChannelId, wordcloudChannelId, useChannelThreads);
 	}
 
 }

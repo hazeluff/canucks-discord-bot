@@ -1,6 +1,5 @@
 package com.hazeluff.discord.bot.database.preferences;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -111,18 +110,15 @@ public class PreferencesData extends DatabaseManager {
 	}
 
 	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, GuildPreferences pref) {
-		List<Integer> teamIds = pref.getTeams().stream()
-				.map(preferedTeam -> preferedTeam.getId())
-				.collect(Collectors.toList());
-		Long gdcChannelId = pref.getGameDayChannelId();
-		Long playoffChannelId = pref.getPlayoffChannelId();
-		boolean useChannelThreads = pref.isUseChannelThreads();
-		
 		Document prefDoc = new Document()
-			.append("teams", teamIds)
-			.append("gdcChannelId", gdcChannelId)
-			.append("playoffChannelId", playoffChannelId)
-			.append("useChannelThreads", useChannelThreads);
+			.append("teams", pref.getTeams().stream()
+				.map(preferedTeam -> preferedTeam.getId())
+				.collect(Collectors.toList()))
+			.append("gdcChannelId", pref.getGameDayChannelId())
+			.append("playoffChannelId", pref.getPlayoffChannelId())
+			.append("ahlChannelId", pref.getAHLChannelId())
+			.append("wordcloudChannelId", pref.getWordcloudChannelId())
+			.append("useChannelThreads", pref.isUseChannelThreads());
 
 		guildCollection.updateOne(
 			new Document("id", guildId),

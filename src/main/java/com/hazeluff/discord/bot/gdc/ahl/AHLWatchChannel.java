@@ -14,14 +14,13 @@ import com.hazeluff.discord.ahl.AHLGameTracker;
 import com.hazeluff.discord.ahl.AHLTeams.Team;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
+import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.utils.InterruptableThread;
 
 import discord4j.core.object.entity.Guild;
 import discord4j.core.object.entity.Message;
-import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
-import discord4j.core.spec.TextChannelCreateSpec;
 
 public class AHLWatchChannel extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AHLWatchChannel.class);
@@ -58,26 +57,22 @@ public class AHLWatchChannel extends InterruptableThread {
 		if (channels.containsKey(guildId)) {
 			return channels.get(guildId);
 		}
+		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
 		TextChannel channel = null;
 		try {
-			channel = DiscordManager.getTextChannels(guild).stream()
+			// Attempt to fetch channel by the saved preferences
+			Long prefChannelId = pref.getAHLChannelId();
+			if (prefChannelId != null) {
+				nhlBot.getDiscordManager();
+				channel = DiscordManager.getTextChannel(guild, prefChannelId);
+			}
+			if (channel == null) {
+				channel = DiscordManager.getTextChannels(guild).stream()
 					.filter(guildChannel -> guildChannel.getName().equals(CHANNEL_NAME))
-					.findFirst()
-					.orElse(null);
+					.findFirst().orElse(null);
+			}
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing channel.");
-		} finally {
-			if (channel == null) {
-				LOGGER.warn("Channel not found/error.");
-				Category category = nhlBot.getNHLBotCategoryManager().get(guild);
-				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
-				channelSpecBuilder.name(CHANNEL_NAME);
-				channelSpecBuilder.topic("The better Canucks team.");
-				if (category != null) {
-					channelSpecBuilder.parentId(category.getId());
-				}
-				channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
-			}
 		}
 		
 		AHLWatchChannel fnChannel = new AHLWatchChannel(nhlBot, guild, channel);

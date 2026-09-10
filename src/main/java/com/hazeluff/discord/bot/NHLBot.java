@@ -59,7 +59,7 @@ public class NHLBot extends Thread {
 
 	private final GDCCategoryManager gdcCategoryManager = new GDCCategoryManager(this);
 	private final NHLBotCategoryManager nhlBotCategoryManager = new NHLBotCategoryManager(this);
-	private final WordcloudChannelManager wcChannelManager = new WordcloudChannelManager(this, gdcCategoryManager);
+	private final WordcloudChannelManager wcChannelManager = new WordcloudChannelManager(this);
 
 	private NHLBot() {
 		presenceManager = new PresenceManager(this);

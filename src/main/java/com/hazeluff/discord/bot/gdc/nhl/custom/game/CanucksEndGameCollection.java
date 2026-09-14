@@ -24,6 +24,11 @@ public class CanucksEndGameCollection extends CustomGameMessage.Collection {
 		win("https://cdn.discordapp.com/attachments/1170084611422949396/1327791802010304552/win_241201_hugs.gif");
 		win("https://cdn.discordapp.com/attachments/1170084611422949396/1327791511001104395/locker_cele_dak_gar.gif");
 		win("https://cdn.discordapp.com/attachments/1170084611422949396/1327791633114206349/we_will_never_lose_again.mp4"); // Whale meme
+		win("https://cdn.discordapp.com/attachments/1170084611422949396/1511439574264447228/manny.mp4"); // Manny drinking from cup
+		win("https://cdn.discordapp.com/attachments/1170084611422949396/1549124984054480967/2026_win.gif"); // 2026 Generic Win
+		win("https://cdn.discordapp.com/attachments/1170084611422949396/1549129879725805658/meme_win.png");
+		win("https://cdn.discordapp.com/attachments/1170084611422949396/1549129880078254190/thg_boeser.png");
+		win("https://cdn.discordapp.com/attachments/1170084611422949396/1549141034456453241/logo_2025.gif");
 
 		// Lose
 		lose("https://cdn.discordapp.com/attachments/1170084611422949396/1171226314477424820/petey_shake_head.gif"); // Petey shake head
@@ -31,19 +36,18 @@ public class CanucksEndGameCollection extends CustomGameMessage.Collection {
 		lose("https://media.discordapp.net/attachments/240245066017406976/1194484673238274068/20240109_193445.jpg"); // Tocc mindfuck 
 		lose("https://media.discordapp.net/attachments/240245066017406976/1194484672877559899/20240109_193449.jpg"); // Tocc rub temples
 		lose("https://cdn.discordapp.com/attachments/1170084611422949396/1327791802467745792/tocc_pat_head.gif"); // Tocc pats head
+		lose("https://cdn.discordapp.com/attachments/1170084611422949396/1549129879344128113/meme_lost.png");
 
 		// Performance Based
-		mostGoalsOrPoints("https://cdn.discordapp.com/attachments/1170084611422949396/1220227156441956432/corolla.gif", 8478856); // Garland - You got Corolla'd
-		mostGoalsOrPoints("https://cdn.discordapp.com/attachments/1170084611422949396/1327791504877551727/garly_knod.gif", 8478856); // Garly knod
-		mostGoalsOrPoints("https://cdn.discordapp.com/attachments/1170084611422949396/1219060285755883601/GI5_Mi5aAAAxAdX.png", 8478444); // Brockstar
-		mostGoalsOrPoints("https://media.discordapp.net/attachments/1170084611422949396/1327791803042103376/quinn_godfather.jpg", 8480800); // Godfather
-		mostGoalsOrPoints("https://www.youtube.com/watch?v=HhP1fcRuVqk", 8478444); // Brock - Hit it fergie
+		// mostGoalsOrPoints("https://cdn.discordapp.com/attachments/1170084611422949396/1219060285755883601/GI5_Mi5aAAAxAdX.png", 8478444); // Brockstar
+		// mostGoalsOrPoints("https://www.youtube.com/watch?v=HhP1fcRuVqk", 8478444); // Brock - Hit it fergie
 
 		// Shutouts
 		shutout("https://cdn.discordapp.com/attachments/1170096185034412114/1171223035072762058/shutout_231027.gif"); // Demko
 		shutout("https://cdn.discordapp.com/attachments/1170096185034412114/1171223035953545216/shutout_231104.gif"); // Demko
 		shutout("https://cdn.discordapp.com/attachments/240245066017406976/1171178501886447657/demkohattilt.gif"); // Demko hat tilt
-		shutout("https://cdn.discordapp.com/attachments/1170084611422949396/1220265360029126687/IMG_6339.png"); // DeSmith Zad
+		shutout("https://cdn.discordapp.com/attachments/1170084611422949396/1549129432596217917/LANK_RAVE.mp4"); // Lank
+		shutout("https://cdn.discordapp.com/attachments/1170084611422949396/1444547744483119319/2526_lank_applause.gif"); // Lank
 
 	}
 }

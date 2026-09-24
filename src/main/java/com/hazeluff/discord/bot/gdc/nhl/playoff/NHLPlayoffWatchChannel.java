@@ -25,7 +25,7 @@ import discord4j.core.spec.TextChannelCreateSpec;
 public class NHLPlayoffWatchChannel extends InterruptableThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NHLPlayoffWatchChannel.class);
 
-	public static final String CHANNEL_NAME = "playoffs";
+	public static final String CHANNEL_NAME = "playoffs-watch";
 
 	// Poll for every 5 seconds, (On initialization)
 	static final long INIT_UPDATE_RATE = 5000L;

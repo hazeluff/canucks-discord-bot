@@ -1,6 +1,7 @@
 package com.hazeluff.discord.nhl;
 
 public class NHLSeasons {
+	public static final Season S26_27 = new Season(2026, "26-27");
 	public static final Season S25_26 = new Season(2025, "25-26");
 	public static final Season S24_25 = new Season(2024, "24-25");
 	public static final Season S23_24 = new Season(2023, "23-24");

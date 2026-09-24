@@ -13,22 +13,26 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class GuildPreferences {
 	private Set<Team> teams;
+	private Long gdcCategoryId;
 	private Long gdcChannelId;
 	private Long playoffChannelId;
+	private Long ahlChannelId;
 	private GDCMode gdcMode;
 	private PlayoffMode playoffMode;
 
 	public GuildPreferences() {
 		this.teams = new HashSet<>();
+		gdcCategoryId = null;
 		this.gdcChannelId = null;
 		this.playoffChannelId = null;
 		this.gdcMode = null;
 		this.playoffMode = null;
 	}
 
-	private GuildPreferences(Set<Team> teams, Long gdcChannelId, Long playoffChannelId,
-		GDCMode gdcMode, PlayoffMode playoffMode) {
+	private GuildPreferences(Set<Team> teams, Long gdcCategoryId, Long gdcChannelId, Long playoffChannelId,
+		Long ahlChannelId, GDCMode gdcMode, PlayoffMode playoffMode) {
 		this.teams = teams;
+		this.gdcCategoryId = gdcCategoryId;
 		this.gdcChannelId = gdcChannelId;
 		this.playoffChannelId = playoffChannelId;
 		this.gdcMode = gdcMode;
@@ -44,8 +48,10 @@ public class GuildPreferences {
 			teams = new HashSet<>();
 		}
 
+		Long gdcCategoryId = doc.getLong("gdcCategoryId");
 		Long gdcChannelId = doc.getLong("gdcChannelId");
 		Long playoffChannelId = doc.getLong("playoffChannelId");
+		Long ahlChannelId = doc.getLong("ahlChannelId");
 		boolean useThreads = doc.getBoolean("useChannelThreads", false);
 		GDCMode gdcMode = GDCMode.parse(doc.getInteger("gdcMode", 0));
 		PlayoffMode playoffMode = PlayoffMode.parse(doc.getInteger("playoffMode", 0));
@@ -58,7 +64,8 @@ public class GuildPreferences {
 			playoffMode = PlayoffMode.OFF;
 		}
 
-		return new GuildPreferences(teams, gdcChannelId, playoffChannelId, gdcMode, playoffMode);
+		return new GuildPreferences(teams, gdcCategoryId, gdcChannelId, playoffChannelId, ahlChannelId, gdcMode,
+			playoffMode);
 	}
 
 	public List<Team> getTeams() {
@@ -88,6 +95,14 @@ public class GuildPreferences {
 		} else {
 			return teams.iterator().next().getTimeZone();
 		}
+	}
+
+	public Long getGDCCategoryId() {
+		return gdcCategoryId;
+	}
+
+	public void setGDCCategoryId(Long categoryId) {
+		this.gdcCategoryId = categoryId;
 	}
 
 	public Long getGameDayChannelId() {
@@ -120,6 +135,10 @@ public class GuildPreferences {
 
 	public Long getPlayoffChannelId() {
 		return playoffChannelId;
+	}
+
+	public Long getAHLChannelId() {
+		return ahlChannelId;
 	}
 
 	@Override

@@ -442,6 +442,25 @@ public class DiscordManager {
 		Category category = getCategory(guild, categoryName);
 		return category != null ? category : createCategory(guild, categoryName);
 	}
+	
+	public static Category getCategory(Guild guild, Long categoryId) {
+		if (guild == null) {
+			logNullArgumentsStackTrace("`guild` was null.");
+			return null;
+		}
+
+		if (categoryId == null) {
+			logNullArgumentsStackTrace("`categoryId` was null.");
+			return null;
+		}
+		return block(guild.getChannels()
+				.filter(Category.class::isInstance)
+				.filter(category -> category.getId().asLong() == categoryId)
+				.take(1)
+				.cast(Category.class)
+				.next()
+		);
+	}
 
 	/**
 	 * Moves the given channel into the given category.

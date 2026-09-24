@@ -1,12 +1,15 @@
 package com.hazeluff.discord.ahl;
 
 public class AHLSeasons {
+	public static final Season S26_27 = new Season(
+		93, 94, 95, 96,
+		2026, 2027, "26-27");
 	public static final Season S25_26 = new Season(
-			89, 90, 91, 92,
-			2025, 2026, "25-26");
+		89, 90, 91, 92,
+		2025, 2026, "25-26");
 	public static final Season S24_25 = new Season(
-			85, 86, 87, 88,
-			2024, 2025, "24-25");
+		85, 86, 87, 88,
+		2024, 2025, "24-25");
 
 	public static class Season {
 		private final int preSeasonId;

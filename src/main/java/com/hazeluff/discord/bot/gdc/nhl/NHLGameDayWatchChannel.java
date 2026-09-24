@@ -211,12 +211,10 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 		this.useThreads = useThreads;
 
 		// Remove all existing WatchThreads
-		if (!useThreads) {
-			for (NHLGameDayWatchThread gdwThread : gameDayThreads.values()) {
-				gdwThread.interrupt();
-			}
-			gameDayThreads.clear();
+		for (NHLGameDayWatchThread gdwThread : gameDayThreads.values()) {
+			gdwThread.interrupt();
 		}
+		gameDayThreads.clear();
 
 		// Re-init the channels
 		update();

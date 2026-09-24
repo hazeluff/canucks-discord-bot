@@ -1,6 +1,5 @@
 package com.hazeluff.discord.bot.database.preferences;
 
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -121,18 +120,16 @@ public class PreferencesData extends DatabaseManager {
 	}
 
 	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, GuildPreferences pref) {
-		List<Integer> teamIds = pref.getTeams().stream()
-				.map(preferedTeam -> preferedTeam.getId())
-				.collect(Collectors.toList());
-		Long gdcChannelId = pref.getGameDayChannelId();
-		GDCMode gdcMode = pref.getGDCMode();
-		PlayoffMode playoffMode = pref.getPlayoffMode();
-		
 		Document prefDoc = new Document()
-			.append("teams", teamIds)
-			.append("gdcChannelId", gdcChannelId)
-			.append("gdcMode", gdcMode.getId())
-			.append("playoffMode", playoffMode.getId());
+			.append("teams", pref.getTeams().stream()
+				.map(preferedTeam -> preferedTeam.getId())
+				.collect(Collectors.toList()))
+			.append("gdcCategoryId", pref.getGDCCategoryId())
+			.append("gdcChannelId", pref.getGameDayChannelId())
+			.append("playoffChannelId", pref.getPlayoffChannelId())
+			.append("ahlChannelId", pref.getAHLChannelId())
+			.append("gdcMode", pref.getGDCMode().getId())
+			.append("playoffMode", pref.getPlayoffMode().getId());
 
 		guildCollection.updateOne(
 			new Document("id", guildId),

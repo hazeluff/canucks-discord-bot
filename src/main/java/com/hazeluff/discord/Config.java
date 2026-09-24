@@ -9,7 +9,6 @@ import com.hazeluff.ahl.AHLGateway;
 import com.hazeluff.discord.ahl.AHLSeasons;
 import com.hazeluff.discord.bot.command.AboutCommand;
 import com.hazeluff.discord.bot.command.ConfigCommand;
-import com.hazeluff.discord.bot.command.ConfigPlayoffCommand;
 import com.hazeluff.discord.bot.command.GDCCommand;
 import com.hazeluff.discord.bot.command.HelpCommand;
 import com.hazeluff.discord.bot.command.NHLStatsCommand;
@@ -74,7 +73,7 @@ public class Config {
 	/*
 	 * NHL Config
 	 */
-	public static final Season NHL_CURRENT_SEASON = NHLSeasons.S25_26;
+	public static final Season NHL_CURRENT_SEASON = NHLSeasons.S26_27;
 
 	public static final Team DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
 	public static final String NHL_API_URL = "https://api-web.nhle.com/v1";
@@ -82,7 +81,7 @@ public class Config {
 	/*
 	 * AHL Config
 	 */
-	public static final AHLSeasons.Season AHL_CURRENT_SEASON = AHLSeasons.S25_26;
+	public static final AHLSeasons.Season AHL_CURRENT_SEASON = AHLSeasons.S26_27;
 	public static final Team AHL_DEFAULT_TEAM = Team.VANCOUVER_CANUCKS;
 	public static final String AHL_API_CONFIG_URL = 
 			"https://lscluster.hockeytech.com/statview-1.4.1/js/client/ahl/base.r3.js"; // Used to fetch client key.
@@ -187,7 +186,7 @@ public class Config {
 	public final static List<Class> SLASH_COMMANDS = Arrays.asList(
 		AboutCommand.class,
 		ConfigCommand.class,
-		ConfigPlayoffCommand.class,
+		// ConfigPlayoffCommand.class,
 		NHLStatsCommand.class,
 		GDCCommand.class,
 		HelpCommand.class,

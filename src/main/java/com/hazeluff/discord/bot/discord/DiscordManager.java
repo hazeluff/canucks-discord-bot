@@ -15,6 +15,7 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.PinnedMessageReference;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Category;
+import discord4j.core.object.entity.channel.GuildChannel;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.presence.ClientPresence;
@@ -496,6 +497,15 @@ public class DiscordManager {
 		}
 
 		return block(channel.getCategory());
+	}
+
+	public static List<GuildChannel> getGuildChannels(Guild guild) {
+		if (guild == null) {
+			logNullArgumentsStackTrace("`guild` was null.");
+			return null;
+		}
+
+		return block(guild.getChannels());
 	}
 
 	public static List<TextChannel> getTextChannels(Guild guild) {

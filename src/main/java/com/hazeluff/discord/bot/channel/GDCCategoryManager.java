@@ -38,6 +38,7 @@ public class GDCCategoryManager extends DiscordGuildEnitityManager<Category> {
 		} catch (Exception e) {
 			LOGGER.warn("Problem fetching existing category.");
 		}
+		// Failures return null; null categories mean channels are dumped at the root
 		return category;
 	}
 }

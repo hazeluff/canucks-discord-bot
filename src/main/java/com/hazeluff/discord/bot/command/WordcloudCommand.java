@@ -166,8 +166,8 @@ public class WordcloudCommand extends Command {
 		String message = title + String.format(". Total Messages: %s", messages.size());
 		
 		return MessageCreateSpec.builder()
-				.addFile(fileName, fileStream)
-				.content(message)
-				.build();
+			.addFile(fileName, "Wordcloud", fileStream)
+			.content(message)
+			.build();
 	}
 }

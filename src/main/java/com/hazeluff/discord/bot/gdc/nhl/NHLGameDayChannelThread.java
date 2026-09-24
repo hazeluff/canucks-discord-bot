@@ -70,7 +70,6 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 		try {
 			String channelName = game.getNiceName();
 			Predicate<TextChannel> channelMatcher = c -> c.getName().equalsIgnoreCase(channelName);
-			Category category = nhlBot.getGdcCategoryManager().get(guild);
 			if (!DiscordManager.getTextChannels(guild).stream().anyMatch(channelMatcher)) {
 				if (game.getGameState().isFinished()) {
 					return null;
@@ -78,6 +77,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
 				channelSpecBuilder.name(channelName);
 				channelSpecBuilder.topic(preferences.getCheer());
+				Category category = nhlBot.getGdcCategoryManager().get(guild);
 				if (category != null) {
 					channelSpecBuilder.parentId(category.getId());
 				}
@@ -86,6 +86,7 @@ public class NHLGameDayChannelThread extends NHLGameDayThread {
 				LOGGER.debug("Channel [" + channelName + "] already exists in [" + guild.getName() + "]");
 				channel = DiscordManager.getTextChannels(guild).stream().filter(channelMatcher).findAny().orElse(null);
 
+				Category category = nhlBot.getGdcCategoryManager().get(guild);
 				if (category != null && !channel.getCategoryId().isPresent()) {
 					DiscordManager.moveChannel(category, channel);
 				}

@@ -13,6 +13,7 @@ import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 public class GuildPreferences {
 	private Set<Team> teams;
+	private Long gdcCategoryId;
 	private Long gdcChannelId;
 	private Long playoffChannelId;
 	private Long ahlChannelId;
@@ -22,14 +23,18 @@ public class GuildPreferences {
 
 	public GuildPreferences() {
 		this.teams = new HashSet<>();
+		gdcCategoryId = null;
 		gdcChannelId = null;
 		playoffChannelId = null;
+		ahlChannelId = null;
+		wordcloudChannelId = null;
 		useChannelThreads = false;
 	}
 
-	private GuildPreferences(Set<Team> teams, Long gdcChannelId, Long playoffChannelId, Long ahlChannelId,
-		Long wordcloudChannelId, boolean useThreads) {
+	private GuildPreferences(Set<Team> teams, Long gdcCategoryId, Long gdcChannelId, Long playoffChannelId,
+		Long ahlChannelId, Long wordcloudChannelId, boolean useThreads) {
 		this.teams = teams;
+		this.gdcCategoryId = gdcCategoryId;
 		this.gdcChannelId = gdcChannelId;
 		this.playoffChannelId = playoffChannelId;
 		this.ahlChannelId = ahlChannelId;
@@ -46,13 +51,14 @@ public class GuildPreferences {
 			teams = new HashSet<>();
 		}
 
+		Long gdcCategoryId = doc.getLong("gdcCategoryId");
 		Long gdcChannelId = doc.getLong("gdcChannelId");
 		Long playoffChannelId = doc.getLong("playoffChannelId");
-		Long ahlChannelId = doc.getLong("playoffChannelId");
-		Long wordcloudChannelId = doc.getLong("playoffChannelId");
+		Long ahlChannelId = doc.getLong("ahlChannelId");
+		Long wordcloudChannelId = doc.getLong("wordcloudChannelId");
 		boolean useThreads = doc.getBoolean("useChannelThreads", false);
 
-		return new GuildPreferences(teams, gdcChannelId, playoffChannelId, ahlChannelId, wordcloudChannelId,
+		return new GuildPreferences(teams, gdcCategoryId, gdcChannelId, playoffChannelId, ahlChannelId, wordcloudChannelId,
 			useThreads);
 	}
 
@@ -91,6 +97,14 @@ public class GuildPreferences {
 
 	public void setPlayoffChannelId(Long channelId) {
 		this.playoffChannelId = channelId;
+	}
+
+	public Long getGDCCategoryId() {
+		return gdcCategoryId;
+	}
+
+	public void setGDCCategoryId(Long categoryId) {
+		this.gdcCategoryId = categoryId;
 	}
 
 	public Long getGameDayChannelId() {

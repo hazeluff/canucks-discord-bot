@@ -313,14 +313,16 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		/*
 		 * Conference Finals
 		 */
-		PlayoffSeries scfSeries = playoffBracket.get("O");
-		StringBuilder scfStr = new StringBuilder();
-		if (scfSeries.hasParticipant()) {
-			appendSeriesToStr(scfStr, scfSeries);
-		} else {
-			scfStr = new StringBuilder("Currently, no team has clinched.");
+		if (playoffBracket.containsKey("O")) {
+			PlayoffSeries scfSeries = playoffBracket.get("O");
+			StringBuilder scfStr = new StringBuilder();
+			if (scfSeries.hasParticipant()) {
+				appendSeriesToStr(scfStr, scfSeries);
+			} else {
+				scfStr = new StringBuilder("Currently, no team has clinched.");
+			}
+			embedBuilder.addField("Stanley Cup Finals", scfStr.toString(), false);
 		}
-		embedBuilder.addField("Stanley Cup Finals", scfStr.toString(), false);
 		return embedBuilder.build();
 	}
 	

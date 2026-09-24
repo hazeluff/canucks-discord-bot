@@ -114,6 +114,7 @@ public class PreferencesData extends DatabaseManager {
 			.append("teams", pref.getTeams().stream()
 				.map(preferedTeam -> preferedTeam.getId())
 				.collect(Collectors.toList()))
+			.append("gdcCategoryId", pref.getGDCCategoryId())
 			.append("gdcChannelId", pref.getGameDayChannelId())
 			.append("playoffChannelId", pref.getPlayoffChannelId())
 			.append("ahlChannelId", pref.getAHLChannelId())

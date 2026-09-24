@@ -75,10 +75,10 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 		} finally {
 			if (channel == null) {
 				LOGGER.warn("Channel not found/error.");
-				Category category = nhlBot.getNHLBotCategoryManager().get(guild);
 				TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
 				channelSpecBuilder.name(CHANNEL_NAME);
 				channelSpecBuilder.topic("Thank you for using! - Hazeluff");
+				Category category = nhlBot.getNHLBotCategoryManager().get(guild);
 				if (category != null) {
 					channelSpecBuilder.parentId(category.getId());
 				}

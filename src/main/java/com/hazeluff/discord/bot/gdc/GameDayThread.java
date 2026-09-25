@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.channel.gdc.GDCMeta;
 import com.hazeluff.discord.bot.discord.DiscordManager;
@@ -281,49 +280,54 @@ public abstract class GameDayThread extends InterruptableThread {
 		"No dooming.",
 		"Mods are not asleep.",
 		"Never Day Sie Team!",
-		"Be nice to each other."
+		"Be nice to each other.",
+		"Welcome to Shorty's wild ride!"
 	);
 
 	protected static final List<String> KEYS_TO_GAME = Arrays.asList(
 		"Speed, Agility, Power", 
 		"Get pucks deep", 
 		"Get shots on net", 
-		"Finish hits", 
+		"Finish hits",
 		"Playing our own game", 
 		"Applying pressure",
 		"Play a complete 60 minute game",
 		"Get a good start",
-		"Block shots"
+		"Block shots",
+		"Trust our goalie",
+		"Rely on our stars",
+		"Rely on our depth",
+		"Pressure hard",
+		"Play a north-south game",
+		"Play a east-west game",
+		"Quick passes",
+		"Complete our passes",
+		"Keep feet moving",
+		"Be hard to play against",
+		"Put more goals in their net than they put in ours."
 	);
 
 	protected static final List<String> TEAM_DESCRIPTIONS = Arrays.asList(
 		"Good", "Bad", "Not Ok", "Ok", "Hanging On", "Dead Inside", "Despsarate", "Sucky", "Stimky", "Dieing",
-		"Trying", "still owned by Aqua", "Mid", "Average", "Acceptable", "Unaceptable", "Exciting"
+		"Trying", "still owned by Aqua", "Mid", "Average", "Acceptable", "Unaceptable", "Exciting", "Getting Better"
 	);
 
 	protected static final List<String> GAME_RESULTS = Arrays.asList(
-		"Win", "Loss", "OTL", "SO Loss", "Misery",
-		"Dispointment", "Funtime", "Excitement", "Chaos", "SHUTOUT Win", "Injury", "Ref Contraversy",
-		"Getting Rekt", "Comeback", "Shootout Win"
+		"Win", "Loss", "OTL", "OT Win", "SO Win", "SO Loss", "Misery", "Dispointment", "Funtime", "Excitement", "Chaos",
+		"SHUTOUT Win", "Injury", "Ref Controversy", "Comeback"
 	);
 
 	protected static final List<String> SPONSORS = Arrays.asList(
 		"Hazeluff", "Tooo", "Aleks", "Khan", "The Devil", "Hockey Night In Canada", "PlayBetKings365Now",
 		"LIVE SPORTS! ESPN+ ORIGINALS!\n-# THE EXCLUSIVE HOME OF THE COMPLETE 30 FOR 30 LIBRARY!",
 		"Mountain Dew Game Fuel + Doritos", "Your Tax Dollars", "Your Nitro Boosts! Boost TODAY (and forever)!",
-		"Your Hopes and Dreams", "Robux", "Vbucks", "Bitcoin", "NFTs"
+		"Your Hopes, and Dreams", "Robux", "VBucks", "Bitcoin", "NFTs", "Build Canada", "Copium"
 	);
 
 	protected static final String START_OF_GAME_MSG = "Game is about to start!";
 
 	protected String buildStartOfGameMessage() {
 		String baseMessage = START_OF_GAME_MSG + "\n";
-
-		// Date specific message
-		String dayMessage = Config.GetCustomGDCStartMessage();
-		if (dayMessage != null) {
-			return baseMessage + dayMessage;
-		}
 		
 		// Get a random message
 		int rndIdx = Utils.getRandomInt(START_OF_GAME_MESSAGES.size());

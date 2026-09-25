@@ -189,12 +189,10 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	 */
 	@Override
 	protected String buildStartOfGameMessage() {
-		String baseMessage = START_OF_GAME_MSG + "\n";
-
 		// Game ID specific message
-		String idMessage = Config.GetCustomGDCStartMessage(game);
+		String idMessage = Config.getCustomGDCStartMessage(game);
 		if (idMessage != null) {
-			return baseMessage + idMessage;
+			return START_OF_GAME_MSG + "\n" + idMessage;
 		}
 
 		return super.buildStartOfGameMessage();

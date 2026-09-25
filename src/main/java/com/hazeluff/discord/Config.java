@@ -90,23 +90,11 @@ public class Config {
 		"As for me, I like the team."
 	);
 
-	public static String GetCustomGDCStartMessage(NHLGame game) {
+	public static String getCustomGDCStartMessage(NHLGame game) {
 		switch (game.getGameId()) {
 		case 2025021188:
 			return "# NYAAAAA~";
 		}
-		return null;
-	}
-
-	public static String GetCustomGDCStartMessage() {
-		/*
-		// April Fools
-		LocalDate today = LocalDate.now(SERVER_ZONE);
-		if (today.getMonthValue() == 4 && today.getDayOfMonth() == 1)
-		{
-			return "# April Fools! You're watching the Canucks!";
-		}
-		*/
 		return null;
 	}
 

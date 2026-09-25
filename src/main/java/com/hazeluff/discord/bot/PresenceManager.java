@@ -69,10 +69,10 @@ public class PresenceManager extends InterruptableThread {
 		}
 		if (currentGame != null) {
 			long gameTimeDiff = DateUtils.diffHours(ZonedDateTime.now(), currentGame.getStartTime());
-			if (gameTimeDiff > 0 && gameTimeDiff < 12) {
+			if (gameTimeDiff > -3 && gameTimeDiff < 12) {
 				Team oppTeam = currentGame.getOppossingTeam(team);
 				if (oppTeam != null) {
-					status = String.format("Gameday in %s. ", currentGame.getNiceName());
+					status = String.format("Gameday in #%s. ", currentGame.getNiceName());
 				}
 			}
 		}

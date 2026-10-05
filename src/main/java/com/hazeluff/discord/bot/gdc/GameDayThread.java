@@ -348,7 +348,9 @@ public abstract class GameDayThread extends InterruptableThread {
 			int theirGoals = Utils.getRandomInt(10);
 			if(theirGoals == ourGoals)
 				ourGoals += 1;
-			String resultType = Utils.getRandom(Arrays.asList("Regulation", "Overttime", "OT/SO"));
+			String resultType = Math.abs(ourGoals - theirGoals) == 1
+				? Utils.getRandom(Arrays.asList("Regulation", "Overttime", "Shootout"))
+				: "Regulation";
 			String result = (ourGoals > theirGoals ? "Win" : "Loss");
 			message = String.format(message, ourGoals, theirGoals, resultType, result);
 		case 4:

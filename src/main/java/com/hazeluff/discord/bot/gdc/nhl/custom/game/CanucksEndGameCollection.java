@@ -29,6 +29,7 @@ public class CanucksEndGameCollection extends CustomGameMessage.Collection {
 		win("https://cdn.discordapp.com/attachments/1170084611422949396/1549129879725805658/meme_win.png");
 		win("https://cdn.discordapp.com/attachments/1170084611422949396/1549129880078254190/thg_boeser.png");
 		win("https://cdn.discordapp.com/attachments/1170084611422949396/1549141034456453241/logo_2025.gif");
+		win("https://cdn.discordapp.com/attachments/1170084611422949396/1556471261696368640/canucks_win_skate_26.gif");
 
 		// Lose
 		lose("https://cdn.discordapp.com/attachments/1170084611422949396/1171226314477424820/petey_shake_head.gif"); // Petey shake head

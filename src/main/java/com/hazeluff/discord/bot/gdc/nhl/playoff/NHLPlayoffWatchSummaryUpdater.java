@@ -267,8 +267,9 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 	protected EmbedCreateSpec getSummaryEmbedSpec() {
 		Map<String, PlayoffSeries> playoffBracket = nhlBot.getPlayoffBracketFetcher().getPlayoffBracket();
 		EmbedCreateSpec.Builder embedBuilder = EmbedCreateSpec.builder();
-		
 		embedBuilder.title("Stanley Cup Playoffs - " + Config.NHL_CURRENT_SEASON.getEndYear());
+		
+		boolean roundEmpty = false;
 		
 		/*
 		 * Round 1
@@ -278,8 +279,14 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 			if (series.getSeriesAbbrev().equals("R1") && series.hasParticipant())
 				appendSeriesToStr(r1Str, series);
 		}
+		if (r1Str.length() == 0) {
+			r1Str = new StringBuilder("Currently, no team has clinched.");
+			roundEmpty = true;
+		}
 		embedBuilder.addField("Round 1", r1Str.toString(), false);
 		
+		if (roundEmpty)
+			return embedBuilder.build();
 		/*
 		 * Round 2
 		 */
@@ -290,39 +297,43 @@ public class NHLPlayoffWatchSummaryUpdater extends Thread {
 		}
 		if (r2Str.length() == 0) {
 			r2Str = new StringBuilder("Currently, no team has clinched.");
+			roundEmpty = true;
 		}
 		embedBuilder.addField("Round 2", r2Str.toString(), false);
 
+		if (roundEmpty)
+			return embedBuilder.build();
 		/*
 		 * Conference Finals
 		 */
 		StringBuilder cfStr = new StringBuilder();
 		for (PlayoffSeries series : playoffBracket.values()) {
-			switch (series.getSeriesLetter()) {
-			case "M":
-			case "N":
-				if (series.hasParticipant())
-					appendSeriesToStr(cfStr, series);
-			}
+			if (series.getSeriesAbbrev().equals("CF") && series.hasParticipant())
+				appendSeriesToStr(cfStr, series);
 		}
 		if (cfStr.length() == 0) {
 			cfStr = new StringBuilder("Currently, no team has clinched.");
+			roundEmpty = true;
 		}
 		embedBuilder.addField("Conference Finals", cfStr.toString(), false);
 
+		if (roundEmpty)
+			return embedBuilder.build();
 		/*
 		 * Conference Finals
 		 */
+		StringBuilder scfStr = new StringBuilder();
 		if (playoffBracket.containsKey("O")) {
 			PlayoffSeries scfSeries = playoffBracket.get("O");
-			StringBuilder scfStr = new StringBuilder();
 			if (scfSeries.hasParticipant()) {
 				appendSeriesToStr(scfStr, scfSeries);
 			} else {
 				scfStr = new StringBuilder("Currently, no team has clinched.");
 			}
-			embedBuilder.addField("Stanley Cup Finals", scfStr.toString(), false);
+		} else {
+			scfStr = new StringBuilder("Currently, no team has clinched.");
 		}
+		embedBuilder.addField("Stanley Cup Finals", scfStr.toString(), false);
 		return embedBuilder.build();
 	}
 	

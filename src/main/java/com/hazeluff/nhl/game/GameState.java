@@ -10,6 +10,7 @@ public enum GameState {
 	FUTURE("FUT"), PREGAME("PRE"), LIVE("LIVE"), 
 	CRIT("CRIT"), // OT/SO
 	FINAL("FINAL"),
+	OVER("OVER"),
 	OFF("OFF"); // "Official"?.
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameState.class);

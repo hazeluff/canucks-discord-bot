@@ -74,6 +74,10 @@ public class GuildPreferences {
 		teams.remove(team);
 	}
 
+	public void clearTeams() {
+		teams.clear();
+	}
+
 	public String getCheer() {
 		if (teams.size() > 1) {
 			return Team.MULTI_TEAM_CHEER;
@@ -125,6 +129,17 @@ public class GuildPreferences {
 
 	public boolean isUseChannelThreads() {
 		return useChannelThreads;
+	}
+
+	public Document toDocument() {
+		return new Document()
+			.append("teams", getTeams().stream()
+				.map(preferedTeam -> preferedTeam.getId())
+				.collect(Collectors.toList()))
+			.append("gdcCategoryId", getGDCCategoryId())
+			.append("gdcChannelId", getGameDayChannelId())
+			.append("playoffChannelId", getPlayoffChannelId())
+			.append("ahlChannelId", getAHLChannelId());
 	}
 
 	@Override

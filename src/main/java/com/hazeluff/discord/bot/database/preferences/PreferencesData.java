@@ -2,7 +2,6 @@ package com.hazeluff.discord.bot.database.preferences;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.slf4j.Logger;
@@ -74,11 +73,7 @@ public class PreferencesData extends DatabaseManager {
 	 */
 	public void subscribeGuild(long guildId, Team team) {
 		LOGGER.info("Subscribing guild to team. guildId={}, team={}", guildId, team);
-		if (!guildPreferences.containsKey(guildId)) {
-			guildPreferences.put(guildId, new GuildPreferences());
-		}
-
-		guildPreferences.get(guildId).addTeam(team);
+		getGuildPreferences(guildId).addTeam(team);
 
 		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId));
 	}
@@ -93,13 +88,13 @@ public class PreferencesData extends DatabaseManager {
 	 */
 	public void unsubscribeGuild(long guildId, Team team) {
 		LOGGER.info("Unsubscribing guild from team. guildId={} team={}", guildId, team);
-
-		if (!guildPreferences.containsKey(guildId) || team == null) {
-			guildPreferences.put(guildId, new GuildPreferences());
-		}
+		GuildPreferences pref = getGuildPreferences(guildId);
 
 		if (team != null) {
-			guildPreferences.get(guildId).removeTeam(team);
+			pref.removeTeam(team);
+		}
+		else {
+			pref.clearTeams();
 		}
 
 		saveToCollection(getCollection(), guildId, guildPreferences.get(guildId));
@@ -110,20 +105,9 @@ public class PreferencesData extends DatabaseManager {
 	}
 
 	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, GuildPreferences pref) {
-		Document prefDoc = new Document()
-			.append("teams", pref.getTeams().stream()
-				.map(preferedTeam -> preferedTeam.getId())
-				.collect(Collectors.toList()))
-			.append("gdcCategoryId", pref.getGDCCategoryId())
-			.append("gdcChannelId", pref.getGameDayChannelId())
-			.append("playoffChannelId", pref.getPlayoffChannelId())
-			.append("ahlChannelId", pref.getAHLChannelId())
-			.append("wordcloudChannelId", pref.getWordcloudChannelId())
-			.append("useChannelThreads", pref.isUseChannelThreads());
-
 		guildCollection.updateOne(
 			new Document("id", guildId),
-			new Document("$set", prefDoc), 
+			new Document("$set", pref.toDocument()), 
 			new UpdateOptions().upsert(true)
 		);
 	}

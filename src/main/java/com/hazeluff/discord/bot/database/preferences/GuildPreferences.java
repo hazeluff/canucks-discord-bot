@@ -25,8 +25,8 @@ public class GuildPreferences {
 		gdcCategoryId = null;
 		this.gdcChannelId = null;
 		this.playoffChannelId = null;
-		this.gdcMode = null;
-		this.playoffMode = null;
+		this.gdcMode = GDCMode.SING_CHNL_W_THRD;
+		this.playoffMode = PlayoffMode.OFF;
 	}
 
 	private GuildPreferences(Set<Team> teams, Long gdcCategoryId, Long gdcChannelId, Long playoffChannelId,
@@ -53,7 +53,7 @@ public class GuildPreferences {
 		Long playoffChannelId = doc.getLong("playoffChannelId");
 		Long ahlChannelId = doc.getLong("ahlChannelId");
 		boolean useThreads = doc.getBoolean("useChannelThreads", false);
-		GDCMode gdcMode = GDCMode.parse(doc.getInteger("gdcMode", 0));
+		GDCMode gdcMode = GDCMode.parse(doc.getInteger("gdcMode", 2));
 		PlayoffMode playoffMode = PlayoffMode.parse(doc.getInteger("playoffMode", 0));
 
 		if (gdcMode == null) {
@@ -78,6 +78,10 @@ public class GuildPreferences {
 
 	public void removeTeam(Team team) {
 		teams.remove(team);
+	}
+
+	public void clearTeams() {
+		teams.clear();
 	}
 
 	public String getCheer() {
@@ -139,6 +143,19 @@ public class GuildPreferences {
 
 	public Long getAHLChannelId() {
 		return ahlChannelId;
+	}
+
+	public Document toDocument() {
+		return new Document()
+			.append("teams", getTeams().stream()
+				.map(preferedTeam -> preferedTeam.getId())
+				.collect(Collectors.toList()))
+			.append("gdcCategoryId", getGDCCategoryId())
+			.append("gdcChannelId", getGameDayChannelId())
+			.append("playoffChannelId", getPlayoffChannelId())
+			.append("ahlChannelId", getAHLChannelId())
+			.append("gdcMode", getGDCMode().getId())
+			.append("playoffMode", getPlayoffMode().getId());
 	}
 
 	@Override

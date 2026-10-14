@@ -2,7 +2,6 @@ package com.hazeluff.discord.bot.database.preferences;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.slf4j.Logger;
@@ -76,8 +75,7 @@ public class PreferencesData extends DatabaseManager {
 	 *            team to subscribe to
 	 */
 	public GuildPreferences subscribeGuild(long guildId, Team team) {
-		LOGGER.info("Subscribing guild to team. guildId={}, team={}", guildId, team);
-		GuildPreferences pref = getPreferences(guildId);
+		GuildPreferences pref = getOrCreatePreferences(guildId);
 
 		pref.addTeam(team);
 
@@ -96,10 +94,13 @@ public class PreferencesData extends DatabaseManager {
 	 */
 	public GuildPreferences unsubscribeGuild(long guildId, Team team) {
 		LOGGER.info("Unsubscribing guild from team. guildId={} team={}", guildId, team);
-		GuildPreferences pref = getPreferences(guildId);
+		GuildPreferences pref = getOrCreatePreferences(guildId);
 
 		if (team != null) {
 			pref.removeTeam(team);
+		}
+		else {
+			pref.clearTeams();
 		}
 
 		savePreferences(guildId, pref);
@@ -107,7 +108,7 @@ public class PreferencesData extends DatabaseManager {
 		return pref;
 	}
 
-	private GuildPreferences getPreferences(Long guildId) {
+	private GuildPreferences getOrCreatePreferences(Long guildId) {
 		if (!guildPreferences.containsKey(guildId)) {
 			guildPreferences.put(guildId, new GuildPreferences());
 		}
@@ -120,21 +121,15 @@ public class PreferencesData extends DatabaseManager {
 	}
 
 	static void saveToCollection(MongoCollection<Document> guildCollection, long guildId, GuildPreferences pref) {
-		Document prefDoc = new Document()
-			.append("teams", pref.getTeams().stream()
-				.map(preferedTeam -> preferedTeam.getId())
-				.collect(Collectors.toList()))
-			.append("gdcCategoryId", pref.getGDCCategoryId())
-			.append("gdcChannelId", pref.getGameDayChannelId())
-			.append("playoffChannelId", pref.getPlayoffChannelId())
-			.append("ahlChannelId", pref.getAHLChannelId())
-			.append("gdcMode", pref.getGDCMode().getId())
-			.append("playoffMode", pref.getPlayoffMode().getId());
-
-		guildCollection.updateOne(
-			new Document("id", guildId),
-			new Document("$set", prefDoc), 
-			new UpdateOptions().upsert(true));
+		try {
+			guildCollection.updateOne(
+				new Document("id", guildId),
+				new Document("$set", pref.toDocument()), 
+				new UpdateOptions().upsert(true));
+		} catch (Exception e) {
+			String msg = String.format("Failed to save collection: guildId=%s, pref=%s", guildId, pref.toString());
+			LOGGER.warn(msg, e);
+		}
 	}
 
 	Map<Long, GuildPreferences> getGuildPreferences() {

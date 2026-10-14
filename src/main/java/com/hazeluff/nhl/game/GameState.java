@@ -10,6 +10,7 @@ public enum GameState {
 	FUTURE("FUT"), PREGAME("PRE"), LIVE("LIVE"), 
 	CRIT("CRIT"), // OT/SO
 	FINAL("FINAL"),
+	OVER("OVER"),
 	OFF("OFF"); // "Official"?.
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GameState.class);
@@ -48,6 +49,7 @@ public enum GameState {
 	public boolean isLive() {
 		switch (this) {
 		case LIVE:
+		case OVER:
 		case CRIT:
 			return true;
 		default:
@@ -58,6 +60,7 @@ public enum GameState {
 	public boolean isFinished() {
 		switch (this) {
 		case FINAL:
+		case OVER:
 		case OFF:
 			return true;
 		default:

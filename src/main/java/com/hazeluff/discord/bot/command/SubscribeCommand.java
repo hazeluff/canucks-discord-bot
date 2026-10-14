@@ -5,10 +5,13 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -23,6 +26,7 @@ import discord4j.discordjson.json.ApplicationCommandRequest;
  * Subscribes guilds to a team.
  */
 public class SubscribeCommand extends Command {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SubscribeCommand.class);
 
 	static final String NAME = "subscribe";
 
@@ -51,13 +55,14 @@ public class SubscribeCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		Guild guild = getGuild(event);
+		String strTeam = getOptionAsString(event, "team");
+		LOGGER.info("Subscribing guild to team. guildId={}, team={}", guild.getId().asLong(), strTeam);
+
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!hasPrivilege(guild, user)) {
 			return event.reply(MUST_HAVE_PERMISSIONS_MESSAGE);
 
 		}
-
-		String strTeam = getOptionAsString(event, "team");
 
 		if (!Team.isValid(strTeam)) {
 			return event.reply(getInvalidTeamCodeMessage(strTeam)).withEphemeral(true);
@@ -90,25 +95,22 @@ public class SubscribeCommand extends Command {
 		// Update preferences
 		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().subscribeGuild(guildId, team);
 
-		// #game-day-watch
-		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
-		if (channel == null) {
-			channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
-		} else {
-			channel.updateGameThreads(pref);
-		}
-
-		// Dev-only (channel-per-game)
-		/*
-		if (Config.isDevGuild(guildId)) {
-			NHLGdcGuildManager manager = NHLGdcGuildManager.getManager(guildId);
-			if (manager == null) {
-				manager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
-			} else if (manager != null) {
-				manager.updateChannels(pref);
+		if (pref.getGDCMode().isSingleChannel()) {
+			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
+			if (channel == null) {
+				channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
+			} else {
+				channel.updateGameThreads(pref);
 			}
 		}
-		*/
+		else if (pref.getGDCMode().isIndvidualChannels()) {
+			NHLGdcGuildManager gdcManager = NHLGdcGuildManager.getManager(guildId);
+			if (gdcManager == null) {
+				gdcManager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
+			} else {
+				gdcManager.updateChannels(pref);
+			}
+		}
 	}
 
 	String buildSubscribedMessage(Guild guild, Team team) {

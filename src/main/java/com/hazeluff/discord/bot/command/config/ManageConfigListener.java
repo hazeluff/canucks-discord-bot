@@ -74,6 +74,8 @@ public class ManageConfigListener extends EventListener {
 		Long guildId = guild.getId().asLong();
 		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().getGuildPreferences(guildId);
 		GDCMode currentGDCMode = pref.getGDCMode();
+		LOGGER.info("Changing GDC Mode. guildId={}, gdcMode={}, currentGDCMode={}", 
+			guild.getId().asLong(), gdcMode, currentGDCMode);
 
 		// No difference in preferences.
 		if (currentGDCMode == gdcMode)

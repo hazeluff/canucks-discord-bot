@@ -51,6 +51,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 
 	private final NHLBot nhlBot;
 	private final Guild guild;
+	private final long guildId;
 	// Map<GamePk, GameDayChannel>
 	private final Map<Integer, NHLGameDayChannelThread> gameDayChannels;
 
@@ -81,6 +82,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	private NHLGdcGuildManager(NHLBot nhlBot, Guild guild) {
 		this.nhlBot = nhlBot;
 		this.guild = guild;
+		this.guildId = guild.getId().asLong();
 		gameDayChannels = new ConcurrentHashMap<>();
 	}
 
@@ -108,6 +110,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 
 	@Override
 	public void run() {
+		setName(String.valueOf(guildId));
 		LOGGER.info("GameDayChannelsManager Thread started.");
 		LocalDate lastUpdate = null;
 		while (!isStop()) {
@@ -117,7 +120,6 @@ public class NHLGdcGuildManager extends InterruptableThread {
 					LOGGER.info("Waiting for GameScheduler to initialize...");
 					sleepFor(INIT_UPDATE_RATE);
 				} else if (lastUpdate == null || schedulerUpdate.compareTo(lastUpdate) > 0) {
-					LOGGER.info("Updating Channels...");
 					updateChannels();
 					lastUpdate = schedulerUpdate;
 				} else {
@@ -138,9 +140,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	 * @param game
 	 * @param guild
 	 */
-	public NHLGameDayChannelThread createChannel(NHLGame game, Guild guild) {
-		LOGGER.info("Initializing for channel. channelName={}, guild={}",
-				game.getNiceName(), guild.getName());
+	public NHLGameDayChannelThread createChannel(NHLGame game) {
 		int gamePk = game.getGameId();
 		long guildId = guild.getId().asLong();
 
@@ -148,7 +148,7 @@ public class NHLGdcGuildManager extends InterruptableThread {
 		if (gameDayChannel == null) {
 			NHLGameTracker gameTracker = nhlBot.getNHLGameScheduler().getGameTracker(game);
 			if (gameTracker != null) {
-				gameDayChannel = createGameDayChannel(nhlBot, gameTracker, guild);
+				gameDayChannel = createGameDayChannel(nhlBot, gameTracker);
 			} else {
 				LOGGER.error("Could not find GameTracker for game [{}]", game);
 			}
@@ -159,9 +159,8 @@ public class NHLGdcGuildManager extends InterruptableThread {
 		return gameDayChannel;
 	}
 
-	NHLGameDayChannelThread createGameDayChannel(NHLBot nhlBot, NHLGameTracker gameTracker, Guild guild) {
-		LOGGER.info("Creating channel. channelName={}, guild={}",
-				gameTracker.getGame().getNiceName(), guild.getName());
+	NHLGameDayChannelThread createGameDayChannel(NHLBot nhlBot, NHLGameTracker gameTracker) {
+		LOGGER.info("Creating ChannelThread. channelName={}", gameTracker.getGame().getNiceName());
 		NHLGameDayChannelThread channel = NHLGameDayChannelThread.getOrCreate(nhlBot, gameTracker, guild);
 		gameDayChannels.put(gameTracker.getGame().getGameId(), channel);
 		return channel;
@@ -189,15 +188,17 @@ public class NHLGdcGuildManager extends InterruptableThread {
 		try {
 			List<Team> teams = preferences.getTeams();
 			List<NHLGame> activeGames = nhlBot.getNHLGameScheduler().getActiveGames(teams);
-			LOGGER.info("Updating Channels for [{}]: activeGames={}",
-					guild.getId().asLong(),
+			LOGGER.info("Updating Channels for [{}]: activeGames={}", guild.getId().asLong(),
 				activeGames.stream().map(NHLGame::getNiceName).collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
-			for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
-				if (isRemoveChannel(channel, preferences)) {
-					deleteChannel(channel);
-				}
+			List<TextChannel> channels = DiscordManager.getTextChannels(guild);
+			List<TextChannel> channelsToDelete = channels.stream()
+				.filter(channel -> isRemoveChannel(channel, preferences))
+				.collect(Collectors.toList());
+			LOGGER.info("Cleanup Channels: channels={},channelsToDelete={}", channels.size(), channelsToDelete.size());
+			for (TextChannel channel : channelsToDelete) {
+				deleteChannel(channel);
 			}
 
 			for (Entry<Integer, NHLGameDayChannelThread> gdcEntry : gameDayChannels.entrySet()) {
@@ -207,18 +208,10 @@ public class NHLGdcGuildManager extends InterruptableThread {
 
 			// Create game channels of latest game for current subscribed team
 			for (NHLGame game : activeGames) {
-				createChannel(game, guild);
+				createChannel(game);
 			}
 		} catch (Exception e) {
 			LOGGER.warn("Issue updating guild: " + guild.getId().asLong() + "\n" + e.getMessage());
-		}
-	}
-
-	public void removeChannels() {
-		for (TextChannel channel : DiscordManager.getTextChannels(guild)) {
-			if (isRemoveChannel(channel, null)) {
-				deleteChannel(channel);
-			}
 		}
 	}
 
@@ -249,12 +242,6 @@ public class NHLGdcGuildManager extends InterruptableThread {
 
 		// Does not remove channels that does not have the correct name format
 		if (!isChannelNameFormat(channel.getName())) {
-			return false;
-		}
-
-		// Checks if the channel corresponds to a real game
-		if (nhlBot.getNHLGameScheduler().getGameByChannelName(channel.getName()) == null)
-		{
 			return false;
 		}
 

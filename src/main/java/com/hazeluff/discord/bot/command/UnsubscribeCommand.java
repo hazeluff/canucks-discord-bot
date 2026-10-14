@@ -3,10 +3,13 @@ package com.hazeluff.discord.bot.command;
 import java.util.List;
 
 import org.reactivestreams.Publisher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.bot.NHLBot;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.gdc.nhl.NHLGameDayWatchChannel;
+import com.hazeluff.discord.bot.gdc.nhl.NHLGdcGuildManager;
 import com.hazeluff.discord.nhl.NHLTeams.Team;
 import com.hazeluff.discord.utils.InteractionUtils;
 
@@ -24,6 +27,7 @@ import reactor.core.publisher.Mono;
  * Unsubscribes guilds from a team.
  */
 public class UnsubscribeCommand extends Command {
+	private static final Logger LOGGER = LoggerFactory.getLogger(UnsubscribeCommand.class);
 
 	static final String NAME = "unsubscribe";
 
@@ -51,12 +55,13 @@ public class UnsubscribeCommand extends Command {
 	@Override
 	public Publisher<?> onChatCommandInput(ChatInputInteractionEvent event) {
 		Guild guild = getGuild(event);
+		String strTeam = getOptionAsString(event, "team");
+		LOGGER.info("Unsubscribing guild from team. guildId={}, team={}", guild.getId().asLong(), strTeam);
+
 		Member user = event.getInteraction().getMember().orElse(null);
 		if (!hasPrivilege(guild, user)) {
 			return reply(event, MUST_HAVE_PERMISSIONS_MESSAGE);
 		}
-
-		String strTeam = getOptionAsString(event, "team");
 
 		if (strTeam.equalsIgnoreCase("all")) {
 			// Unsubscribe from all teams
@@ -133,28 +138,29 @@ public class UnsubscribeCommand extends Command {
 		GuildPreferences pref = nhlBot.getPersistentData().getPreferencesData().unsubscribeGuild(guildId, team);
 		List<Team> teams = pref.getTeams();
 
-		// #game-day-watch
-		NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
-		if (channel == null && !teams.isEmpty()) {
-			channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
-		} else if (teams.isEmpty()) {
-			NHLGameDayWatchChannel.removeChannel(guildId);
-		} else if (channel != null) {
-			channel.updateGameThreads(pref);
-		}
-		/*
-		// Dev-only (channel-per-game)
-		if (Config.isDevGuild(guildId)) {
-			NHLGdcGuildManager manager = NHLGdcGuildManager.getManager(guildId);
-			if (manager == null && !teams.isEmpty()) {
-				manager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
-			} else if (teams.isEmpty()) {
-				NHLGdcGuildManager.removeManager(guildId);
-			} else if (manager != null) {
-				manager.updateChannels(pref);
+		if (pref.getGDCMode().isSingleChannel()) {
+			NHLGameDayWatchChannel channel = NHLGameDayWatchChannel.getChannel(guildId);
+			if (channel == null && !teams.isEmpty()) {
+				channel = NHLGameDayWatchChannel.getOrCreate(nhlBot, guild);
+			} else if (channel != null) {
+				if (teams.isEmpty()) {
+					NHLGameDayWatchChannel.removeChannel(guildId);
+				} else {
+					channel.updateGameThreads(pref);
+				}
 			}
 		}
-		*/
+		else if (pref.getGDCMode().isIndvidualChannels()) {
+			NHLGdcGuildManager gdcManager = NHLGdcGuildManager.getManager(guildId);
+			if (gdcManager == null && !teams.isEmpty())
+				gdcManager = NHLGdcGuildManager.getAndStart(nhlBot, guild);
+			else if (gdcManager != null) {
+				if (teams.isEmpty())
+					NHLGdcGuildManager.removeManager(guildId);
+				else
+					gdcManager.updateChannels(pref);
+			}
+		}
 	}
 
 	static String buildUnsubscribeMessage(Team team) {

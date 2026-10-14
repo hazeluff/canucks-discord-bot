@@ -47,7 +47,8 @@ public class PresenceManager extends InterruptableThread {
 	}
 
 	private ClientPresence getOnlineStatus() {
-		return buildOnlinePresence(Utils.getRandom(Config.STATUS_MESSAGES));
+		String msg = Utils.getRandom(Config.STATUS_MESSAGES);
+		return buildOnlinePresence(msg);
 	}
 
 	/**
@@ -87,8 +88,9 @@ public class PresenceManager extends InterruptableThread {
 			try {
 				LocalDateTime now = LocalDateTime.now();
 				if (lastUpdateHour == -1 || now.getHour() != lastUpdateHour) {
-					LOGGER.info("Updating Status.");
-					changePresence(getOnlineStatus());
+					ClientPresence status = getOnlineStatus();
+					LOGGER.info("Updating Status. " + status);
+					changePresence(status);
 					lastUpdateHour = now.getHour();
 				} else {
 					sleepFor(UPDATE_RATE);

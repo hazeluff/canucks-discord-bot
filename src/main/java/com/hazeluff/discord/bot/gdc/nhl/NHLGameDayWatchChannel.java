@@ -91,18 +91,25 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 				LOGGER.warn("Problem fetching existing channel.");
 			} finally {
 				if (channel == null) {
-					LOGGER.warn("Channel not found/error.");
-					Category category = nhlBot.getNHLBotCategoryManager().get(guild);
+					LOGGER.warn("Channel not found/error. guildId={}", guildId);
+
 					TextChannelCreateSpec.Builder channelSpecBuilder = TextChannelCreateSpec.builder();
 					channelSpecBuilder.name(CHANNEL_NAME);
 					channelSpecBuilder.topic("Thank you for using! - Hazeluff");
+					Category category = nhlBot.getNHLBotCategoryManager().get(guild);
 					if (category != null) {
 						channelSpecBuilder.parentId(category.getId());
 					}
+
 					channel = DiscordManager.createAndGetChannel(guild, channelSpecBuilder.build());
 					if (channel != null) {
+						LOGGER.info("Channel created. guildId={},channel={}", guildId, channel.getId().asLong());
 						pref.setGameDayChannelId(channel.getId().asLong());
 						nhlBot.getPersistentData().getPreferencesData().savePreferences(guildId, pref);
+					}
+					else
+					{
+						LOGGER.error("Failed to create Channel. guildId={}", guildId);
 					}
 				}
 			}
@@ -118,6 +125,7 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 	}
 
 	public static void removeChannel(Long guildId) {
+		LOGGER.warn("Remove Guild. guildId={}", guildId);
 		NHLGameDayWatchChannel channel = channels.remove(guildId);
 		if(channel != null) {
 			channel.interrupt();
@@ -156,6 +164,7 @@ public class NHLGameDayWatchChannel extends InterruptableThread {
 				sleepFor(UPDATE_RATE);
 			}
 		}
+		LOGGER.warn("Thread completed.");
 	}
 
 	public void update() {

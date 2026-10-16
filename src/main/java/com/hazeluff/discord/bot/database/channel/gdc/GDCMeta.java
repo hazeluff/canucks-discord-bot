@@ -170,10 +170,10 @@ public class GDCMeta {
 	public void setGoalMessageIds(Map<Integer, Long> goalMessages) {
 		BsonDocument doc = new BsonDocument();
 		doc.putAll(goalMessages.entrySet().stream()
-				.collect(Collectors.toMap(
-						e -> String.valueOf(e.getKey()),
-						e -> new BsonInt64(e.getValue())
-				))
+			.collect(Collectors.toMap(
+					e -> String.valueOf(e.getKey()),
+					e -> new BsonInt64(e.getValue())
+			))
 		);
 		strGoalMessages = doc.toJson();
 	}

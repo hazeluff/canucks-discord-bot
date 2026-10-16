@@ -188,11 +188,12 @@ public class NHLGdcGuildManager extends InterruptableThread {
 		try {
 			List<Team> teams = preferences.getTeams();
 			List<NHLGame> activeGames = nhlBot.getNHLGameScheduler().getActiveGames(teams);
-			LOGGER.info("Updating Channels for [{}]: activeGames={}", guild.getId().asLong(),
+			LOGGER.info("Updating Channels: activeGames={}",
 				activeGames.stream().map(NHLGame::getNiceName).collect(Collectors.toList()));
 
 			// Remove channels of outdated/unsubscribed games
 			List<TextChannel> channels = DiscordManager.getTextChannels(guild);
+
 			List<TextChannel> channelsToDelete = channels.stream()
 				.filter(channel -> isRemoveChannel(channel, preferences))
 				.collect(Collectors.toList());
@@ -235,11 +236,6 @@ public class NHLGdcGuildManager extends InterruptableThread {
 	}
 
 	boolean isRemoveChannel(TextChannel channel, GuildPreferences preferences) {
-		// Does not remove channels not in the Game Day Channel Category
-		if (!isInGameDayCategory(channel)) {
-			return false;
-		}
-
 		// Does not remove channels that does not have the correct name format
 		if (!isChannelNameFormat(channel.getName())) {
 			return false;

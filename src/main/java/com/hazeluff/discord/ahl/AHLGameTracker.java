@@ -15,6 +15,7 @@ import com.hazeluff.ahl.game.AHLGame;
 import com.hazeluff.discord.bot.gdc.GameTracker;
 import com.hazeluff.discord.utils.DateUtils;
 import com.hazeluff.discord.utils.InterruptableThread;
+import com.hazeluff.nhl.game.NHLGame;
 
 /**
  * <p>

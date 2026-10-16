@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +86,7 @@ public class AHLGameDayThread extends GameDayThread {
 
 	@Override
 	protected void setThreadName() {
-		setName(game.getNiceName());
+		setName("G:" + StringUtils.abbreviate(guild.getId().asString(), 9) + game.getId());
 	}
 
 	@Override

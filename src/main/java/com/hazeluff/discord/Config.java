@@ -41,6 +41,12 @@ public class Config {
 		public static boolean isAllowFinishedGames() {
 			return loadBool(DEBUG_FINISHED_GAMES, false);
 		}
+
+		private static final String DEBUG_PROD = "debug.prod";
+
+		public static boolean isDebugProd() {
+			return loadBool(DEBUG_PROD, false);
+		}
 	}
 	
 	public static class Deploy {

@@ -46,8 +46,7 @@ public class PresenceManager extends InterruptableThread {
 		nhlBot.getDiscordManager().changePresence(presence);
 	}
 
-	private ClientPresence getOnlineStatus() {
-		String msg = Utils.getRandom(Config.STATUS_MESSAGES);
+	private ClientPresence buildOnlineStatus(String msg) {
 		return buildOnlinePresence(msg);
 	}
 
@@ -88,8 +87,9 @@ public class PresenceManager extends InterruptableThread {
 			try {
 				LocalDateTime now = LocalDateTime.now();
 				if (lastUpdateHour == -1 || now.getHour() != lastUpdateHour) {
-					ClientPresence status = getOnlineStatus();
-					LOGGER.info("Updating Status. " + status);
+					String msg = Utils.getRandom(Config.STATUS_MESSAGES);
+					ClientPresence status = buildOnlineStatus(msg);
+					LOGGER.info("Updating Status. msg={}", msg);
 					changePresence(status);
 					lastUpdateHour = now.getHour();
 				} else {

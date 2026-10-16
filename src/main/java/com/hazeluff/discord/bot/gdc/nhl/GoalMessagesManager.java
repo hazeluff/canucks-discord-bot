@@ -175,6 +175,7 @@ public class GoalMessagesManager {
 
 	private void setMetaGoalMessageIds(Map<Integer, Pair<GoalEvent, Message>> goalMessages) {
 		Map<Integer, Long> message = goalMessages.entrySet().stream()
+			.filter(e -> e.getValue().getValue1() != null)
 			.collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue().getValue1().getId().asLong()));
 		meta.setGoalMessageIds(message);
 	}

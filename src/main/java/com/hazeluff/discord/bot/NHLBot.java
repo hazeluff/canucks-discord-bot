@@ -112,21 +112,38 @@ public class NHLBot extends Thread {
 		// Start Presence/Status updates
 		presenceManager.start();
 
+		List<Guild> guilds = waitForGuildListSync();
+
 		/*
 		 * Setup Categories and Channels
 		 */
-		initCategoriesAndChannels();
+		initCategoriesAndChannels(guilds);
 
 		LOGGER.info("NHLBot completed initialization.");
 	}
 
-	void initCategoriesAndChannels() {
+	List<Guild> waitForGuildListSync() {
+		List<Guild> guilds = getDiscordManager().getGuilds();
+		long guildDatasSize = getDiscordManager().getGuildDatas().size();
+
+		while (guildDatasSize > guilds.size()) {
+			Utils.sleep(5000);
+			LOGGER.info("Waiting for Guild list sync - guilds.size()={}, guildDatas.size()={}",
+				guilds.size(), guildDatasSize);
+			guilds = getDiscordManager().getGuilds();
+		}
+
+		LOGGER.info("Guild List is stable - guilds.size()={}", guilds.size());
+		return guilds;
+	}
+
+	void initCategoriesAndChannels(List<Guild> guilds) {
 		LOGGER.info("Setup discord entities (Categories + Channels).");
 		// Manage WelcomeChannels (Only for my dev servers)
 		initWelcomeChannel();
 
-		initDevServers();
-		initRegularServers();
+		initDevServers(guilds);
+		initRegularServers(guilds);
 	}
 
 	void initPersistentData() {
@@ -226,14 +243,15 @@ public class NHLBot extends Thread {
 				.subscribe(guild -> WelcomeChannel.getOrCreateChannel(this, guild));
 	}
 
-	private void initDevServers() {
+	private void initDevServers(List<Guild> guilds) {
 		LOGGER.info("Initializing Threads and Managers for Dev Servers.");
-		getDiscordManager().getClient().getGuilds()
+		guilds.stream()
 			.filter(Config::isDevGuild)
-			.subscribe(this::initDevServer);
+			.forEach(this::initDevServer);
 	}
 
 	private void initDevServer(Guild guild) {
+		LOGGER.info("Initializing Dev Server. guildId={}", guild.getId().asLong());
 		if (Config.Debug.isDebugAsNonDev()) {
 			initRegularServer(guild);
 		} else {
@@ -244,11 +262,15 @@ public class NHLBot extends Thread {
 		}
 	}
 
-	private void initRegularServers() {
-		LOGGER.info("Initializing Threads and Managers for Regular Servers.");
-		getDiscordManager().getClient().getGuilds()
+	private void initRegularServers(List<Guild> guilds) {
+		List<Guild> regGuilds = guilds.stream()
 			.filter(not(Config::isDevGuild))
-			.subscribe(this::initRegularServer);
+			.collect(Collectors.toList());
+		LOGGER.info("Initializing Threads and Managers for Regular Servers. count={}, guildIds={}",
+			regGuilds.size(),
+			regGuilds.stream().map(guild -> guild.getId().asLong()).collect(Collectors.toList()));
+
+		regGuilds.forEach(this::initRegularServer);
 	}
 
 	private void initRegularServer(Guild guild) {
@@ -310,6 +332,25 @@ public class NHLBot extends Thread {
 	 */
 	public String getNicknameMention() {
 		return "<@!" + getDiscordManager().getId().asString() + ">";
+	}
+
+	/*
+	 * USES PRODUCTION - ONLY USE FOR DEBUG/QUERY
+	 */
+	public void debugProd() {
+		LOGGER.info("DebugProd");
+
+		initPersistentData();
+		List<Guild> guilds = getDiscordManager().getGuilds();
+		LOGGER.info("TEST. gCount={}", guilds.size());
+
+		List<Guild> regGuilds = guilds.stream()
+			.filter(not(Config::isDevGuild))
+			.collect(Collectors.toList());
+		LOGGER.info("TEST. regGCount={}, guildIds={}",
+			regGuilds.size(),
+			regGuilds.stream().map(guild -> guild.getId().asLong()).collect(Collectors.toList()));
+		LOGGER.info("DebugProd completed.");
 	}
 
 	/*

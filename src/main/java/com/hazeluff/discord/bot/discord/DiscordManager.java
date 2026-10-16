@@ -13,6 +13,7 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.PinnedMessageReference;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Category;
+import discord4j.core.object.entity.channel.Channel.Type;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.presence.ClientPresence;
@@ -21,6 +22,7 @@ import discord4j.core.spec.MessageCreateSpec;
 import discord4j.core.spec.MessageEditSpec;
 import discord4j.core.spec.TextChannelCreateSpec;
 import discord4j.core.spec.TextChannelEditSpec;
+import discord4j.discordjson.json.UserGuildData;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -87,6 +89,10 @@ public class DiscordManager {
 
 	public List<Guild> getGuilds() {
 		return block(getClient().getGuilds());
+	}
+
+	public List<UserGuildData> getGuildDatas() {
+		return block(getClient().getRestClient().getGuilds());
 	}
 
 	public Message getMessage(long channelId, long messageId) {
@@ -340,7 +346,8 @@ public class DiscordManager {
 			logNullArgumentsStackTrace("`channelId` was null.");
 			return null;
 		}
-		return block(guild.getChannelById(Snowflake.of(channelId)).cast(TextChannel.class));
+		return block(guild.getChannelById(Snowflake.of(channelId))
+			.map(gc -> gc.getType() == Type.GUILD_TEXT ? (TextChannel) gc : null));
 	}
 
 	public static MessageChannel getMessageChannel(Guild guild, Long channelId) {

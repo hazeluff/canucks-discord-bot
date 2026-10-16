@@ -3,6 +3,7 @@ package com.hazeluff.discord.bot.gdc.nhl;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +66,7 @@ public abstract class NHLGameDayThread extends GameDayThread {
 	 */
 	@Override
 	protected void setThreadName() {
-		setName(game.getNiceName());
+		setName("G:" + StringUtils.abbreviate(guild.getId().asString(), 9) + game.getGameId());
 	}
 
 	@Override

@@ -16,6 +16,18 @@ public class BotRunner {
 		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 
 		/*
+		 * PROD Server Debug/Search
+		 */
+
+		if (Config.Debug.isDebugProd()) {
+			// Do not #start bot.
+			// Without #start the bot will only have Discord Client abilities.
+			NHLBot nhlbot = NHLBot.create(args[0], null, null, null);
+			nhlbot.debugProd();
+			return;
+		}
+
+		/*
 		 * Script Only Deploy/Start
 		 */
 		if (Config.Deploy.isScriptOnly()) {

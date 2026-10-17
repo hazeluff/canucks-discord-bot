@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import com.hazeluff.discord.Config;
 import com.hazeluff.discord.bot.NHLBot;
-import com.hazeluff.discord.bot.channel.GDCCategoryManager;
 import com.hazeluff.discord.bot.database.preferences.GuildPreferences;
 import com.hazeluff.discord.bot.discord.DiscordManager;
 import com.hazeluff.discord.nhl.NHLGameTracker;
@@ -22,7 +21,6 @@ import com.hazeluff.discord.utils.InterruptableThread;
 import com.hazeluff.nhl.game.NHLGame;
 
 import discord4j.core.object.entity.Guild;
-import discord4j.core.object.entity.channel.Category;
 import discord4j.core.object.entity.channel.TextChannel;
 
 /**
@@ -247,11 +245,6 @@ public class NHLGdcGuildManager extends InterruptableThread {
 		}
 
 		return true;
-	}
-
-	public boolean isInGameDayCategory(TextChannel channel) {
-		Category category = DiscordManager.getCategory(channel);
-		return category == null ? false : category.getName().equalsIgnoreCase(GDCCategoryManager.CATEGORY_NAME);
 	}
 
 	/**

@@ -13,7 +13,6 @@ import discord4j.core.object.entity.Message;
 import discord4j.core.object.entity.PinnedMessageReference;
 import discord4j.core.object.entity.User;
 import discord4j.core.object.entity.channel.Category;
-import discord4j.core.object.entity.channel.Channel.Type;
 import discord4j.core.object.entity.channel.MessageChannel;
 import discord4j.core.object.entity.channel.TextChannel;
 import discord4j.core.object.presence.ClientPresence;
@@ -310,32 +309,6 @@ public class DiscordManager {
 		return block(guild.createTextChannel(channelSpec));
 	}
 
-	public static TextChannel getTextChannel(Guild guild, String channelName) {
-
-		if (guild == null) {
-			logNullArgumentsStackTrace("`guild` was null.");
-			return null;
-		}
-
-		if (channelName == null) {
-			logNullArgumentsStackTrace("`spec` was null.");
-			return null;
-		}
-
-		return block(guild.getChannels()
-				.filter(TextChannel.class::isInstance)
-				.filter(txtchnl -> txtchnl.getName().equals(channelName))
-				.take(1)
-				.cast(TextChannel.class)
-				.next()
-		);
-	}
-
-	public static TextChannel getOrCreateTextChannel(Guild guild, String channelName) {
-		TextChannel channel = getTextChannel(guild, channelName);
-		return channel != null ? channel : createAndGetChannel(guild, channelName);
-	}
-
 	public static TextChannel getTextChannel(Guild guild, Long channelId) {
 		if (guild == null) {
 			logNullArgumentsStackTrace("`guild` was null.");
@@ -346,8 +319,7 @@ public class DiscordManager {
 			logNullArgumentsStackTrace("`channelId` was null.");
 			return null;
 		}
-		return block(guild.getChannelById(Snowflake.of(channelId))
-			.map(gc -> gc.getType() == Type.GUILD_TEXT ? (TextChannel) gc : null));
+		return block(guild.getChannelById(Snowflake.of(channelId)).ofType(TextChannel.class));
 	}
 
 	public static MessageChannel getMessageChannel(Guild guild, Long channelId) {
@@ -360,7 +332,7 @@ public class DiscordManager {
 			logNullArgumentsStackTrace("`channelId` was null.");
 			return null;
 		}
-		return block(guild.getChannelById(Snowflake.of(channelId)).cast(MessageChannel.class));
+		return block(guild.getChannelById(Snowflake.of(channelId)).ofType(MessageChannel.class));
 	}
 
 	/**
